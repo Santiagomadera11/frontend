@@ -1,0 +1,16 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo redondeado -->
+  <rect width="200" height="200" rx="30" fill="#c8e6d9" opacity="0.3"/>
+  
+  <!-- Cápsula -->
+  <g transform="translate(100, 100)">
+    <!-- Mitad izquierda de la cápsula (redondeada) -->
+    <path d="M -50 -20 Q -70 -20 -70 0 Q -70 20 -50 20 L 0 20 L 0 -20 L -50 -20" fill="#4db8a8" stroke="none"/>
+    
+    <!-- Mitad derecha de la cápsula (redondeada) -->
+    <path d="M 0 -20 L 50 -20 Q 70 -20 70 0 Q 70 20 50 20 L 0 20 L 0 -20" fill="#7ed4c9" stroke="none"/>
+    
+    <!-- Línea divisoria en el medio -->
+    <line x1="0" y1="-20" x2="0" y2="20" stroke="#4db8a8" stroke-width="2" opacity="0.5"/>
+  </g>
+</svg>

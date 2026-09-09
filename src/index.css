@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- CONFIGURACIÓN GLOBAL --- */
+body {
+  @apply bg-gray-50 text-gray-800 antialiased;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+html {
+  @apply scroll-smooth;
+}
+
+/* --- OPTIMIZAR PARA MÓVILES --- */
+@media (max-width: 640px) {
+  body {
+    @apply text-sm;
+  }
+}
+
+/* --- UTILIDAD: SCROLL INVISIBLE PERO FUNCIONAL --- */
+@layer utilities {
+  /* 1. Ocultar barra en Chrome, Safari, Edge y Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* 2. Ocultar barra en Firefox e IE */
+  .no-scrollbar {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+
+  /* 3. Clase para controlar el overflow en diferentes tamaños */
+  .overflow-x-auto-mobile {
+    @apply overflow-x-auto sm:overflow-x-visible;
+  }
+
+  /* 4. Truncate mejorado para títulos */
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* 5. Utilidades para espacios seguros en dispositivos con notch */
+  .safe-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .safe-left {
+    padding-left: max(1rem, env(safe-area-inset-left));
+  }
+
+  .safe-right {
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  /* 6. Mejora para tablas responsivas */
+  .table-responsive {
+    @apply w-full overflow-x-auto;
+  }
+
+  /* 7. Utilidades de flexbox seguros */
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .flex-between {
+    @apply flex items-center justify-between;
+  }
+}
