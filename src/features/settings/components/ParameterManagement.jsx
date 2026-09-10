@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Plus, Edit, Trash2, Save, X } from "lucide-react";
 import { ConfirmDialog } from "../../../shared/ui/ConfirmDialog.jsx";
+import { ToastNotification } from "../../../shared/ui/ToastNotification";
 import {
   fetchDocumentTypes, createTipoDocumento, updateTipoDocumento, deleteTipoDocumento,
   fetchPaymentMethods, createMetodoPago, updateMetodoPago, deleteMetodoPago,
@@ -304,18 +305,15 @@ const ParameterManagement = ({ user }) => {
         open={confirmConfig.open}
         title={confirmConfig.title}
         message={confirmConfig.message}
+        subMessage=""
+        confirmText="Eliminar"
+        danger
         onCancel={() => setConfirmConfig(c => ({ ...c, open: false }))}
         onConfirm={() => { confirmConfig.onConfirm?.(); setConfirmConfig(c => ({ ...c, open: false })); }}
       />
 
       {notification && (
-        <div className={`fixed bottom-4 left-4 px-4 py-3 rounded-2xl shadow-lg z-50 text-xs font-black uppercase tracking-widest ${
-          notification.type === "success"
-            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-            : "bg-rose-50 text-rose-700 border border-rose-200"
-        }`}>
-          {notification.message}
-        </div>
+        <ToastNotification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />
       )}
     </div>
   );

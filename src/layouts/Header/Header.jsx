@@ -53,9 +53,9 @@ export const Header = ({ onMenuClick }) => {
 
       try {
         const lastSeen = localStorage.getItem('lastSeenNotificationsAt');
-        
-        // Cargar citas
-        const allAppointments = await appointmentService.getAppointments();
+
+        // Cargar citas (filtradas en el servidor desde el último visto)
+        const allAppointments = await appointmentService.getAppointments(lastSeen);
         const newAppointments = allAppointments
           .filter((a) => {
             if (!a.fechaCreacion) return false;
@@ -73,8 +73,8 @@ export const Header = ({ onMenuClick }) => {
             descripcion: `${a.servicio} - ${a.fecha} ${a.hora || ''}`
           }));
 
-        // Cargar pedidos
-        const allOrders = await ordersService.getAll();
+        // Cargar pedidos (filtrados en el servidor desde el último visto)
+        const allOrders = await ordersService.getAll(lastSeen);
         const newOrders = allOrders
           .filter((o) => {
             if (!o.fechaCreacion) return false;

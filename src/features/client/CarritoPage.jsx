@@ -5,16 +5,18 @@ import {
   LS,
   read,
   write,
-  pushNotification,
 } from "../../shared/services/lsService";
 import { getPaymentMethods } from "../settings/services/parameterService";
 import { ToastNotification } from "../../shared/ui/ToastNotification";
 import { ordersService } from "../sales/orders/services/ordersService";
+import { notificationService } from "../../shared/services/notificationService";
 import farmaciaImage from "../../assets/farmacia.avif";
 import { useNavigate } from "react-router-dom";
+import { usePublicProducts } from "../../shared/hooks/usePublicProducts";
 
 const CarritoPage = () => {
   const navigate = useNavigate();
+  const { products: publicProducts } = usePublicProducts();
   const [cartItems, setCartItems] = useState([]);
   const [toast, setToast] = useState(null);
 
@@ -31,11 +33,11 @@ const CarritoPage = () => {
     const onCartUpdated = () => load();
     window.addEventListener(`${LS.CART}_updated`, onCartUpdated);
     return () => window.removeEventListener(`${LS.CART}_updated`, onCartUpdated);
-  }, []);
+  }, [publicProducts]);
 
   function load() {
     const cart = read(LS.CART) || [];
-    const prods = JSON.parse(localStorage.getItem("syspharma_products") || "[]");
+    const prods = publicProducts || [];
     const normalized = (cart || []).map((item) => {
       const p = prods.find((x) => x.id === item.id || x.id === Number(item)) || {};
       return {
@@ -254,12 +256,18 @@ const CarritoPage = () => {
 
                     write(LS.CART, []);
                     setCheckoutOpen(false);
-                    pushNotification({
-                      title: "¡Gracias por tu compra!",
-                      message: "Tu pedido se ha registrado con éxito.",
-                      date: new Date().toISOString(),
-                      path: "/client/mis-pedidos"
-                    });
+                    try {
+                      await notificationService.create({
+                        usuarioId: Number(user.id),
+                        tipo: "compra",
+                        titulo: "¡Gracias por tu compra!",
+                        mensaje: "Tu pedido se ha registrado con éxito.",
+                        path: "/client/mis-pedidos",
+                      });
+                      window.dispatchEvent(new Event("syspharma_notifications_updated"));
+                    } catch (e) {
+                      console.error("Error creando notificación:", e);
+                    }
 
                     window.location.href = "/client/mis-pedidos";
 

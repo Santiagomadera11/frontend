@@ -3,17 +3,19 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Plus, Search, Eye, Edit, Trash2,
   ChevronLeft, ChevronRight, Filter, ShoppingBag,
-  CheckCircle, AlertCircle, X
+  CheckCircle, X
 } from "lucide-react";
 import PurchaseModal from "./components/PurchaseFormModal";
 import { purchaseService } from "./services/purchaseService";
+import { ToastNotification } from "../../../shared/ui/ToastNotification";
+import { ConfirmDialog } from "../../../shared/ui/ConfirmDialog";
 
 export const PurchasesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
   const [compras, setCompras] = useState([]);
   const [estados, setEstados] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -313,35 +315,18 @@ export const PurchasesPage = () => {
         </div>
       )}
 
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
-            <div className="bg-red-50 px-6 py-4 border-b border-red-200 flex items-center gap-3">
-              <AlertCircle size={24} className="text-red-600" />
-              <h3 className="font-bold text-gray-900 text-lg">Eliminar Compra</h3>
-            </div>
-            <div className="p-6">
-              <p className="text-gray-700 text-sm font-medium mb-1">¿Estás seguro de que deseas eliminar</p>
-              <p className="text-gray-900 font-bold text-sm mb-4">la compra {showDeleteConfirm.numeroCompra}?</p>
-              <p className="text-gray-500 text-xs">Esta acción no se puede deshacer.</p>
-            </div>
-            <div className="bg-red-50 border-t border-red-200 p-4 flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(null)}
-                className="flex-1 px-4 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
-              <button onClick={confirmDelete}
-                className="flex-1 px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg flex items-center justify-center gap-2">
-                <Trash2 size={16} /> Eliminar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={!!showDeleteConfirm}
+        title="Eliminar Compra"
+        message={showDeleteConfirm ? `¿Estás seguro de eliminar la compra ${showDeleteConfirm.numeroCompra}?` : ""}
+        confirmText="Eliminar"
+        danger
+        onCancel={() => setShowDeleteConfirm(null)}
+        onConfirm={confirmDelete}
+      />
 
       {notification && (
-        <div className="fixed bottom-4 left-4 bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2 max-w-xs shadow-lg z-40">
-          <CheckCircle size={18} className="text-green-600 flex-shrink-0" />
-          <span className="text-sm text-green-700">{notification.message}</span>
-        </div>
+        <ToastNotification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />
       )}
     </div>
   );

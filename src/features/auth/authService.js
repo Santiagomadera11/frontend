@@ -109,8 +109,6 @@ export const authService = {
   logout: () => {
     storage.remove('syspharma_user');
     storage.remove('syspharma_token');
-    // Limpiar también localStorage
-    localStorage.removeItem('token');
     _permisos = [];
   },
 

@@ -538,10 +538,11 @@ export const SettingsPage = () => {
       {deleteConfirm.show && (
         <ConfirmDialog
           open={deleteConfirm.show}
-          title="Eliminar rol"
-          description={`¿Seguro que deseas eliminar el rol "${deleteConfirm.name}"? Esta acción no se puede deshacer.`}
+          title="Eliminar Rol"
+          message={`¿Seguro que deseas eliminar el rol "${deleteConfirm.name}"?`}
           confirmText="Eliminar"
           cancelText="Cancelar"
+          danger
           onConfirm={confirmDelete}
           onCancel={() => setDeleteConfirm({ show: false, id: null, name: "" })}
         />

@@ -3,8 +3,10 @@ import { ArrowLeft } from "lucide-react";
 import { LS, read, write } from "../../shared/services/lsService";
 import { ToastNotification } from "../../shared/ui/ToastNotification";
 import ProductCardGrid from "./components/ProductCard";
+import { usePublicProducts } from "../../shared/hooks/usePublicProducts";
 
 const FavoritosPage = () => {
+  const { products: publicProducts } = usePublicProducts();
   const [favorites, setFavorites] = useState([]);
   const [toast, setToast] = useState(null);
 
@@ -12,16 +14,14 @@ const FavoritosPage = () => {
     load();
     const onFavUpdated = () => load();
     window.addEventListener(`${LS.FAVORITES}_updated`, onFavUpdated);
-    window.addEventListener(`${LS.PRODUCTS}_updated`, onFavUpdated);
     return () => {
       window.removeEventListener(`${LS.FAVORITES}_updated`, onFavUpdated);
-      window.removeEventListener(`${LS.PRODUCTS}_updated`, onFavUpdated);
     };
-  }, []);
+  }, [publicProducts]);
 
   function load() {
     const fav = read(LS.FAVORITES) || [];
-    const prods = read(LS.PRODUCTS) || [];
+    const prods = publicProducts || [];
     // Map favorites to current product data. Favorites may be stored as IDs or objects.
     const mapped = (fav || []).map((f) => {
       const id = f && typeof f === "object" ? (f.id ?? f) : f;
@@ -58,7 +58,7 @@ const FavoritosPage = () => {
   };
 
   const addToCartAndRemove = (id) => {
-    const prods = read(LS.PRODUCTS) || [];
+    const prods = publicProducts || [];
     const prod = prods.find((p) => p.id === id) || {};
     const stock = prod.stock ?? prod.existencia ?? 0;
     if (stock <= 0) {

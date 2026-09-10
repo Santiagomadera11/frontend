@@ -3,12 +3,14 @@ import React, { useEffect, useState } from "react";
 import { X, Trash2 } from "lucide-react";
 import { expensesService } from "../services/expensesService";
 import { ToastNotification } from "../../../shared/ui/ToastNotification";
+import { ConfirmDialog } from "../../../shared/ui/ConfirmDialog";
 
 export const ExpensesModal = ({ isOpen, onClose }) => {
   const { currentUser } = useCurrentUser();
   const user = currentUser || {};
   const [expenses, setExpenses] = useState([]);
   const [toast, setToast] = useState(null);
+  const [expenseToDelete, setExpenseToDelete] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -28,15 +30,15 @@ export const ExpensesModal = ({ isOpen, onClose }) => {
   };
 
   const handleDeleteExpense = async (id) => {
-    if (window.confirm("¿Anular este gasto?")) {
-      try {
-        await expensesService.delete(id);
-        await loadExpenses();
-        setToast({ message: "Gasto anulado", type: "success", zIndex: 70 });
-      } catch (error) {
-        console.error("Error anulando gasto:", error);
-        setToast({ message: "Error al anular gasto", type: "error", zIndex: 70 });
-      }
+    try {
+      await expensesService.delete(id);
+      await loadExpenses();
+      setToast({ message: "Gasto anulado", type: "success", zIndex: 70 });
+    } catch (error) {
+      console.error("Error anulando gasto:", error);
+      setToast({ message: "Error al anular gasto", type: "error", zIndex: 70 });
+    } finally {
+      setExpenseToDelete(null);
     }
   };
 
@@ -79,7 +81,7 @@ export const ExpensesModal = ({ isOpen, onClose }) => {
                       ${exp.monto.toLocaleString()}
                     </span>
                     <button
-                      onClick={() => handleDeleteExpense(exp.id)}
+                      onClick={() => setExpenseToDelete(exp)}
                       className="bg-red-50 hover:bg-red-100 text-red-600 p-1.5 rounded border border-red-200"
                     >
                       <Trash2 size={14} />
@@ -107,6 +109,16 @@ export const ExpensesModal = ({ isOpen, onClose }) => {
           />
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!expenseToDelete}
+        title="Anular Gasto"
+        message={expenseToDelete ? `¿Anular el gasto de $${(expenseToDelete.monto || 0).toLocaleString()}?` : ""}
+        confirmText="Anular"
+        danger
+        onCancel={() => setExpenseToDelete(null)}
+        onConfirm={() => handleDeleteExpense(expenseToDelete.id)}
+      />
     </div>
   );
 };

@@ -1,17 +1,19 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Search, Plus, Minus, X, Package } from "lucide-react";
 import { productService } from "../../inventory/products/services/productService";
 
 const fmt = (v) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v || 0);
 
-export const ProductsSearchView = ({ cart, onAddProduct, onRemoveProduct, onUpdateQty, primary, primaryLight }) => {
+export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quickQty, setQuickQty] = useState(1);
   const [showModal, setShowModal] = useState(false);
+  const [scanError, setScanError] = useState("");
+  const searchInputRef = useRef(null);
 
   const loadProducts = useCallback(async () => {
     try {
@@ -25,6 +27,11 @@ export const ProductsSearchView = ({ cart, onAddProduct, onRemoveProduct, onUpda
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
+
+  // Foco automático para poder escanear apenas se abre la pantalla de venta
+  useEffect(() => {
+    searchInputRef.current?.focus();
+  }, []);
 
   const filteredProducts = useMemo(() => {
     if (!searchTerm.trim()) return [];
@@ -87,30 +94,78 @@ export const ProductsSearchView = ({ cart, onAddProduct, onRemoveProduct, onUpda
     setSearchTerm("");
     setSelectedProduct(null);
     setSelectedLoteId("");
+    searchInputRef.current?.focus();
+  };
+
+  // Lector de código de barras: escribe el código y envía Enter automáticamente.
+  // Si el código coincide exacto con un producto, se agrega directo (1 unidad,
+  // lote más próximo a vencer) sin pasar por el modal, para que el flujo de
+  // venta sea "escanear y listo".
+  const handleSearchKeyDown = (e) => {
+    if (e.key !== "Enter") return;
+    const term = searchTerm.trim();
+    if (!term) return;
+
+    const match = products.find(
+      (p) => (p.codigoBarras || "").toLowerCase() === term.toLowerCase()
+    );
+    if (!match) return;
+
+    e.preventDefault();
+    setScanError("");
+
+    if (match.stock <= 0) {
+      setScanError(`${match.nombre} no tiene stock disponible`);
+      setSearchTerm("");
+      return;
+    }
+
+    const productLotes = Array.isArray(match.lotes)
+      ? [...match.lotes].filter(l => l.cantidad > 0).sort((a, b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento))
+      : [];
+    const lote = productLotes[0] || null;
+
+    onAddProduct({
+      ...match,
+      loteId: lote ? lote.id : null,
+      numeroLote: lote ? lote.numeroLote : null,
+    }, 1);
+
+    setSearchTerm("");
+    setShowDropdown(false);
+    searchInputRef.current?.focus();
   };
 
   return (
-    <div className="flex-1 flex flex-col gap-4">
+    <div className="h-full flex flex-col gap-3">
       {/* Búsqueda */}
       <div className="relative">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
           <input
+            ref={searchInputRef}
             type="text"
-            placeholder="Buscar producto (nombre, código de barras...)"
+            autoComplete="off"
+            placeholder="Buscar o escanear código de barras..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
               setShowDropdown(e.target.value.trim().length > 0);
+              if (scanError) setScanError("");
             }}
+            onKeyDown={handleSearchKeyDown}
             onFocus={() => searchTerm.trim().length > 0 && setShowDropdown(true)}
-            className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 text-sm"
+            className="w-full pl-9 pr-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500 text-xs"
           />
         </div>
 
+        {scanError && (
+          <p className="text-[11px] text-red-600 font-semibold mt-1">{scanError}</p>
+        )}
+
         {/* Dropdown de Resultados */}
         {showDropdown && filteredProducts.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-40 max-h-96 overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-lg shadow-lg z-40 max-h-80 overflow-y-auto">
             {filteredProducts.map((product) => {
               const sinStock = product.stock === 0;
               return (
@@ -118,27 +173,27 @@ export const ProductsSearchView = ({ cart, onAddProduct, onRemoveProduct, onUpda
                   key={product.id}
                   onClick={() => handleSelectProduct(product)}
                   disabled={sinStock}
-                  className="w-full px-4 py-3 hover:bg-emerald-50 border-b border-gray-100 last:border-0 flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-left"
+                  className="w-full px-3 py-2 hover:bg-emerald-50 border-b border-gray-100 last:border-0 flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-left"
                 >
-                  <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: primaryLight }}>
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: primaryLight }}>
                     {product.imagen ? (
                       <img src={product.imagen} alt={product.nombre} className="w-full h-full object-contain p-1" />
                     ) : (
-                      <Package size={20} style={{ color: primary, opacity: 0.4 }} />
+                      <Package size={16} style={{ color: primary, opacity: 0.4 }} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 truncate text-sm">{product.nombre}</p>
+                    <p className="font-semibold text-gray-900 truncate text-xs">{product.nombre}</p>
                     {(() => {
                       const parts = [product.concentracion, product.presentacion].filter(Boolean);
                       return parts.length > 0 ? (
-                        <p className="text-[11px] text-gray-500 font-medium truncate mb-0.5">{parts.join(" · ")}</p>
+                        <p className="text-[10px] text-gray-500 font-medium truncate">{parts.join(" · ")}</p>
                       ) : null;
                     })()}
-                    <p className="text-xs text-gray-400">Stock: {product.stock}</p>
+                    <p className="text-[10px] text-gray-400">Stock: {product.stock}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-bold text-sm" style={{ color: primary }}>
+                    <p className="font-bold text-xs" style={{ color: primary }}>
                       {fmt(product.precio)}
                     </p>
                   </div>
@@ -149,7 +204,7 @@ export const ProductsSearchView = ({ cart, onAddProduct, onRemoveProduct, onUpda
         )}
 
         {showDropdown && searchTerm.trim().length > 0 && filteredProducts.length === 0 && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-40 p-4 text-center text-gray-500 text-sm">
+          <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-lg shadow-lg z-40 p-3 text-center text-gray-500 text-xs">
             Sin resultados
           </div>
         )}
@@ -262,67 +317,14 @@ export const ProductsSearchView = ({ cart, onAddProduct, onRemoveProduct, onUpda
         </div>
       )}
 
-      {/* Carrito de Productos */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 h-96 flex flex-col">
-        <h3 className="font-bold text-gray-900 mb-3 pb-2 border-b border-gray-100">📦 Productos en carrito</h3>
-        {cart.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-gray-400">
-            <div className="text-center">
-              <Package size={40} className="mx-auto mb-2 opacity-20" />
-              <p className="text-sm">Sin productos</p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 overflow-y-auto space-y-2">
-            {cart.map((item) => {
-              const maxStock = item.loteId ? (item.lotes?.find(l => l.id === item.loteId)?.cantidad ?? item.stock) : item.stock;
-              return (
-                <div key={`${item.id}-${item.loteId || 'no-lote'}`} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <p className="font-semibold text-sm text-gray-900">{item.nombre}</p>
-                      {item.numeroLote && (
-                        <p className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5 inline-block my-0.5">
-                          Lote: {item.numeroLote}
-                        </p>
-                      )}
-                      <p className="text-xs text-gray-500">{fmt(item.precio)} c/u</p>
-                      {maxStock != null && (
-                        <p className="text-xs text-gray-400">Stock disponible: {maxStock}</p>
-                      )}
-                    </div>
-                    <button onClick={() => onRemoveProduct(item.id, item.loteId)} className="text-gray-400 hover:text-red-500 flex-shrink-0">
-                      <X size={16} />
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 bg-white rounded border border-gray-200">
-                      <button onClick={() => onUpdateQty(item.id, item.loteId, item.cantidad - 1)} className="w-6 h-6 flex items-center justify-center hover:bg-gray-100">
-                        <Minus size={12} />
-                      </button>
-                      <span className="w-6 text-center text-xs font-bold">{item.cantidad}</span>
-                      <button
-                        onClick={() => onUpdateQty(item.id, item.loteId, item.cantidad + 1)}
-                        disabled={maxStock != null && item.cantidad >= maxStock}
-                        className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                        title={maxStock != null && item.cantidad >= maxStock ? "Stock máximo alcanzado" : "Aumentar cantidad"}
-                      >
-                        <Plus size={12} />
-                      </button>
-                    </div>
-                    <p className="font-bold text-sm" style={{ color: primary }}>
-                      {fmt(item.precio * item.cantidad)}
-                    </p>
-                  </div>
-                  {maxStock != null && item.cantidad >= maxStock && (
-                    <p className="text-xs text-red-500 mt-1 font-medium">⚠ Stock máximo alcanzado</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      {/* Estado vacío / hint — el carrito real vive en la columna central */}
+      {!showDropdown && (
+        <div className="flex-1 flex flex-col items-center justify-center text-gray-300 rounded-lg border-2 border-dashed border-gray-100">
+          <Search size={28} className="mb-1.5 opacity-40" />
+          <p className="text-xs font-semibold text-gray-400">Busca un producto para agregarlo</p>
+          <p className="text-[10px] text-gray-300 mt-0.5">Por nombre o código de barras</p>
+        </div>
+      )}
     </div>
   );
 };

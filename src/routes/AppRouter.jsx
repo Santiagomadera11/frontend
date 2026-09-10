@@ -1,80 +1,90 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 /* -------------------------------------------------------------------------- */
-/*                           IMPORTACIONES PÚBLICAS                           */
-/* -------------------------------------------------------------------------- */
-import { LandingPage } from "../features/landing/LandingPage";
-import { CatalogPage } from "../features/landing/CatalogPage";
-import { ServicesPage as PublicServicesPage } from "../features/landing/ServicesPage";
-import { ContactPage } from "../features/landing/ContactPage";
-
-/* -------------------------------------------------------------------------- */
-/*                                AUTENTICACIÓN                               */
-/* -------------------------------------------------------------------------- */
-import { LoginPage } from "../features/auth/LoginPage";
-import { RegisterPage } from "../features/auth/RegisterPage";
-
-/* -------------------------------------------------------------------------- */
-/*                          SISTEMA ADMINISTRATIVO                            */
+/*                    LAYOUTS Y RUTEO (carga inmediata, livianos)             */
 /* -------------------------------------------------------------------------- */
 import DashboardLayout from "../layouts/DashboardLayout";
 import EmployeeLayout from "../layouts/EmployeeLayout";
 import ClientLayout from "../layouts/ClientLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
+/* -------------------------------------------------------------------------- */
+/*  PANTALLAS: carga diferida (code-splitting). Cada una se descarga solo     */
+/*  cuando el usuario navega a esa ruta, en vez de ir todas en un solo bundle */
+/*  gigante desde el primer segundo.                                         */
+/* -------------------------------------------------------------------------- */
+
+// --- PÚBLICO ---
+const LandingPage = React.lazy(() => import("../features/landing/LandingPage").then(m => ({ default: m.LandingPage })));
+const CatalogPage = React.lazy(() => import("../features/landing/CatalogPage").then(m => ({ default: m.CatalogPage })));
+const PublicServicesPage = React.lazy(() => import("../features/landing/ServicesPage").then(m => ({ default: m.ServicesPage })));
+const ContactPage = React.lazy(() => import("../features/landing/ContactPage").then(m => ({ default: m.ContactPage })));
+
+// --- AUTENTICACIÓN ---
+const LoginPage = React.lazy(() => import("../features/auth/LoginPage").then(m => ({ default: m.LoginPage })));
+const RegisterPage = React.lazy(() => import("../features/auth/RegisterPage").then(m => ({ default: m.RegisterPage })));
+
 // --- PÁGINAS GENERALES ADMIN ---
-import { DashboardPage } from "../features/dashboard/DashboardPage";
-import { UsersPage } from "../features/users/UsersPage";
-import SettingsPage from "../features/settings/SettingsPage";
-import SalesPage from "../features/sales/SalesPage";
-import { SalesReport } from "../features/sales/components/SalesReport";
-import { ReturnsPage } from "../features/returns/pages/ReturnsPage";
+const DashboardPage = React.lazy(() => import("../features/dashboard/DashboardPage").then(m => ({ default: m.DashboardPage })));
+const UsersPage = React.lazy(() => import("../features/users/UsersPage").then(m => ({ default: m.UsersPage })));
+const SettingsPage = React.lazy(() => import("../features/settings/SettingsPage"));
+const SalesPage = React.lazy(() => import("../features/sales/SalesPage"));
+const SalesReport = React.lazy(() => import("../features/sales/components/SalesReport").then(m => ({ default: m.SalesReport })));
+const ReturnsPage = React.lazy(() => import("../features/returns/pages/ReturnsPage").then(m => ({ default: m.ReturnsPage })));
 
 // --- PÁGINAS DE INVENTARIO (ADMIN) ---
-import { ProductsPage } from "../features/inventory/products/ProductsPage";
-import NewProductPage from "../features/inventory/products/NewProductPage";
-import { PurchasesPage } from "../features/inventory/purchases/PurchasesPage";
-import { CategoriesPage } from "../features/inventory/categories/CategoriesPage";
-import { ProvidersPage } from "../features/inventory/providers/ProvidersPage";
+const ProductsPage = React.lazy(() => import("../features/inventory/products/ProductsPage").then(m => ({ default: m.ProductsPage })));
+const NewProductPage = React.lazy(() => import("../features/inventory/products/NewProductPage"));
+const PurchasesPage = React.lazy(() => import("../features/inventory/purchases/PurchasesPage").then(m => ({ default: m.PurchasesPage })));
+const CategoriesPage = React.lazy(() => import("../features/inventory/categories/CategoriesPage").then(m => ({ default: m.CategoriesPage })));
+const BrandsPage = React.lazy(() => import("../features/inventory/brands/BrandsPage").then(m => ({ default: m.BrandsPage })));
+const PresentationsPage = React.lazy(() => import("../features/inventory/presentations/PresentationsPage").then(m => ({ default: m.PresentationsPage })));
+const ProvidersPage = React.lazy(() => import("../features/inventory/providers/ProvidersPage").then(m => ({ default: m.ProvidersPage })));
 
 // --- PÁGINAS DE SERVICIOS Y CITAS (ADMIN) ---
-import { ServicesPage } from "../features/services/ServicesPage";
-import { AppointmentsPage } from "../features/services/appointments/AppointmentsPage";
-import { AvailabilityConfigPage } from "../features/services/appointments/AvailabilityConfigPage";
-import DoctorsPage from "../features/services/doctors/DoctorsPage";
-import { CreateOrderPage } from "../features/sales/orders/CreateOrderPage";
-import { CartProductsPage } from "../features/sales/orders/CartProductsPage";
-import { AdminPedidos } from "../features/sales/orders/AdminPedidos";
+const ServicesPage = React.lazy(() => import("../features/services/ServicesPage").then(m => ({ default: m.ServicesPage })));
+const AppointmentsPage = React.lazy(() => import("../features/services/appointments/AppointmentsPage").then(m => ({ default: m.AppointmentsPage })));
+const AvailabilityConfigPage = React.lazy(() => import("../features/services/appointments/AvailabilityConfigPage").then(m => ({ default: m.AvailabilityConfigPage })));
+const DoctorsPage = React.lazy(() => import("../features/services/doctors/DoctorsPage"));
+const CreateOrderPage = React.lazy(() => import("../features/sales/orders/CreateOrderPage").then(m => ({ default: m.CreateOrderPage })));
+const CartProductsPage = React.lazy(() => import("../features/sales/orders/CartProductsPage").then(m => ({ default: m.CartProductsPage })));
+const AdminPedidos = React.lazy(() => import("../features/sales/orders/AdminPedidos").then(m => ({ default: m.AdminPedidos })));
 
 /* -------------------------------------------------------------------------- */
 /*                       SISTEMA DE EMPLEADO                                  */
 /* -------------------------------------------------------------------------- */
-import EmployeeInicio from "../features/employee/EmployeeInicio";
-import EmployeeCompras from "../features/employee/EmployeeCompras";
-import EmployeeSalesPage from "../features/employee/EmployeeSalesPage";
-import EmployeeProductos from "../features/employee/EmployeeProductos";
-import EmployeePedidos from "../features/employee/EmployeePedidos";
-import EmployeeCitas from "../features/employee/EmployeeCitas";
-import { EmployeeServicesPage } from "../features/employee/EmployeeServicesPage";
-import { EmployeeAppointmentsPage } from "../features/employee/EmployeeAppointmentsPage";
+const EmployeeInicio = React.lazy(() => import("../features/employee/EmployeeInicio"));
+const EmployeeCompras = React.lazy(() => import("../features/employee/EmployeeCompras"));
+const EmployeeSalesPage = React.lazy(() => import("../features/employee/EmployeeSalesPage"));
+const EmployeeProductos = React.lazy(() => import("../features/employee/EmployeeProductos"));
+const EmployeePedidos = React.lazy(() => import("../features/employee/EmployeePedidos"));
+const EmployeeCitas = React.lazy(() => import("../features/employee/EmployeeCitas"));
+const EmployeeServicesPage = React.lazy(() => import("../features/employee/EmployeeServicesPage").then(m => ({ default: m.EmployeeServicesPage })));
+const EmployeeAppointmentsPage = React.lazy(() => import("../features/employee/EmployeeAppointmentsPage").then(m => ({ default: m.EmployeeAppointmentsPage })));
 
 /* -------------------------------------------------------------------------- */
 /*                      SISTEMA DE REPORTES (ADMIN)                           */
 /* -------------------------------------------------------------------------- */
-import { ShiftHistoryReportsPage } from "../features/admin/reports/ShiftHistoryReportsPage";
-import { SalesPerformanceReportsPage } from "../features/admin/reports/SalesPerformanceReportsPage";
+const ShiftHistoryReportsPage = React.lazy(() => import("../features/admin/reports/ShiftHistoryReportsPage").then(m => ({ default: m.ShiftHistoryReportsPage })));
+const SalesPerformanceReportsPage = React.lazy(() => import("../features/admin/reports/SalesPerformanceReportsPage").then(m => ({ default: m.SalesPerformanceReportsPage })));
 
 /* -------------------------------------------------------------------------- */
 /*                         SISTEMA DE CLIENTE                                 */
 /* -------------------------------------------------------------------------- */
-import ClientCatalogo from "../features/client/ClientCatalogo";
-import ClientInicio from "../features/client/ClientInicio";
-import ClientProductos from "../features/client/ClientProductos";
-import ClientMisPedidos from "../features/client/ClientMisPedidos";
-import ClientMisCitas from "../features/client/ClientMisCitas";
-import ClientMiPerfil from "../features/client/ClientMiPerfil";
-import CarritoPage from "../features/client/CarritoPage";
+const ClientCatalogo = React.lazy(() => import("../features/client/ClientCatalogo"));
+const ClientInicio = React.lazy(() => import("../features/client/ClientInicio"));
+const ClientProductos = React.lazy(() => import("../features/client/ClientProductos"));
+const ClientMisPedidos = React.lazy(() => import("../features/client/ClientMisPedidos"));
+const ClientMisCitas = React.lazy(() => import("../features/client/ClientMisCitas"));
+const ClientMiPerfil = React.lazy(() => import("../features/client/ClientMiPerfil"));
+const CarritoPage = React.lazy(() => import("../features/client/CarritoPage"));
+
+const RouteFallback = () => (
+  <div className="h-screen w-full flex items-center justify-center">
+    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600" />
+  </div>
+);
 
 const CONFIG_PERMS = [
   "system.roles",
@@ -101,6 +111,7 @@ const PRODUCT_FORM_PERMS = ["products.create", "products.edit"];
 export const AppRouter = () => {
   return (
     <BrowserRouter>
+      <Suspense fallback={<RouteFallback />}>
       <Routes>
         {/* =================================================================
             ZONA PÚBLICA
@@ -160,6 +171,20 @@ export const AppRouter = () => {
           <Route path="categorias" element={
             <ProtectedRoute requiredPerm="categories.view">
               <CategoriesPage />
+            </ProtectedRoute>
+          } />
+
+          {/* MARCAS */}
+          <Route path="marcas" element={
+            <ProtectedRoute requiredPerm="brands.view">
+              <BrandsPage />
+            </ProtectedRoute>
+          } />
+
+          {/* PRESENTACIONES */}
+          <Route path="presentaciones" element={
+            <ProtectedRoute requiredPerm="presentations.view">
+              <PresentationsPage />
             </ProtectedRoute>
           } />
 
@@ -323,6 +348,16 @@ export const AppRouter = () => {
               <CategoriesPage />
             </ProtectedRoute>
           } />
+          <Route path="marcas" element={
+            <ProtectedRoute requiredPerm="brands.view">
+              <BrandsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="presentaciones" element={
+            <ProtectedRoute requiredPerm="presentations.view">
+              <PresentationsPage />
+            </ProtectedRoute>
+          } />
           <Route path="proveedores" element={
             <ProtectedRoute requiredPerm="suppliers.view">
               <ProvidersPage />
@@ -400,6 +435,7 @@ export const AppRouter = () => {
         {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 };

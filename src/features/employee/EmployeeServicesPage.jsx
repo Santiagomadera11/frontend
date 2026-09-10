@@ -35,7 +35,7 @@ export const EmployeeServicesPage = () => {
   const [isViewMode, setIsViewMode] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
   const [hasActiveTurn, setHasActiveTurn] = useState(
     turnService.hasActiveTurn(),
   );
@@ -311,10 +311,10 @@ export const EmployeeServicesPage = () => {
                   </td>
                 </tr>
               ) : (
-                currentItems.map((srv) => (
+                currentItems.map((srv, idx) => (
                   <tr key={srv.id} className="hover:bg-gray-50 transition-colors">
                     <td className="py-1.5 px-3 text-xs font-medium text-gray-900">
-                      {srv.id}
+                      {(currentPage - 1) * itemsPerPage + idx + 1}
                     </td>
                     <td className="py-1.5 px-3">
                       <div className="flex items-center gap-2">

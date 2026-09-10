@@ -11,7 +11,7 @@ export const EmployeeProductos = () => {
   const [filterStatus, setFilterStatus] = useState("todos");
   const [currentPage, setCurrentPage] = useState(1);
   const [detailProduct, setDetailProduct] = useState(null);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const load = async () => {
@@ -103,9 +103,9 @@ export const EmployeeProductos = () => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {currentItems.length > 0 ? (
-                currentItems.map((prod) => (
+                currentItems.map((prod, idx) => (
                   <tr key={prod.id} className="hover:bg-blue-50 transition-colors">
-                    <td className="py-3 px-4 text-xs font-medium text-gray-900">{prod.id}</td>
+                    <td className="py-3 px-4 text-xs font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         <Package size={14} className="text-blue-500" />

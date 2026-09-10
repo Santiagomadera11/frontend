@@ -3,10 +3,12 @@ import React, { useState, useEffect } from "react";
 import {
   Plus, Search, Eye, Edit, Trash2,
   ChevronLeft, ChevronRight, Filter, Building2, Phone, Mail,
-  CheckCircle, AlertCircle, X
+  CheckCircle,
 } from "lucide-react";
 import ProviderFormModal from "./components/ProviderFormModal";
 import { providerService } from "./services/providerService";
+import { ToastNotification } from "../../../shared/ui/ToastNotification";
+import { ConfirmDialog } from "../../../shared/ui/ConfirmDialog";
 
 export const ProvidersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,7 +17,7 @@ export const ProvidersPage = () => {
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [modalMode, setModalMode] = useState("create");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
   const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isStatusConfirmOpen, setIsStatusConfirmOpen] = useState(false);
@@ -264,9 +266,9 @@ export const ProvidersPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {currentItems.length > 0 ? currentItems.map((prov) => (
+                {currentItems.length > 0 ? currentItems.map((prov, idx) => (
                   <tr key={prov.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-1.5 px-3 text-xs font-medium text-gray-900">{prov.id}</td>
+                    <td className="py-1.5 px-3 text-xs font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                     <td className="py-1.5 px-3">
                       <div className="flex items-center gap-2">
                         <div className={`w-5 h-5 rounded ${theme.lightBg} flex items-center justify-center ${theme.text} flex-shrink-0`}>
@@ -350,65 +352,31 @@ export const ProvidersPage = () => {
       />
 
       {/* Modal Estado */}
-      {isStatusConfirmOpen && providerToToggle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden">
-            <div className={`px-6 py-4 border-b flex justify-between items-center ${providerToToggle.estado ? "bg-red-50 border-red-200" : theme.successBg}`}>
-              <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                {providerToToggle.estado
-                  ? <><AlertCircle size={18} className="text-red-600" /> Desactivar Proveedor</>
-                  : <><CheckCircle size={18} className={theme.successIcon} /> Activar Proveedor</>}
-              </h3>
-              <button onClick={() => setIsStatusConfirmOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
-            </div>
-            <div className="p-5">
-              <p className="text-sm text-gray-700">
-                {providerToToggle.estado
-                  ? `¿Desactivar el proveedor "${providerToToggle.nombre}"?`
-                  : `¿Activar el proveedor "${providerToToggle.nombre}"?`}
-              </p>
-            </div>
-            <div className={`px-5 py-3 border-t flex justify-end gap-2 ${providerToToggle.estado ? "bg-red-50 border-red-200" : theme.successBg}`}>
-              <button onClick={() => setIsStatusConfirmOpen(false)} className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded-md">Cancelar</button>
-              <button onClick={confirmStatusChange} className={`px-4 py-2 text-xs font-bold text-white rounded-md ${providerToToggle.estado ? "bg-red-600 hover:bg-red-700" : `${theme.main} ${theme.mainHover}`}`}>
-                {providerToToggle.estado ? "Desactivar" : "Activar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={isStatusConfirmOpen && !!providerToToggle}
+        title={providerToToggle?.estado ? "Desactivar Proveedor" : "Activar Proveedor"}
+        message={providerToToggle ? (providerToToggle.estado ? `¿Desactivar el proveedor "${providerToToggle.nombre}"?` : `¿Activar el proveedor "${providerToToggle.nombre}"?`) : ""}
+        subMessage=""
+        confirmText={providerToToggle?.estado ? "Desactivar" : "Activar"}
+        danger={!!providerToToggle?.estado}
+        onCancel={() => setIsStatusConfirmOpen(false)}
+        onConfirm={confirmStatusChange}
+      />
 
       {/* Modal Eliminar */}
-      {isDeleteConfirmOpen && providerToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden">
-            <div className="bg-red-50 px-5 py-3 border-b border-red-200 flex justify-between items-center">
-              <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2"><AlertCircle size={18} className="text-red-600" />Eliminar Proveedor</h3>
-              <button onClick={() => setIsDeleteConfirmOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
-            </div>
-            <div className="p-5">
-              <p className="text-sm text-gray-700">¿Estás seguro de eliminar el proveedor <strong>"{providerToDelete.nombre}"</strong>?</p>
-              <p className="text-xs text-gray-500 mt-2">Esta acción no se puede deshacer.</p>
-            </div>
-            <div className="bg-red-50 px-5 py-3 border-t border-red-200 flex justify-end gap-2">
-              <button onClick={() => setIsDeleteConfirmOpen(false)} className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded-md">Cancelar</button>
-              <button onClick={confirmDelete} className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1"><Trash2 size={14} />Eliminar</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={isDeleteConfirmOpen && !!providerToDelete}
+        title="Eliminar Proveedor"
+        message={providerToDelete ? `¿Estás seguro de eliminar el proveedor "${providerToDelete.nombre}"?` : ""}
+        confirmText="Eliminar"
+        danger
+        onCancel={() => setIsDeleteConfirmOpen(false)}
+        onConfirm={confirmDelete}
+      />
 
       {/* Notificación */}
       {notification && (
-        <div className="fixed bottom-4 left-4 z-40">
-          <div className={`px-4 py-3 rounded-lg shadow-lg border flex items-center gap-3 max-w-xs ${notification.type === "success" ? `${theme.successBg} ${theme.successText}` : "bg-red-50 border-red-200 text-red-800"}`}>
-            {notification.type === "success"
-              ? <CheckCircle size={18} className={`${theme.successIcon} flex-shrink-0`} />
-              : <AlertCircle size={18} className="text-red-600 flex-shrink-0" />}
-            <p className="text-sm font-medium">{notification.message}</p>
-            <button onClick={() => setNotification(null)} className="ml-2 text-gray-400 hover:text-gray-600"><X size={16} /></button>
-          </div>
-        </div>
+        <ToastNotification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />
       )}
     </div>
   );

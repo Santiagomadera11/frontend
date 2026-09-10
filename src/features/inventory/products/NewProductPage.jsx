@@ -1,20 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, DollarSign, Package, X, CheckCircle, AlertCircle } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { ArrowLeft, Save, DollarSign, Package, X, CheckCircle, AlertCircle, Barcode } from "lucide-react";
 import { productService } from "./services/productService";
 import { categoryService } from "../categories/services/categoryService";
 import { providerService } from "../providers/services/providerService";
+import { brandService } from "../brands/services/brandService";
+import { presentationService } from "../presentations/services/presentationService";
 
 const NewProductPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [categories, setCategories] = useState([]);
   const [providers, setProviders] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [presentations, setPresentations] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editingProductId, setEditingProductId] = useState(null);
   const [formData, setFormData] = useState({
     nombre: "",
     descripcion: "", // <-- AGREGADO
-    marca: "",
+    codigoBarras: "",
+    marcaId: "",
     tipoProducto: "Producto General",
     categoriaId: "",
     proveedorId: "",
@@ -28,7 +34,7 @@ const NewProductPage = () => {
     esRecomendado: false,
     composicion: "",
     concentracion: "",
-    presentacion: "",
+    presentacionId: "",
     viaAdministracion: "",
     registroSanitario: "",
     requiereFormula: false,
@@ -48,21 +54,26 @@ const NewProductPage = () => {
     const loadData = async () => {
       const cats = await categoryService.getAll();
       const provs = await providerService.getAll();
+      const brds = await brandService.getAll();
+      const press = await presentationService.getAll();
       setCategories(cats);
       setProviders(provs);
+      setBrands(brds);
+      setPresentations(press);
     };
     loadData();
 
-    const editingProduct = localStorage.getItem("syspharma_editing_product");
-    if (editingProduct) {
+    const product = location.state?.product;
+    if (product) {
       try {
-        const product = JSON.parse(editingProduct);
         setIsEditing(true);
         setEditingProductId(product.id);
         setFormData({
           nombre: product.nombre || "",
           descripcion: product.descripcion || "", // <-- AGREGADO
-          marca: product.marca || "",
+          codigoBarras: product.codigoBarras || "",
+          marcaId: product.marcaId ? String(product.marcaId) : "",
+          presentacionId: product.presentacionId ? String(product.presentacionId) : "",
           tipoProducto: product.tipoProducto || "Producto General",
           categoriaId: product.categoriaId || "",
           proveedorId: product.proveedorId || "",
@@ -83,7 +94,6 @@ const NewProductPage = () => {
           imagen: product.imagen || null,
         });
         if (product.imagen) setImagePreview(product.imagen);
-        localStorage.removeItem("syspharma_editing_product");
       } catch (error) {
         console.error("Error reading editing product:", error);
       }
@@ -92,15 +102,23 @@ const NewProductPage = () => {
     const onChange = async () => {
       const cats = await categoryService.getAll();
       const provs = await providerService.getAll();
+      const brds = await brandService.getAll();
+      const press = await presentationService.getAll();
       setCategories(cats);
       setProviders(provs);
+      setBrands(brds);
+      setPresentations(press);
     };
 
     window.addEventListener("categories:changed", onChange);
     window.addEventListener("providers:changed", onChange);
+    window.addEventListener("brands:changed", onChange);
+    window.addEventListener("presentations:changed", onChange);
     return () => {
       window.removeEventListener("categories:changed", onChange);
       window.removeEventListener("providers:changed", onChange);
+      window.removeEventListener("brands:changed", onChange);
+      window.removeEventListener("presentations:changed", onChange);
     };
   }, []);
 
@@ -135,8 +153,8 @@ const NewProductPage = () => {
     const payload = {
       nombre: formData.nombre.trim(),
       tipoProducto: formData.tipoProducto,
-      marca: formData.marca ? formData.marca.trim() : null,
-      presentacion: formData.presentacion ? formData.presentacion.trim() : null,
+      marcaId: formData.marcaId ? Number(formData.marcaId) : null,
+      presentacionId: formData.presentacionId ? Number(formData.presentacionId) : null,
       categoriaId: Number(formData.categoriaId),
       proveedorId: formData.proveedorId ? Number(formData.proveedorId) : null,
       precio: Number(formData.precio),
@@ -146,7 +164,7 @@ const NewProductPage = () => {
       imagen: formData.imagen || null,
       descripcion: formData.descripcion ? formData.descripcion.trim() : null, // <-- MODIFICADO (Antes null)
       sku: null,
-      codigoBarras: null,
+      codigoBarras: formData.codigoBarras ? formData.codigoBarras.trim() : null,
       
       // Detalles del medicamento
       composicion: formData.composicion,
@@ -163,31 +181,7 @@ const NewProductPage = () => {
 
     try {
       if (isEditing) {
-        const updated = await productService.update({ id: editingProductId, ...payload });
-
-        // Actualizar en localStorage si existe para sincronizar la landing pública
-        const stored = JSON.parse(localStorage.getItem("syspharma_products") || "[]");
-        const index = stored.findIndex(p => p.id === updated.id);
-        if (index !== -1) {
-          stored[index] = {
-            id: updated.id,
-            nombre: updated.nombre,
-            precio: updated.precio,
-            stock: updated.stock,
-            imagen: updated.imagen,
-            categoria: updated.categoria,
-            marca: updated.marca,
-            presentacion: updated.presentacion,
-            tipoProducto: updated.tipoProducto,
-            composicion: updated.composicion,
-            concentracion: updated.concentracion,
-            viaAdministracion: updated.viaAdministracion,
-            registroSanitario: updated.registroSanitario,
-            requiereFormula: updated.requiereFormula,
-            estado: updated.estado,
-          };
-          localStorage.setItem("syspharma_products", JSON.stringify(stored));
-        }
+        await productService.update({ id: editingProductId, ...payload });
 
         window.dispatchEvent(new CustomEvent("products:changed"));
         window.dispatchEvent(new Event("syspharma_products_updated"));
@@ -198,28 +192,7 @@ const NewProductPage = () => {
           onConfirm: () => { setShowConfirmModal(false); navigate("/admin/productos"); },
         });
       } else {
-        const created = await productService.create(payload);
-
-        // Sincronizar a localStorage para landing pública
-        const stored = JSON.parse(localStorage.getItem("syspharma_products") || "[]");
-        const newProduct = {
-          id: created.id,
-          nombre: created.nombre,
-          precio: created.precio,
-          stock: created.stock,
-          imagen: created.imagen,
-          categoria: created.categoria,
-          marca: created.marca,
-          presentacion: created.presentacion,
-          tipoProducto: created.tipoProducto,
-          composicion: created.composicion,
-          concentracion: created.concentracion,
-          viaAdministracion: created.viaAdministracion,
-          registroSanitario: created.registroSanitario,
-          requiereFormula: created.requiereFormula,
-          estado: true,
-        };
-        localStorage.setItem("syspharma_products", JSON.stringify([...stored, newProduct]));
+        await productService.create(payload);
 
         window.dispatchEvent(new CustomEvent("products:changed"));
         window.dispatchEvent(new Event("syspharma_products_updated"));
@@ -231,10 +204,10 @@ const NewProductPage = () => {
           onConfirm: () => {
             setShowConfirmModal(false);
             setFormData({
-              nombre: "", descripcion: "", marca: "", tipoProducto: "Producto General", categoriaId: "", proveedorId: "",
+              nombre: "", descripcion: "", codigoBarras: "", marcaId: "", tipoProducto: "Producto General", categoriaId: "", proveedorId: "",
               precio: "", porcentajeIva: 0, stock: "", estado: true, esDestacado: false, enOferta: false,
               porcentajeDescuento: 0, esRecomendado: false, composicion: "", concentracion: "",
-              presentacion: "", viaAdministracion: "", registroSanitario: "", requiereFormula: false, imagen: null,
+              presentacionId: "", viaAdministracion: "", registroSanitario: "", requiereFormula: false, imagen: null,
             });
             setImagePreview(null);
             navigate("/admin/productos");
@@ -305,9 +278,11 @@ const NewProductPage = () => {
               {/* Marca */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Marca</label>
-                <input type="text" className="w-full text-sm border border-gray-300 rounded px-3 py-2 placeholder-gray-400"
-                  placeholder="Ej: Bayer, Roche, Genfar..."
-                  value={formData.marca} onChange={(e) => setFormData({ ...formData, marca: e.target.value })} />
+                <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-white"
+                  value={formData.marcaId} onChange={(e) => setFormData({ ...formData, marcaId: e.target.value })}>
+                  <option value="">Seleccionar...</option>
+                  {brands.map(brand => <option key={brand.id} value={brand.id}>{brand.nombre}</option>)}
+                </select>
               </div>
 
               {/* Descripción (AGREGADO) */}
@@ -344,9 +319,25 @@ const NewProductPage = () => {
               {/* Presentación */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Presentación</label>
-                <input type="text" className="w-full text-sm border border-gray-300 rounded px-3 py-2 placeholder-gray-400"
-                  placeholder="Ej: Cápsula, Tableta, Jarabe..."
-                  value={formData.presentacion} onChange={(e) => setFormData({ ...formData, presentacion: e.target.value })} />
+                <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-white"
+                  value={formData.presentacionId} onChange={(e) => setFormData({ ...formData, presentacionId: e.target.value })}>
+                  <option value="">Seleccionar...</option>
+                  {presentations.map(pres => <option key={pres.id} value={pres.id}>{pres.nombre}</option>)}
+                </select>
+              </div>
+
+              {/* Código de barras */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Código de Barras</label>
+                <div className="relative">
+                  <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                  <input type="text" autoComplete="off"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:border-emerald-500"
+                    placeholder="Escanea o escribe el código..."
+                    value={formData.codigoBarras}
+                    onChange={(e) => setFormData({ ...formData, codigoBarras: e.target.value })} />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1">Con el cursor aquí, solo pasa el lector — el código queda listo para usarse en el punto de venta.</p>
               </div>
 
               {/* Precio, IVA y Stock */}

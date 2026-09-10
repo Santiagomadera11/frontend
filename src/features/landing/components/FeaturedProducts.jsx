@@ -7,7 +7,7 @@ import {
   ChevronRight,
   ShoppingCart,
 } from "lucide-react";
-import { useCrud } from "../../../shared/hooks/useCrud";
+import { usePublicProducts } from "../../../shared/hooks/usePublicProducts";
 import ProductDetailModal from "../../../shared/ui/ProductDetailModal";
 import ProductCardGrid from "../../client/components/ProductCard";
 import useCart from "../../../shared/context/CartContext";
@@ -21,7 +21,7 @@ export const FeaturedProducts = () => {
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const productosPorPagina = 4;
 
-  const { items: productos } = useCrud("syspharma_products", []);
+  const { products: productos } = usePublicProducts();
 
   // Mostrar únicamente los productos que el administrador marcó como
   // destacados. Si no hay ninguno, la sección se ocultará en el render.

@@ -23,7 +23,7 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   // Validar permisos
   const { currentUser } = useCurrentUser();

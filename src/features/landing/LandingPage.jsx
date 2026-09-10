@@ -4,6 +4,7 @@ import farmaciaImage from "../../assets/farmacia.avif";
 import { PublicNavbar } from "./components/PublicNavbar";
 import { Zap, Shield, DollarSign, Pill, Mail, Phone } from "lucide-react";
 import { useCrud } from "../../shared/hooks/useCrud";
+import { usePublicProducts } from "../../shared/hooks/usePublicProducts";
 import { useState } from "react";
 import ProductDetailModal from "../../shared/ui/ProductDetailModal";
 import ProductCardGrid from "../client/components/ProductCard";
@@ -15,8 +16,8 @@ export const LandingPage = () => {
     const { items: services } = useCrud("sys_services", []);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const cart = useCart();
-  // Productos sincronizados con el storage principal `syspharma_products`
-  const { items: products } = useCrud("syspharma_products", []);
+  // Productos del catálogo público (API)
+  const { products } = usePublicProducts();
   // Mostrar todos los productos disponibles
   const allProducts = products || [];
 

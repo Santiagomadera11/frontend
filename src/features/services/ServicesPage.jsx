@@ -8,6 +8,7 @@ import {
 import { ConfirmDialog } from "../../shared/ui/ConfirmDialog.jsx";
 import ServiceFormModal from "./components/ServiceFormModal";
 import { apiClient } from "../../shared/utils/apiClient";
+import { ToastNotification } from "../../shared/ui/ToastNotification";
 
 const API_URL = "/api/Servicio";
 const getAuthHeaders = () => ({
@@ -24,7 +25,7 @@ export const ServicesPage = () => {
   const [isViewMode, setIsViewMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [notification, setNotification] = useState(null);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
   const { currentUser } = useCurrentUser();
   const userRole = (currentUser.rol || "").toLowerCase().trim();
   const userPerms = (currentUser.permisos || []).map((perm) => String(perm || "").toLowerCase().trim());
@@ -225,9 +226,9 @@ export const ServicesPage = () => {
               ) : currentItems.length === 0 ? (
                 <tr><td colSpan={7} className="py-8 text-center text-gray-400 text-xs">No se encontraron servicios.</td></tr>
               ) : (
-                currentItems.map((srv) => (
+                currentItems.map((srv, idx) => (
                   <tr key={srv.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-1.5 px-3 text-xs font-medium text-gray-900">{srv.id}</td>
+                    <td className="py-1.5 px-3 text-xs font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                     <td className="py-1.5 px-3">
                       <div className="flex items-center gap-2">
                         <Stethoscope size={12} className={theme.text} />
@@ -286,15 +287,13 @@ export const ServicesPage = () => {
       <ServiceFormModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setEditingItem(null); }}
         onSave={handleSave} initialData={editingItem} isViewMode={isViewMode} />
 
-      <ConfirmDialog open={confirmConfig.open} title={confirmConfig.title} message={confirmConfig.message}
+      <ConfirmDialog open={confirmConfig.open} title={confirmConfig.title} message={confirmConfig.message} subMessage=""
         confirmText={confirmConfig.confirmText} danger={confirmConfig.danger}
         onCancel={() => setConfirmConfig(c => ({ ...c, open: false }))}
         onConfirm={() => { confirmConfig.onConfirm && confirmConfig.onConfirm(); setConfirmConfig(c => ({ ...c, open: false })); }} />
 
       {notification && (
-        <div className={`fixed bottom-4 left-4 px-4 py-3 rounded-lg shadow-lg z-50 text-sm font-medium ${notification.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
-          {notification.message}
-        </div>
+        <ToastNotification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />
       )}
     </div>
   );

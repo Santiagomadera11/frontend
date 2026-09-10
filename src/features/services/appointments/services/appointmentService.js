@@ -84,9 +84,9 @@ export const appointmentService = {
   },
 
   // --- CITAS ---
-  getAppointments: async () => {
+  getAppointments: async (desde) => {
     try {
-      const res = await apiClient.get(APPOINTMENTS_ENDPOINT);
+      const res = await apiClient.get(APPOINTMENTS_ENDPOINT, desde ? { params: { desde } } : undefined);
       const appointments = Array.isArray(res.data) ? res.data : [];
       return appointments.map(mapFromApiFormat);
     } catch (error) {

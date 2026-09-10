@@ -7,8 +7,8 @@ const notifyChange = () => {
 };
 
 export const ordersService = {
-  getAll: async () => {
-    const res = await apiClient.get(ENDPOINT);
+  getAll: async (desde) => {
+    const res = await apiClient.get(ENDPOINT, desde ? { params: { desde } } : undefined);
     return res.data;
   },
 

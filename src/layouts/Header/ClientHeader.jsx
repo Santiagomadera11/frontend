@@ -8,42 +8,36 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { read, write, LS } from "../../shared/services/lsService";
 import { useCurrentUser } from "/src/shared/context/UserContext";
 import { appointmentService } from "../../features/services/appointments/services/appointmentService";
 import { ordersService } from "../../features/sales/orders/services/ordersService";
+import { notificationService } from "../../shared/services/notificationService";
+import useCart from "../../shared/context/CartContext";
 
 export const ClientHeader = ({ onMenuClick }) => {
   const { currentUser } = useCurrentUser();
   const user = currentUser || { nombre: "Usuario", rol: "Cliente" };
-  const [cartCount, setCartCount] = useState(0);
+  const { cartCount } = useCart();
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const [cartAnimating, setCartAnimating] = useState(false);
 
+  const isFirstCartRender = React.useRef(true);
   useEffect(() => {
-    const loadCart = () => {
-      try {
-        const saved = localStorage.getItem("syspharma_cart");
-        const parsed = saved ? JSON.parse(saved) : [];
-        setCartCount(Array.isArray(parsed) ? parsed.length : 0);
-      } catch {
-        setCartCount(0);
-      }
-    };
+    if (isFirstCartRender.current) {
+      isFirstCartRender.current = false;
+      return;
+    }
+    setCartAnimating(true);
+    const t = setTimeout(() => setCartAnimating(false), 600);
+    return () => clearTimeout(t);
+  }, [cartCount]);
 
-    loadCart();
-
-    const cartHandler = () => {
-      loadCart();
-      setCartAnimating(true);
-      setTimeout(() => setCartAnimating(false), 600);
-    };
+  useEffect(() => {
     const handleNotificationsChange = () => {
       setTimeout(() => loadNotifications(), 500);
     };
-    
-    window.addEventListener("syspharma_cart_updated", cartHandler);
+
     window.addEventListener("syspharma_notifications_updated", handleNotificationsChange);
     window.addEventListener("appointments:changed", handleNotificationsChange);
     window.addEventListener("syspharma_orders_updated", handleNotificationsChange);
@@ -52,7 +46,6 @@ export const ClientHeader = ({ onMenuClick }) => {
     // initial notifications load
     loadNotifications();
     return () => {
-      window.removeEventListener("syspharma_cart_updated", cartHandler);
       window.removeEventListener("syspharma_notifications_updated", handleNotificationsChange);
       window.removeEventListener("appointments:changed", handleNotificationsChange);
       window.removeEventListener("syspharma_orders_updated", handleNotificationsChange);
@@ -63,16 +56,33 @@ export const ClientHeader = ({ onMenuClick }) => {
   function loadNotifications() {
     try {
       const userId = currentUser?.id;
-      
-      // Cargar notificaciones guardadas del LS
-      const arr = read(LS.NOTIFICATIONS) || [];
-      const lsNotifications = Array.isArray(arr) ? arr : [];
-      
+
+      // Notificaciones persistidas en el backend (compras, avisos, etc.)
+      const loadServerNotifications = async () => {
+        if (!userId) return [];
+        try {
+          const arr = await notificationService.getMine(userId);
+          return (Array.isArray(arr) ? arr : []).map((n) => ({
+            id: n.id,
+            source: "server",
+            tipo: n.tipo,
+            title: n.titulo,
+            message: n.mensaje,
+            date: n.fechaCreacion,
+            path: n.path,
+            read: n.leida,
+          }));
+        } catch (error) {
+          console.error("Error loading server notifications:", error);
+          return [];
+        }
+      };
+
       // Cargar citas del cliente
       const loadClientAppointments = async () => {
         try {
           const lastSeen = localStorage.getItem('lastSeenClientNotificationsAt');
-          const allAppointments = await appointmentService.getAppointments();
+          const allAppointments = await appointmentService.getAppointments(lastSeen);
           
           // Filtrar citas del cliente actual
           const clientAppointments = allAppointments.filter(a => 
@@ -110,7 +120,7 @@ export const ClientHeader = ({ onMenuClick }) => {
       const loadClientOrders = async () => {
         try {
           const lastSeen = localStorage.getItem('lastSeenClientNotificationsAt');
-          const allOrders = await ordersService.getAll();
+          const allOrders = await ordersService.getAll(lastSeen);
           
           // Filtrar pedidos del cliente actual
           const clientOrders = allOrders.filter(o => 
@@ -145,8 +155,8 @@ export const ClientHeader = ({ onMenuClick }) => {
       };
       
       // Cargar y combinar todas las notificaciones
-      Promise.all([loadClientAppointments(), loadClientOrders()]).then(([appointments, orders]) => {
-        const allNotifications = [...lsNotifications, ...appointments, ...orders]
+      Promise.all([loadServerNotifications(), loadClientAppointments(), loadClientOrders()]).then(([server, appointments, orders]) => {
+        const allNotifications = [...server, ...appointments, ...orders]
           .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
         setNotifications(allNotifications);
       });
@@ -222,12 +232,10 @@ export const ClientHeader = ({ onMenuClick }) => {
                   <button
                     onClick={() => {
                       localStorage.setItem('lastSeenClientNotificationsAt', new Date().toISOString());
-                      const updated = (notifications || []).map((n) => ({
-                        ...n,
-                        read: true,
-                      }));
-                      write(LS.NOTIFICATIONS, updated.filter(n => !n.tipo)); // Solo guardar las del LS
-                      setNotifications(updated);
+                      if (currentUser?.id) {
+                        notificationService.markAllRead(currentUser.id).catch((e) => console.error(e));
+                      }
+                      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
                     }}
                     className="text-xs text-gray-500 hover:text-gray-700 px-2"
                   >
@@ -267,6 +275,9 @@ export const ClientHeader = ({ onMenuClick }) => {
                       <div className="flex flex-col items-center gap-1">
                         <button
                           onClick={() => {
+                            if (n.source === "server" && !n.read) {
+                              notificationService.markRead(n.id).catch((e) => console.error(e));
+                            }
                             if (n.path) {
                               setNotifOpen(false);
                               navigate(n.path);
@@ -275,7 +286,6 @@ export const ClientHeader = ({ onMenuClick }) => {
                             const upd = (notifications || []).map((it, i) =>
                               i === idx ? { ...it, read: true } : it,
                             );
-                            write(LS.NOTIFICATIONS, upd);
                             setNotifications(upd);
                           }}
                           className="p-1 text-blue-600 hover:bg-blue-50 rounded"

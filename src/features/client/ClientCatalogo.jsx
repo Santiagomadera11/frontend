@@ -2,6 +2,7 @@ import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { LS, read, write } from "../../shared/services/lsService";
+import { usePublicProducts } from "../../shared/hooks/usePublicProducts";
 import { ToastNotification } from "../../shared/ui/ToastNotification";
 import ProductCardGrid, { ProductRowList } from "./components/ProductCard";
 import ProductDetailModal from "../../shared/ui/ProductDetailModal";
@@ -29,9 +30,8 @@ const ProductCard = ({ product, onAdd }) => {
 
 const ClientCatalogo = () => {
   const { currentUser } = useCurrentUser();
+  const { products: rawProducts } = usePublicProducts();
   const [products, setProducts] = useState([]);
-  // Depuración: mostrar productos en consola
-  console.log("[DEBUG] Productos en memoria:", products);
   // Generar categorías a partir de los productos cargados
   const categories = Array.from(
     new Set((products || []).map((p) => p.categoria)),
@@ -59,51 +59,26 @@ const ClientCatalogo = () => {
     }
   }, [currentUser]);
 
-  // load products
+  // Adaptar el catálogo público al esquema esperado por ProductCardGrid
   useEffect(() => {
-    const load = () => {
-      try {
-        const storedProducts = JSON.parse(
-          localStorage.getItem("syspharma_products") || "[]",
-        );
-        console.log("[DEBUG] Productos cargados:", storedProducts);
-        const mappedProducts = Array.isArray(storedProducts)
-          ? storedProducts.map((p) => ({
-              ...p,
-              id: p.id,
-              nombre: p.nombre || p.name || "Sin nombre",
-              name: p.nombre || p.name || "Sin nombre",
-              precio: Number(p.precio ?? p.price ?? 0),
-              price: Number(p.precio ?? p.price ?? 0),
-              imagen: p.imagen || p.image || farmaciaImage,
-              image: p.imagen || p.image || farmaciaImage,
-              categoria: p.categoria || "Otros",
-              laboratorio:
-                p.laboratorio || p.marca || p.proveedor || "Genérico",
-              marca:
-                p.laboratorio || p.marca || p.proveedor || "Genérico",
-              stock: p.stock ?? p.existencia ?? 0,
-              requiereFormula: p.requiereFormula,
-              requiereFormulaMedica: p.requiereFormulaMedica,
-            }))
-          : [];
-        setProducts(mappedProducts);
-      } catch (e) {
-        console.error("[DEBUG] Error cargando productos:", e);
-        setProducts([]);
-      }
-    };
-
-    load();
-
-    const handleProductsUpdate = () => load();
-    window.addEventListener(`${LS.PRODUCTS}_updated`, handleProductsUpdate);
-    return () =>
-      window.removeEventListener(
-        `${LS.PRODUCTS}_updated`,
-        handleProductsUpdate,
-      );
-  }, []);
+    const mappedProducts = (rawProducts || []).map((p) => ({
+      ...p,
+      id: p.id,
+      nombre: p.nombre || p.name || "Sin nombre",
+      name: p.nombre || p.name || "Sin nombre",
+      precio: Number(p.precio ?? p.price ?? 0),
+      price: Number(p.precio ?? p.price ?? 0),
+      imagen: p.imagen || p.image || farmaciaImage,
+      image: p.imagen || p.image || farmaciaImage,
+      categoria: p.categoria || "Otros",
+      laboratorio: p.laboratorio || p.marca || p.proveedor || "Genérico",
+      marca: p.laboratorio || p.marca || p.proveedor || "Genérico",
+      stock: p.stock ?? p.existencia ?? 0,
+      requiereFormula: p.requiereFormula,
+      requiereFormulaMedica: p.requiereFormulaMedica,
+    }));
+    setProducts(mappedProducts);
+  }, [rawProducts]);
 
   const saveCartAndNotify = (id) => {
     const raw = read(LS.CART) || [];

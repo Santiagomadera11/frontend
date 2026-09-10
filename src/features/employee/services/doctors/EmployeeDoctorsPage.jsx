@@ -2,11 +2,12 @@ import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useEffect } from "react";
 import {
   Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight,
-  Eye, AlertCircle, CheckCircle, X,
+  Eye, CheckCircle, X,
 } from "lucide-react";
 import { doctorService } from "../../../services/doctors/services/doctorService";
 import DoctorFormModal from "../../../services/doctors/components/DoctorFormModal";
 import { StatusNotification } from "/src/shared/ui/StatusNotification";
+import { ConfirmDialog } from "/src/shared/ui/ConfirmDialog";
 
 const DIAS_LABELS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
@@ -24,7 +25,7 @@ export const EmployeeDoctorsPage = () => {
   const [isToggleConfirmOpen, setIsToggleConfirmOpen] = useState(false);
   const [notification, setNotification] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
   const { currentUser } = useCurrentUser();
   const userRole = (currentUser.rol || "").toLowerCase().trim();
   const userPerms = (currentUser.permisos || []).map((perm) => String(perm || "").toLowerCase().trim());
@@ -308,53 +309,27 @@ export const EmployeeDoctorsPage = () => {
       )}
 
       {/* Modal Eliminar */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden">
-            <div className="bg-red-50 px-5 py-3 border-b border-red-200 flex justify-between items-center">
-              <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2"><AlertCircle size={18} className="text-red-600" />Eliminar Médico</h3>
-              <button onClick={() => setShowDeleteConfirm(null)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
-            </div>
-            <div className="p-5">
-              <p className="text-sm text-gray-700">¿Eliminar al médico <strong>"{showDeleteConfirm.nombre}"</strong>?</p>
-              <p className="text-xs text-gray-500 mt-2">Esta acción no se puede deshacer.</p>
-            </div>
-            <div className="bg-red-50 px-5 py-3 border-t border-red-200 flex justify-end gap-2">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded-md">Cancelar</button>
-              <button onClick={confirmDelete} className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1">
-                <Trash2 size={14} /> Eliminar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={!!showDeleteConfirm}
+        title="Eliminar Médico"
+        message={showDeleteConfirm ? `¿Eliminar al médico "${showDeleteConfirm.nombre}"?` : ""}
+        confirmText="Eliminar"
+        danger
+        onCancel={() => setShowDeleteConfirm(null)}
+        onConfirm={confirmDelete}
+      />
 
       {/* Modal Toggle Estado */}
-      {isToggleConfirmOpen && doctorToToggle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden">
-            <div className={`px-5 py-3 border-b flex justify-between items-center ${doctorToToggle.estado ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}>
-              <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-                {doctorToToggle.estado ? <AlertCircle size={18} className="text-red-600" /> : <CheckCircle size={18} className="text-green-600" />}
-                {doctorToToggle.estado ? "Desactivar Médico" : "Activar Médico"}
-              </h3>
-              <button onClick={() => setIsToggleConfirmOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
-            </div>
-            <div className="p-5">
-              <p className="text-sm text-gray-700">
-                {doctorToToggle.estado ? `¿Desactivar al médico "${doctorToToggle.nombre}"?` : `¿Activar al médico "${doctorToToggle.nombre}"?`}
-              </p>
-            </div>
-            <div className={`px-5 py-3 border-t flex justify-end gap-2 ${doctorToToggle.estado ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}>
-              <button onClick={() => setIsToggleConfirmOpen(false)} className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded-md">Cancelar</button>
-              <button onClick={confirmToggleStatus}
-                className={`px-4 py-2 text-xs font-bold text-white rounded-md ${doctorToToggle.estado ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}`}>
-                {doctorToToggle.estado ? "Desactivar" : "Activar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={isToggleConfirmOpen && !!doctorToToggle}
+        title={doctorToToggle?.estado ? "Desactivar Médico" : "Activar Médico"}
+        message={doctorToToggle ? (doctorToToggle.estado ? `¿Desactivar al médico "${doctorToToggle.nombre}"?` : `¿Activar al médico "${doctorToToggle.nombre}"?`) : ""}
+        subMessage=""
+        confirmText={doctorToToggle?.estado ? "Desactivar" : "Activar"}
+        danger={!!doctorToToggle?.estado}
+        onCancel={() => setIsToggleConfirmOpen(false)}
+        onConfirm={confirmToggleStatus}
+      />
     </div>
   );
 };

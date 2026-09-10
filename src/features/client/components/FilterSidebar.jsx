@@ -1,28 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { usePublicProducts } from "../../../shared/hooks/usePublicProducts";
 
 export const FilterSidebar = ({
   selectedCategory,
   onCategoryChange,
   onPriceChange,
 }) => {
-  const [categories, setCategories] = useState([]);
+  const { products } = usePublicProducts();
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
-  useEffect(() => {
-    // Cargar categorías del localStorage
-    try {
-      const products = JSON.parse(
-        localStorage.getItem("syspharma_products") || "[]",
-      );
-      const uniqueCategories = [
-        ...new Set(products.map((p) => p.categoria).filter(Boolean)),
-      ].sort();
-      setCategories(uniqueCategories);
-    } catch {
-      setCategories([]);
-    }
-  }, []);
+  const categories = [
+    ...new Set((products || []).map((p) => p.categoria).filter(Boolean)),
+  ].sort();
 
   const handleMinhPrice = (e) => {
     const val = e.target.value;
