@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus, Search, Edit, Trash2, Eye,
-  ChevronLeft, ChevronRight, Package,
+  Package,
   X, CheckCircle, Database
 } from "lucide-react";
 import ProductModal from "./components/ProductFormModal";
@@ -15,6 +15,7 @@ import { brandService } from "../brands/services/brandService";
 import { presentationService } from "../presentations/services/presentationService";
 import { StatusNotification } from "/src/shared/ui/StatusNotification";
 import { ConfirmDialog } from "/src/shared/ui/ConfirmDialog";
+import { Pagination } from "/src/shared/ui/Pagination";
 
 const isExpiringSoon = (expiryDateStr) => {
   if (!expiryDateStr) return false;
@@ -225,7 +226,6 @@ export const ProductsPage = () => {
 
   const currentItems = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   useEffect(() => { setCurrentPage(1); }, [searchTerm, filterStatus, products.length]);
   useEffect(() => {
@@ -292,7 +292,7 @@ export const ProductsPage = () => {
                 <tr>
                   <th className="py-2.5 px-3 sm:px-4 text-[11px] font-semibold tracking-wider uppercase">ID</th>
                   <th className="py-2.5 px-3 sm:px-4 text-[11px] font-semibold tracking-wider uppercase">Nombre</th>
-                  <th className="py-2.5 px-3 sm:px-4 text-[11px] font-semibold tracking-wider uppercase">Marca</th>
+                  <th className="py-2.5 px-3 sm:px-4 text-[11px] font-semibold tracking-wider uppercase">Presentación</th>
                   <th className="py-2.5 px-3 sm:px-4 text-[11px] font-semibold tracking-wider uppercase hidden md:table-cell">Categoría</th>
                   <th className="py-2.5 px-3 sm:px-4 text-[11px] text-center font-semibold tracking-wider uppercase">Stock</th>
                   <th className="py-2.5 px-3 sm:px-4 text-[11px] text-right font-semibold tracking-wider uppercase hidden lg:table-cell">Precio</th>
@@ -313,7 +313,7 @@ export const ProductsPage = () => {
                         )}
                       </div>
                     </td>
-                    <td className="py-2.5 px-3 sm:px-4 text-xs text-gray-600 font-semibold">{prod.marca || "-"}</td>
+                    <td className="py-2.5 px-3 sm:px-4 text-xs text-gray-600 font-semibold">{prod.presentacion || "-"}</td>
                     <td className="py-2.5 px-3 sm:px-4 text-xs text-gray-600 hidden md:table-cell">{prod.categoria}</td>
                     <td className="py-2.5 px-3 sm:px-4 text-xs text-center font-semibold text-gray-900">{prod.stock}</td>
                     <td className={`py-2.5 px-3 sm:px-4 text-xs text-right font-semibold ${theme.text} hidden lg:table-cell`}>$ {Number(prod.precio).toLocaleString()}</td>
@@ -360,24 +360,14 @@ export const ProductsPage = () => {
           </div>
 
           {/* Paginación Desktop */}
-          <div className="bg-gray-50 px-3 py-2 border-t border-gray-200 flex items-center justify-between flex-shrink-0">
-            <div className="text-[10px] text-gray-500 font-medium">Página {currentPage} de {totalPages || 1}</div>
-            <div className="flex items-center gap-1.5">
-              <button onClick={() => setCurrentPage((c) => Math.max(1, c - 1))} disabled={currentPage === 1} className="p-1 border border-gray-200 rounded bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors">
-                <ChevronLeft size={14} className="text-gray-600" />
-              </button>
-              <div className="hidden md:flex gap-1">
-                {pages.map((p) => (
-                  <button key={p} onClick={() => setCurrentPage(p)} className={`px-2 py-0.5 text-[11px] font-medium rounded transition-colors ${p === currentPage ? `${theme.main} text-white shadow-sm` : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
-                    {p}
-                  </button>
-                ))}
-              </div>
-              <button onClick={() => setCurrentPage((c) => Math.min(totalPages, c + 1))} disabled={currentPage === totalPages || totalPages === 0} className="p-1 border border-gray-200 rounded bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors">
-                <ChevronRight size={14} className="text-gray-600" />
-              </button>
-            </div>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+            accentColor={isEmployeePanel ? "blue" : "emerald"}
+          />
         </div>
       )}
 
@@ -405,6 +395,7 @@ export const ProductsPage = () => {
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div><p className="text-gray-500 font-medium">Categoría</p><p className="text-gray-900 font-semibold">{prod.categoria}</p></div>
+                <div><p className="text-gray-500 font-medium">Presentación</p><p className="text-gray-900 font-semibold">{prod.presentacion || "-"}</p></div>
                 <div><p className="text-gray-500 font-medium">Stock</p><p className="text-gray-900 font-semibold">{prod.stock}</p></div>
                 <div className="col-span-2"><p className="text-gray-500 font-medium">Precio</p><p className={`${theme.text} font-bold`}>$ {Number(prod.precio).toLocaleString()}</p></div>
               </div>
@@ -438,13 +429,15 @@ export const ProductsPage = () => {
             </div>
           )}
           {/* Paginación Móvil */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-3 py-2 flex justify-between items-center flex-shrink-0 sticky bottom-0">
-            <span className="text-[10px] text-gray-500">Pág {currentPage} de {totalPages || 1}</span>
-            <div className="flex gap-1">
-              <button onClick={() => setCurrentPage((c) => Math.max(1, c - 1))} disabled={currentPage === 1} className="p-1 border rounded bg-white disabled:opacity-50 hover:bg-gray-100"><ChevronLeft size={16} className="text-gray-600" /></button>
-              <button onClick={() => setCurrentPage((c) => Math.min(totalPages, c + 1))} disabled={currentPage === totalPages || totalPages === 0} className="p-1 border rounded bg-white disabled:opacity-50 hover:bg-gray-100"><ChevronRight size={16} className="text-gray-600" /></button>
-            </div>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+            accentColor={isEmployeePanel ? "blue" : "emerald"}
+            className="rounded-lg shadow-sm sticky bottom-0"
+          />
         </div>
       )}
 

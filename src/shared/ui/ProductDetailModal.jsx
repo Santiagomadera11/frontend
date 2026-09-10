@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, ShoppingCart } from "lucide-react";
 import useCart from "../context/CartContext";
@@ -29,10 +29,39 @@ const ProductDetailModal = ({ product, onClose }) => {
   const price = Number(product.precio ?? product.price ?? 0);
   const isActive = product.estado !== false;
 
+  // Formas de venta habilitadas (Unidad/Blister/Caja). Si el producto no
+  // trae ninguna (catálogos viejos o no-medicamentos), se sintetiza una
+  // única forma "Unidad" con el precio del producto.
+  const formasVenta = (() => {
+    const activas = (product.formasVenta || []).filter((f) => f.activo !== false);
+    return activas.length > 0
+      ? activas
+      : [{ id: null, tipo: "Unidad", precio: price, factorUnidades: 1, activo: true }];
+  })();
+
+  const [formaVentaSeleccionada, setFormaVentaSeleccionada] = useState(
+    () => formasVenta.find((f) => f.tipo === "Unidad") || formasVenta[0],
+  );
+
+  // Si se abre el modal para otro producto (el mismo componente puede
+  // reutilizarse sin desmontar), volvemos a elegir "Unidad" por defecto.
+  useEffect(() => {
+    setFormaVentaSeleccionada(formasVenta.find((f) => f.tipo === "Unidad") || formasVenta[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
+
+  const precioSeleccionado = Number(formaVentaSeleccionada?.precio ?? price);
+
   const cart = useCart();
   const addToCart = () => {
     try {
-      cart.addToCart(product);
+      cart.addToCart({
+        ...product,
+        precio: precioSeleccionado,
+        formaVentaId: formaVentaSeleccionada?.id ?? null,
+        formaVentaTipo: formaVentaSeleccionada?.tipo ?? "Unidad",
+        factorUnidades: formaVentaSeleccionada?.factorUnidades ?? 1,
+      });
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
     } catch (err) {
@@ -155,10 +184,43 @@ const ProductDetailModal = ({ product, onClose }) => {
                   <p
                     className={`text-sm font-semibold ${isEmployee ? "text-blue-600" : "text-emerald-600"}`}
                   >
-                    ${price.toLocaleString()}
+                    ${precioSeleccionado.toLocaleString()}
                   </p>
                 </div>
               </div>
+
+              {/* Selector de Forma de Venta (Unidad / Blister / Caja) */}
+              {formasVenta.length > 1 && (
+                <div className="border-t pt-3 mt-3">
+                  <p className="text-xs text-gray-500 font-bold uppercase mb-2">
+                    Forma de venta
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {formasVenta.map((f) => {
+                      const isSelected = formaVentaSeleccionada?.tipo === f.tipo;
+                      return (
+                        <button
+                          key={f.tipo}
+                          type="button"
+                          onClick={() => setFormaVentaSeleccionada(f)}
+                          className={`px-3 py-2 rounded-lg border text-xs font-semibold text-center transition-all ${
+                            isSelected
+                              ? isEmployee
+                                ? "border-blue-600 bg-blue-50 text-blue-700"
+                                : "border-emerald-600 bg-emerald-50 text-emerald-700"
+                              : "border-gray-200 text-gray-600 hover:border-gray-300"
+                          }`}
+                        >
+                          <span className="block">{f.tipo}</span>
+                          <span className="block text-[11px] font-bold mt-0.5">
+                            ${Number(f.precio).toLocaleString()}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Información del Medicamento */}
               {product.tipoProducto === "Medicamento" && (

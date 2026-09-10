@@ -2,13 +2,14 @@ import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useEffect } from "react";
 import {
   Plus, Search, Eye, Edit, Trash2,
-  ChevronLeft, ChevronRight, Filter, Building2, Phone, Mail,
+  Filter, Building2, Phone, Mail,
   CheckCircle,
 } from "lucide-react";
 import ProviderFormModal from "./components/ProviderFormModal";
 import { providerService } from "./services/providerService";
 import { ToastNotification } from "../../../shared/ui/ToastNotification";
 import { ConfirmDialog } from "../../../shared/ui/ConfirmDialog";
+import { Pagination } from "../../../shared/ui/Pagination";
 
 export const ProvidersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -326,17 +327,14 @@ export const ProvidersPage = () => {
           </div>
 
           {/* PAGINACIÓN */}
-          <div className="bg-gray-50 px-3 py-1.5 border-t border-gray-200 flex items-center justify-between flex-shrink-0">
-            <span className="text-[10px] text-gray-500">Pág {currentPage} de {totalPages || 1}</span>
-            <div className="flex gap-1">
-              <button onClick={() => setCurrentPage(c => Math.max(1, c - 1))} disabled={currentPage === 1} className="p-1 rounded border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50">
-                <ChevronLeft size={14} className="text-gray-600" />
-              </button>
-              <button onClick={() => setCurrentPage(c => Math.min(totalPages, c + 1))} disabled={currentPage === totalPages || totalPages === 0} className="p-1 rounded border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50">
-                <ChevronRight size={14} className="text-gray-600" />
-              </button>
-            </div>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filteredItems.length}
+            itemsPerPage={itemsPerPage}
+            accentColor={isEmployeePanel ? "blue" : "emerald"}
+          />
         </div>
       )}
 

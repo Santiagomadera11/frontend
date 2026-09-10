@@ -13,6 +13,19 @@ const QuickPurchaseModal = ({ product, onClose, onSuccess }) => {
   const [message, setMessage] = useState("");
   const [quantity, setQuantity] = useState(1);
 
+  // Formas de venta habilitadas (Unidad/Blister/Caja). Si el producto no
+  // trae ninguna, se sintetiza una única forma "Unidad" con su precio.
+  const formasVenta = (() => {
+    const base = Number(product?.precio || 0);
+    const activas = (product?.formasVenta || []).filter((f) => f.activo !== false);
+    return activas.length > 0
+      ? activas
+      : [{ id: null, tipo: "Unidad", precio: base, factorUnidades: 1, activo: true }];
+  })();
+  const [formaVentaSeleccionada, setFormaVentaSeleccionada] = useState(
+    () => formasVenta.find((f) => f.tipo === "Unidad") || formasVenta[0],
+  );
+
   // Cargar datos del usuario si existe sesión
   useEffect(() => {
     try {
@@ -77,44 +90,38 @@ const QuickPurchaseModal = ({ product, onClose, onSuccess }) => {
       const userStr = sessionStorage.getItem("syspharma_user");
       const user = userStr ? JSON.parse(userStr) : null;
 
-      // Calcular total
-      const precio = Number(product.precio || 0);
+      // Calcular total con el precio de la forma de venta elegida
+      const precio = Number(formaVentaSeleccionada?.precio ?? product.precio ?? 0);
       const total = precio * quantity;
 
-      // Crear estructura del producto para el pedido
-      const productForOrder = {
-        id: product.id,
-        nombre: product.nombre || product.name,
-        precio: precio,
-        categoria: product.categoria,
-        tipoProducto: product.tipoProducto,
-        cantidad: quantity,
-        subtotal: total,
-        imagen: product.imagen,
-      };
-
-      // Crear datos del pedido
+      // Shape esperado por PedidoCreateDto (mismo shape que arma
+      // CarritoPage.jsx en su handleAbrirCheckout): clienteNombre,
+      // clienteDocumento, direccion, clienteTelefono, detalles[].
       const orderData = {
-        cliente: formData.nombre,
-        documento: formData.documento,
+        usuarioId: user?.id ? Number(user.id) : null,
+        clienteNombre: formData.nombre,
+        clienteDocumento: formData.documento,
+        clienteTelefono: formData.telefono,
+        clienteEmail: user?.email || null,
         direccion: formData.direccion,
-        telefono: formData.telefono,
-        productos: [productForOrder],
-        cantidadProductos: quantity,
-        total: total,
-        userId: user?.id || null,
-        userName: user?.nombre || formData.nombre,
-        origin: user?.rol === "Empleado" ? "empleado" : "web",
-        estado: user ? "Pendiente" : "Pendientes de Validación",
-        creadoPor: user?.nombre || "Visitante",
-        notas: "",
+        porcentajeIva: 0,
+        origen: user?.rol === "Empleado" ? "empleado" : "web",
+        detalles: [
+          {
+            productoId: Number(product.id),
+            nombre: product.nombre || product.name,
+            cantidad: Number(quantity),
+            precioUnitario: precio,
+            formaVentaId: formaVentaSeleccionada?.id ?? null,
+          },
+        ],
       };
 
       // Crear el pedido
-      const createdOrder = ordersService.create(orderData);
+      const createdOrder = await ordersService.create(orderData);
 
       // Mostrar mensaje de éxito
-      setMessage(`✓ Pedido ${createdOrder.id} creado exitosamente`);
+      setMessage(`✓ Pedido ${createdOrder?.numeroPedido || createdOrder?.id || ""} creado exitosamente`);
 
       // Cerrar modal después de 2 segundos
       setTimeout(() => {
@@ -134,7 +141,7 @@ const QuickPurchaseModal = ({ product, onClose, onSuccess }) => {
 
   if (!product) return null;
 
-  const precio = Number(product.precio || 0);
+  const precio = Number(formaVentaSeleccionada?.precio ?? product.precio ?? 0);
   const total = precio * quantity;
 
   return (
@@ -191,6 +198,37 @@ const QuickPurchaseModal = ({ product, onClose, onSuccess }) => {
               </div>
             </div>
           </div>
+
+          {/* Forma de Venta */}
+          {formasVenta.length > 1 && (
+            <div>
+              <label className="text-sm font-semibold text-gray-700 block mb-2">
+                Forma de venta
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {formasVenta.map((f) => {
+                  const isSelected = formaVentaSeleccionada?.tipo === f.tipo;
+                  return (
+                    <button
+                      key={f.tipo}
+                      type="button"
+                      onClick={() => setFormaVentaSeleccionada(f)}
+                      className={`px-3 py-2 rounded-lg border text-xs font-semibold text-center transition-colors ${
+                        isSelected
+                          ? "border-blue-600 bg-blue-50 text-blue-700"
+                          : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      <span className="block">{f.tipo}</span>
+                      <span className="block text-[11px] font-bold mt-0.5">
+                        ${Number(f.precio).toLocaleString()}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Cantidad */}
           <div>

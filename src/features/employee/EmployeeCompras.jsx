@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Plus, Search, Eye, Edit, Trash2,
-  ChevronLeft, ChevronRight, Filter, ShoppingBag,
+  Filter, ShoppingBag,
 } from "lucide-react";
 import PurchaseModal from "../inventory/purchases/components/PurchaseFormModal";
 import { purchaseService } from "../inventory/purchases/services/purchaseService";
 import { ToastNotification } from "../../shared/ui/ToastNotification";
 import { ConfirmDialog } from "../../shared/ui/ConfirmDialog";
+import { Pagination } from "../../shared/ui/Pagination";
 
 export const EmployeeCompras = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -201,15 +202,14 @@ export const EmployeeCompras = () => {
           </table>
         </div>
 
-        <div className="bg-gray-50 px-3 py-1.5 border-t border-gray-200 flex items-center justify-between flex-shrink-0">
-          <span className="text-[10px] text-gray-500">Pág {currentPage} de {totalPages || 1}</span>
-          <div className="flex gap-1">
-            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
-              className="p-1 rounded border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50"><ChevronLeft size={14} /></button>
-            <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages || totalPages === 0}
-              className="p-1 rounded border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50"><ChevronRight size={14} /></button>
-          </div>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={filtered.length}
+          itemsPerPage={itemsPerPage}
+          accentColor="blue"
+        />
       </div>
 
       <PurchaseModal isOpen={isModalOpen}

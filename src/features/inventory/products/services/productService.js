@@ -23,6 +23,7 @@ const mapProduct = (p) => ({
   requiereRefrigeracion: p.medicamento?.requiereRefrigeracion || false,
   afectaConduccion: p.medicamento?.afectaConduccion || false,
   fotosensible: p.medicamento?.fotosensible || false,
+  formasVenta: p.formasVenta || [],
 });
 
 export const productService = {
@@ -74,6 +75,7 @@ export const productService = {
             fotosensible: !!product.fotosensible,
           }
         : null,
+      formasVenta: product.formasVenta || [],
     };
 
     const response = await apiClient.post(ENDPOINT, payload);
@@ -113,6 +115,7 @@ export const productService = {
             fotosensible: !!product.fotosensible,
           }
         : null,
+      formasVenta: product.formasVenta || [],
     };
 
     const response = await apiClient.put(ENDPOINT, payload);

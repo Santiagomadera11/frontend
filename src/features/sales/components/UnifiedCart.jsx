@@ -42,16 +42,24 @@ export const UnifiedCart = ({
         )}
 
         {products.map((item) => {
-          const maxStock = item.loteId ? (item.lotes?.find((l) => l.id === item.loteId)?.cantidad ?? item.stock) : item.stock;
+          const factor = item.factorUnidades || 1;
+          const stockUnidades = item.loteId ? (item.lotes?.find((l) => l.id === item.loteId)?.cantidad ?? item.stock) : item.stock;
+          const maxStock = stockUnidades != null ? Math.floor(stockUnidades / factor) : null;
           const atMax = maxStock != null && item.cantidad >= maxStock;
+          const formaLabel = item.formaVentaTipo && item.formaVentaTipo !== "Unidad"
+            ? `${item.formaVentaTipo}${factor > 1 ? ` x${factor}` : ""}`
+            : null;
           return (
-            <div key={`prod-${item.id}-${item.loteId || "no-lote"}`} className="rounded-lg border border-gray-100 bg-gray-50 p-2 flex items-center gap-2">
+            <div key={`prod-${item.id}-${item.loteId || "no-lote"}-${item.formaVentaId || "unidad"}`} className="rounded-lg border border-gray-100 bg-gray-50 p-2 flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: primaryLight }}>
                 <Package size={15} style={{ color: primary, opacity: 0.6 }} />
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-xs text-gray-900 truncate">{item.nombre}</p>
+                <p className="font-semibold text-xs text-gray-900 truncate">
+                  {item.nombre}
+                  {formaLabel && <span className="ml-1 font-bold text-gray-400">· {formaLabel}</span>}
+                </p>
                 <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                   {item.numeroLote && (
                     <span className="text-[9px] font-bold text-blue-600 bg-blue-50 border border-blue-100 rounded px-1 py-0.5">
@@ -64,12 +72,12 @@ export const UnifiedCart = ({
               </div>
 
               <div className="flex items-center gap-0.5 bg-white rounded border border-gray-200 flex-shrink-0">
-                <button onClick={() => onUpdateQty(item.id, item.loteId, item.cantidad - 1)} className="w-5 h-5 flex items-center justify-center hover:bg-gray-100">
+                <button onClick={() => onUpdateQty(item.id, item.loteId, item.formaVentaId, item.cantidad - 1)} className="w-5 h-5 flex items-center justify-center hover:bg-gray-100">
                   <Minus size={10} />
                 </button>
                 <span className="w-5 text-center text-[10px] font-bold">{item.cantidad}</span>
                 <button
-                  onClick={() => onUpdateQty(item.id, item.loteId, item.cantidad + 1)}
+                  onClick={() => onUpdateQty(item.id, item.loteId, item.formaVentaId, item.cantidad + 1)}
                   disabled={atMax}
                   className="w-5 h-5 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
                   title={atMax ? "Stock máximo alcanzado" : "Aumentar cantidad"}
@@ -82,7 +90,7 @@ export const UnifiedCart = ({
                 {fmt(item.precio * item.cantidad)}
               </p>
 
-              <button onClick={() => onRemoveProduct(item.id, item.loteId)} className="text-gray-300 hover:text-red-500 flex-shrink-0">
+              <button onClick={() => onRemoveProduct(item.id, item.loteId, item.formaVentaId)} className="text-gray-300 hover:text-red-500 flex-shrink-0">
                 <X size={14} />
               </button>
             </div>

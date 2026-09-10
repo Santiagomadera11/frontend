@@ -1,8 +1,9 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useMemo, useState } from "react";
-import { Search, Plus, Eye, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { Search, Plus, Eye, AlertCircle } from "lucide-react";
 import { ReturnDetailModal } from "./ReturnDetailModal";
 import { ReturnForm } from "./ReturnForm";
+import { Pagination } from "/src/shared/ui/Pagination";
 
 const ESTADO_CONFIG = {
   1: { label: "Pendiente", bg: "bg-yellow-50", text: "text-yellow-700", dot: "bg-yellow-500" },
@@ -233,29 +234,13 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
 
             {/* Paginación */}
             {totalPages > 1 && (
-              <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50">
-                <div className="text-xs text-gray-600">
-                  Mostrando {currentPage * itemsPerPage + 1} a{" "}
-                  {Math.min((currentPage + 1) * itemsPerPage, filteredReturns.length)} de{" "}
-                  {filteredReturns.length}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
-                    disabled={currentPage === 0}
-                    className="p-2 hover:bg-white disabled:opacity-50 rounded border border-gray-200 text-gray-600"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
-                    disabled={currentPage === totalPages - 1}
-                    className="p-2 hover:bg-white disabled:opacity-50 rounded border border-gray-200 text-gray-600"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              </div>
+              <Pagination
+                currentPage={currentPage + 1}
+                totalPages={totalPages}
+                onPageChange={(p) => setCurrentPage(p - 1)}
+                totalItems={filteredReturns.length}
+                itemsPerPage={itemsPerPage}
+              />
             )}
           </>
         )}
