@@ -45,6 +45,7 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
   }, [products, searchTerm]);
 
   const [selectedLoteId, setSelectedLoteId] = useState("");
+  const [selectedFormaVentaId, setSelectedFormaVentaId] = useState(null);
 
   const activeLotes = useMemo(() => {
     if (!selectedProduct || !selectedProduct.lotes) return [];
@@ -58,17 +59,54 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
     return activeLotes.find(l => l.id === Number(selectedLoteId));
   }, [selectedLoteId, activeLotes]);
 
+  // Formas de venta habilitadas del producto (Unidad/Blister/Caja). Si el
+  // producto no tiene más que "Unidad" (caso normal hoy), este array queda
+  // con 0 o 1 elementos y no se muestra selector alguno.
+  const activeFormasVenta = useMemo(() => {
+    if (!selectedProduct || !Array.isArray(selectedProduct.formasVenta)) return [];
+    return selectedProduct.formasVenta.filter(f => f.activo !== false);
+  }, [selectedProduct]);
+
+  const formaSeleccionada = useMemo(() => {
+    if (!activeFormasVenta.length) return null;
+    return (
+      activeFormasVenta.find(f => f.id === selectedFormaVentaId) ||
+      activeFormasVenta.find(f => f.tipo === "Unidad") ||
+      activeFormasVenta[0]
+    );
+  }, [activeFormasVenta, selectedFormaVentaId]);
+
+  const precioActual = formaSeleccionada ? formaSeleccionada.precio : (selectedProduct?.precio ?? 0);
+  const factorActual = formaSeleccionada ? (formaSeleccionada.factorUnidades || 1) : 1;
+
+  // Cantidad máxima vendible en la forma elegida: el stock siempre se guarda
+  // en unidades sueltas, así que si la forma tiene factor > 1 (ej. Blister
+  // x10) hay que convertir el stock disponible a "cantidad de esa forma".
+  const maxCantidad = useMemo(() => {
+    if (!selectedProduct) return 1;
+    const stockUnidades = selectedLote ? selectedLote.cantidad : (selectedProduct.stock || 0);
+    return Math.max(0, Math.floor(stockUnidades / factorActual));
+  }, [selectedProduct, selectedLote, factorActual]);
+
+  useEffect(() => {
+    setQuickQty(prev => {
+      if (maxCantidad <= 0) return 0;
+      return Math.min(Math.max(prev, 1), maxCantidad);
+    });
+  }, [maxCantidad]);
+
   const handleLoteChange = (loteId) => {
     setSelectedLoteId(loteId);
-    const lote = activeLotes.find(l => l.id === Number(loteId));
-    const limit = lote ? lote.cantidad : (selectedProduct?.stock || 1);
-    setQuickQty(prev => Math.min(limit, prev));
   };
 
   const handleSelectProduct = (product) => {
     if (product.stock <= 0) return;
     setSelectedProduct(product);
     setQuickQty(1);
+
+    const formas = Array.isArray(product.formasVenta) ? product.formasVenta.filter(f => f.activo !== false) : [];
+    const defaultForma = formas.find(f => f.tipo === "Unidad") || formas[0] || null;
+    setSelectedFormaVentaId(defaultForma ? defaultForma.id : null);
 
     const productLotes = Array.isArray(product.lotes)
       ? [...product.lotes].filter(l => l.cantidad > 0).sort((a, b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento))
@@ -84,16 +122,21 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
   };
 
   const handleAddToCart = () => {
-    if (!selectedProduct) return;
+    if (!selectedProduct || maxCantidad < 1) return;
     onAddProduct({
       ...selectedProduct,
       loteId: selectedLote ? selectedLote.id : null,
       numeroLote: selectedLote ? selectedLote.numeroLote : null,
+      precio: precioActual,
+      formaVentaId: formaSeleccionada ? formaSeleccionada.id : null,
+      formaVentaTipo: formaSeleccionada ? formaSeleccionada.tipo : "Unidad",
+      factorUnidades: factorActual,
     }, quickQty);
     setShowModal(false);
     setSearchTerm("");
     setSelectedProduct(null);
     setSelectedLoteId("");
+    setSelectedFormaVentaId(null);
     searchInputRef.current?.focus();
   };
 
@@ -125,10 +168,21 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
       : [];
     const lote = productLotes[0] || null;
 
+    // El escaneo siempre agrega "Unidad" (comportamiento actual preservado),
+    // pero igual hay que propagar el formaVentaId de esa forma para que el
+    // backend pueda resolver el factor/precio congelado correctamente.
+    const unidadForma = Array.isArray(match.formasVenta)
+      ? match.formasVenta.find(f => f.tipo === "Unidad")
+      : null;
+
     onAddProduct({
       ...match,
       loteId: lote ? lote.id : null,
       numeroLote: lote ? lote.numeroLote : null,
+      precio: unidadForma ? unidadForma.precio : match.precio,
+      formaVentaId: unidadForma ? unidadForma.id : null,
+      formaVentaTipo: "Unidad",
+      factorUnidades: 1,
     }, 1);
 
     setSearchTerm("");
@@ -237,10 +291,46 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
                     <p className="text-xs text-gray-500 font-medium mt-0.5">{parts.join(" · ")}</p>
                   ) : null;
                 })()}
-                <p className="text-sm text-gray-500 mt-1">Precio: {fmt(selectedProduct.precio)}</p>
+                <p className="text-sm text-gray-500 mt-1">Precio: {fmt(precioActual)}</p>
                 <p className="text-sm text-gray-500">Stock: {selectedProduct.stock}</p>
               </div>
             </div>
+
+            {/* Selector de forma de venta: solo aparece si el producto tiene
+                más de una forma habilitada (ej. Unidad + Blister). Si solo
+                tiene "Unidad" (caso normal hoy), no se muestra nada. */}
+            {activeFormasVenta.length > 1 && (
+              <div className="mb-4">
+                <label className="text-sm font-semibold text-gray-600 block mb-2">Forma de venta</label>
+                <div className="flex gap-1.5 flex-wrap">
+                  {activeFormasVenta.map((f) => {
+                    const active = formaSeleccionada?.id === f.id;
+                    return (
+                      <label
+                        key={f.id}
+                        className="flex-1 min-w-[90px] cursor-pointer rounded-lg border-2 px-2 py-1.5 text-center transition"
+                        style={{
+                          borderColor: active ? primary : "#e5e7eb",
+                          background: active ? primaryLight : "#fff",
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="formaVenta"
+                          className="sr-only"
+                          checked={active}
+                          onChange={() => setSelectedFormaVentaId(f.id)}
+                        />
+                        <span className="block text-xs font-bold text-gray-800">
+                          {f.tipo}{f.factorUnidades > 1 ? ` x${f.factorUnidades}` : ""}
+                        </span>
+                        <span className="block text-[10px] text-gray-500">{fmt(f.precio)}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Lotes selector */}
             {activeLotes.length > 0 && (
@@ -265,36 +355,40 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
               <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
                 <button
                   onClick={() => setQuickQty(Math.max(1, quickQty - 1))}
-                  className="w-8 h-8 rounded flex items-center justify-center hover:bg-gray-200 transition"
+                  disabled={maxCantidad < 1}
+                  className="w-8 h-8 rounded flex items-center justify-center hover:bg-gray-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Minus size={16} />
                 </button>
                 <input
                   type="number"
                   min="1"
-                  max={selectedLote ? selectedLote.cantidad : selectedProduct.stock}
+                  max={maxCantidad}
                   value={quickQty}
+                  disabled={maxCantidad < 1}
                   onChange={(e) => {
-                    const limit = selectedLote ? selectedLote.cantidad : selectedProduct.stock;
-                    setQuickQty(Math.min(limit, Math.max(1, parseInt(e.target.value) || 1)));
+                    setQuickQty(Math.min(maxCantidad, Math.max(1, parseInt(e.target.value) || 1)));
                   }}
-                  className="flex-1 text-center font-bold text-lg bg-transparent border-0 focus:outline-none"
+                  className="flex-1 text-center font-bold text-lg bg-transparent border-0 focus:outline-none disabled:opacity-40"
                 />
                 <button
-                  onClick={() => {
-                    const limit = selectedLote ? selectedLote.cantidad : selectedProduct.stock;
-                    setQuickQty(Math.min(limit, quickQty + 1));
-                  }}
-                  className="w-8 h-8 rounded flex items-center justify-center hover:bg-gray-200 transition"
+                  onClick={() => setQuickQty(Math.min(maxCantidad, quickQty + 1))}
+                  disabled={maxCantidad < 1 || quickQty >= maxCantidad}
+                  className="w-8 h-8 rounded flex items-center justify-center hover:bg-gray-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Plus size={16} />
                 </button>
               </div>
+              {maxCantidad < 1 && (
+                <p className="text-xs text-red-500 font-semibold mt-1">
+                  Sin stock suficiente para vender esta forma ({formaSeleccionada?.tipo || "Unidad"}).
+                </p>
+              )}
             </div>
 
             <p className="text-sm text-gray-600 mb-4">
               Subtotal: <span className="font-bold" style={{ color: primary }}>
-                {fmt(selectedProduct.precio * quickQty)}
+                {fmt(precioActual * quickQty)}
               </span>
             </p>
 
@@ -307,8 +401,9 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
               </button>
               <button
                 onClick={handleAddToCart}
-                className="flex-1 py-2.5 rounded-xl text-white font-semibold transition-all active:scale-95"
-                style={{ background: primary }}
+                disabled={maxCantidad < 1}
+                className="flex-1 py-2.5 rounded-xl text-white font-semibold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: maxCantidad < 1 ? "#94a3b8" : primary }}
               >
                 Agregar
               </button>

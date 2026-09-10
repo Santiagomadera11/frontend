@@ -1,7 +1,7 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
-  Search, Eye, ChevronLeft, ChevronRight, Calendar,
+  Search, Eye, Calendar,
   Plus, Edit, CheckCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,7 @@ import { turnService } from "../sales/services/turnService";
 import { OrderDetailModal } from "../sales/orders/components/OrderDetailModal";
 import { OpenShiftModal } from "../sales/components/OpenShiftModal";
 import { ToastNotification } from "../../shared/ui/ToastNotification";
+import { Pagination } from "../../shared/ui/Pagination";
 
 const fmt = (v) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v || 0);

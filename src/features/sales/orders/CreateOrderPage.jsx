@@ -141,32 +141,40 @@ export const CreateOrderPage = () => {
     return { subtotal, iva, total };
   }, [productCart, serviceCart, porcentajeIva]);
 
+  // Dos líneas del mismo producto/lote pero con distinta forma de venta
+  // (ej. 2 Unidades sueltas + 1 Blister) son filas independientes: la clave
+  // de "misma línea" incluye formaVentaId.
+  const isSameCartLine = (p, id, loteId, formaVentaId) =>
+    p.id === id && p.loteId === loteId && (p.formaVentaId ?? null) === (formaVentaId ?? null);
+
   const handleAddProduct = useCallback((product, cantidad) => {
     setProductCart((prev) => {
-      const existing = prev.find((p) => p.id === product.id && p.loteId === product.loteId);
+      const existing = prev.find((p) => isSameCartLine(p, product.id, product.loteId, product.formaVentaId));
       if (existing)
-        return prev.map((p) => p.id === product.id && p.loteId === product.loteId ? { ...p, cantidad: p.cantidad + cantidad } : p);
+        return prev.map((p) => isSameCartLine(p, product.id, product.loteId, product.formaVentaId) ? { ...p, cantidad: p.cantidad + cantidad } : p);
       return [...prev, { ...product, cantidad }];
     });
   }, []);
 
-  const handleRemoveProduct = useCallback((id, loteId) => {
-    setProductCart((prev) => prev.filter((p) => !(p.id === id && p.loteId === loteId)));
+  const handleRemoveProduct = useCallback((id, loteId, formaVentaId) => {
+    setProductCart((prev) => prev.filter((p) => !isSameCartLine(p, id, loteId, formaVentaId)));
   }, []);
 
-  const handleUpdateQty = useCallback((id, loteId, newQty) => {
+  const handleUpdateQty = useCallback((id, loteId, formaVentaId, newQty) => {
     if (newQty <= 0) {
-      handleRemoveProduct(id, loteId);
+      handleRemoveProduct(id, loteId, formaVentaId);
     } else {
       setProductCart((prev) =>
         prev.map((p) => {
-          if (!(p.id === id && p.loteId === loteId)) return p;
-          let maxStock = p.stock ?? Infinity;
+          if (!isSameCartLine(p, id, loteId, formaVentaId)) return p;
+          let maxUnidades = p.stock ?? Infinity;
           if (p.loteId) {
             const lote = p.lotes?.find(l => l.id === p.loteId);
-            if (lote) maxStock = lote.cantidad;
+            if (lote) maxUnidades = lote.cantidad;
           }
-          const cappedQty = Math.min(newQty, maxStock);
+          const factor = p.factorUnidades || 1;
+          const maxCantidadForma = Math.floor(maxUnidades / factor);
+          const cappedQty = Math.min(newQty, maxCantidadForma);
           return { ...p, cantidad: cappedQty };
         })
       );
@@ -241,6 +249,7 @@ export const CreateOrderPage = () => {
             cantidad: Number(p.cantidad),
             precioUnitario: Number(p.precio),
             subtotal: Number(p.cantidad * p.precio), // ← NUEVO
+            formaVentaId: p.formaVentaId ?? null,
           })),
           citaIds: serviceCart.map((s) => s.appointmentId).filter(Boolean), // ← NUEVO
         };
@@ -279,6 +288,7 @@ export const CreateOrderPage = () => {
             descuento: 0,
             subtotal: Number(p.cantidad * p.precio),
             loteId: p.loteId ? Number(p.loteId) : null,
+            formaVentaId: p.formaVentaId ?? null,
           })),
           servicios: serviceCart.map((s) => ({
             servicioId: Number(s.servicioId),

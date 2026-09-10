@@ -2,7 +2,7 @@ import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useEffect } from "react";
 import {
   Search, Plus, Eye, Edit, Trash2,
-  ChevronLeft, ChevronRight, CheckCircle,
+  CheckCircle,
 } from "lucide-react";
 import { permissionService } from "../settings/permissionService";
 import { userService } from "./services/userService";
@@ -10,6 +10,7 @@ import { UserFormModal } from "./components/UserFormModal";
 import UserDetailModal from "./components/UserDetailModal";
 import { StatusNotification } from "/src/shared/ui/StatusNotification";
 import { ConfirmDialog } from "/src/shared/ui/ConfirmDialog";
+import { Pagination } from "/src/shared/ui/Pagination";
 
 export const UsersPage = () => {
   const [users, setUsers] = useState([]);
@@ -278,17 +279,13 @@ export const UsersPage = () => {
         </div>
 
         {filteredUsers.length > 0 && (
-          <div className="border-t border-gray-100 p-2.5 bg-gray-50 flex items-center justify-between flex-shrink-0">
-            <span className="text-[10px] text-gray-500 font-medium">
-              Página {currentPage + 1} de {totalPages} — {filteredUsers.length} usuarios
-            </span>
-            <div className="flex gap-2">
-              <button onClick={() => setCurrentPage(p => Math.max(0, p - 1))} disabled={currentPage === 0}
-                className="p-1 rounded bg-white border border-gray-200 disabled:opacity-50"><ChevronLeft size={14} /></button>
-              <button onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage === totalPages - 1}
-                className="p-1 rounded bg-white border border-gray-200 disabled:opacity-50"><ChevronRight size={14} /></button>
-            </div>
-          </div>
+          <Pagination
+            currentPage={currentPage + 1}
+            totalPages={totalPages}
+            onPageChange={(p) => setCurrentPage(p - 1)}
+            totalItems={filteredUsers.length}
+            itemsPerPage={itemsPerPage}
+          />
         )}
       </div>
 

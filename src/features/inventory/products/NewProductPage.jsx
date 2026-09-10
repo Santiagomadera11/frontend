@@ -39,6 +39,10 @@ const NewProductPage = () => {
     registroSanitario: "",
     requiereFormula: false,
     imagen: null,
+    formasVenta: {
+      blister: { habilitado: false, precio: "", factorUnidades: "" },
+      caja: { habilitado: false, precio: "", factorUnidades: "" },
+    },
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -92,6 +96,19 @@ const NewProductPage = () => {
           registroSanitario: product.registroSanitario || "",
           requiereFormula: product.requiereFormula || false,
           imagen: product.imagen || null,
+          formasVenta: (() => {
+            const formas = Array.isArray(product.formasVenta) ? product.formasVenta : [];
+            const blister = formas.find((f) => f.tipo === "Blister" && f.activo !== false);
+            const caja = formas.find((f) => f.tipo === "Caja" && f.activo !== false);
+            return {
+              blister: blister
+                ? { habilitado: true, precio: blister.precio ?? "", factorUnidades: blister.factorUnidades ?? "" }
+                : { habilitado: false, precio: "", factorUnidades: "" },
+              caja: caja
+                ? { habilitado: true, precio: caja.precio ?? "", factorUnidades: caja.factorUnidades ?? "" }
+                : { habilitado: false, precio: "", factorUnidades: "" },
+            };
+          })(),
         });
         if (product.imagen) setImagePreview(product.imagen);
       } catch (error) {
@@ -150,6 +167,20 @@ const NewProductPage = () => {
     if (formData.enOferta && (Number(formData.porcentajeDescuento) < 0 || Number(formData.porcentajeDescuento) > 100))
       return showError("Descuento Inválido", "El porcentaje de descuento debe estar entre 0 y 100");
 
+    const { blister, caja } = formData.formasVenta;
+    if (blister.habilitado) {
+      if (!blister.precio || Number(blister.precio) <= 0)
+        return showError("Precio Inválido", "Ingresa un precio válido mayor a 0 para la venta por Blister");
+      if (!Number.isInteger(Number(blister.factorUnidades)) || Number(blister.factorUnidades) < 1)
+        return showError("Unidades Inválidas", "Ingresa un número entero de unidades por blister (mínimo 1)");
+    }
+    if (caja.habilitado) {
+      if (!caja.precio || Number(caja.precio) <= 0)
+        return showError("Precio Inválido", "Ingresa un precio válido mayor a 0 para la venta por Caja");
+      if (!Number.isInteger(Number(caja.factorUnidades)) || Number(caja.factorUnidades) < 1)
+        return showError("Unidades Inválidas", "Ingresa un número entero de unidades por caja (mínimo 1)");
+    }
+
     const payload = {
       nombre: formData.nombre.trim(),
       tipoProducto: formData.tipoProducto,
@@ -177,6 +208,15 @@ const NewProductPage = () => {
       enOferta: formData.enOferta,
       porcentajeDescuento: Number(formData.porcentajeDescuento) || 0,
       esRecomendado: formData.esRecomendado,
+
+      formasVenta: [
+        ...(formData.formasVenta.blister.habilitado
+          ? [{ tipo: "Blister", precio: Number(formData.formasVenta.blister.precio), factorUnidades: Number(formData.formasVenta.blister.factorUnidades) }]
+          : []),
+        ...(formData.formasVenta.caja.habilitado
+          ? [{ tipo: "Caja", precio: Number(formData.formasVenta.caja.precio), factorUnidades: Number(formData.formasVenta.caja.factorUnidades) }]
+          : []),
+      ],
     };
 
     try {
@@ -208,6 +248,10 @@ const NewProductPage = () => {
               precio: "", porcentajeIva: 0, stock: "", estado: true, esDestacado: false, enOferta: false,
               porcentajeDescuento: 0, esRecomendado: false, composicion: "", concentracion: "",
               presentacionId: "", viaAdministracion: "", registroSanitario: "", requiereFormula: false, imagen: null,
+              formasVenta: {
+                blister: { habilitado: false, precio: "", factorUnidades: "" },
+                caja: { habilitado: false, precio: "", factorUnidades: "" },
+              },
             });
             setImagePreview(null);
             navigate("/admin/productos");
@@ -363,6 +407,119 @@ const NewProductPage = () => {
                     <Package className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                     <input type="number" readOnly className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded bg-gray-100 cursor-not-allowed font-medium text-gray-600"
                       value={formData.stock} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Formas de venta */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h4 className="font-bold text-gray-800 text-sm mb-3">Formas de Venta</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg border bg-gray-50 border-gray-200">
+                    <label className="text-xs font-bold text-gray-700">Unidad</label>
+                    <span className="text-xs font-semibold text-gray-600">$ {formData.precio || "0"}</span>
+                  </div>
+
+                  <div className="p-3 rounded-lg border border-gray-200">
+                    <label className="flex items-center gap-2 text-xs font-bold text-gray-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                        checked={formData.formasVenta.blister.habilitado}
+                        onChange={(e) =>
+                          setFormData((f) => ({
+                            ...f,
+                            formasVenta: { ...f.formasVenta, blister: { ...f.formasVenta.blister, habilitado: e.target.checked } },
+                          }))
+                        }
+                      />
+                      Vender por Blister
+                    </label>
+                    {formData.formasVenta.blister.habilitado && (
+                      <div className="grid grid-cols-2 gap-3 mt-3">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">Precio por blister ($)</label>
+                          <input
+                            type="number"
+                            className="w-full text-sm border border-gray-300 rounded px-3 py-2"
+                            value={formData.formasVenta.blister.precio}
+                            onChange={(e) =>
+                              setFormData((f) => ({
+                                ...f,
+                                formasVenta: { ...f.formasVenta, blister: { ...f.formasVenta.blister, precio: e.target.value } },
+                              }))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">Unidades por blister</label>
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            className="w-full text-sm border border-gray-300 rounded px-3 py-2"
+                            value={formData.formasVenta.blister.factorUnidades}
+                            onChange={(e) =>
+                              setFormData((f) => ({
+                                ...f,
+                                formasVenta: { ...f.formasVenta, blister: { ...f.formasVenta.blister, factorUnidades: e.target.value } },
+                              }))
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-3 rounded-lg border border-gray-200">
+                    <label className="flex items-center gap-2 text-xs font-bold text-gray-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                        checked={formData.formasVenta.caja.habilitado}
+                        onChange={(e) =>
+                          setFormData((f) => ({
+                            ...f,
+                            formasVenta: { ...f.formasVenta, caja: { ...f.formasVenta.caja, habilitado: e.target.checked } },
+                          }))
+                        }
+                      />
+                      Vender por Caja
+                    </label>
+                    {formData.formasVenta.caja.habilitado && (
+                      <div className="grid grid-cols-2 gap-3 mt-3">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">Precio por caja ($)</label>
+                          <input
+                            type="number"
+                            className="w-full text-sm border border-gray-300 rounded px-3 py-2"
+                            value={formData.formasVenta.caja.precio}
+                            onChange={(e) =>
+                              setFormData((f) => ({
+                                ...f,
+                                formasVenta: { ...f.formasVenta, caja: { ...f.formasVenta.caja, precio: e.target.value } },
+                              }))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">Unidades por caja</label>
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            className="w-full text-sm border border-gray-300 rounded px-3 py-2"
+                            value={formData.formasVenta.caja.factorUnidades}
+                            onChange={(e) =>
+                              setFormData((f) => ({
+                                ...f,
+                                formasVenta: { ...f.formasVenta, caja: { ...f.formasVenta.caja, factorUnidades: e.target.value } },
+                              }))
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

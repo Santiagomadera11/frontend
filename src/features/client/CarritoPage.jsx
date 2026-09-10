@@ -1,11 +1,6 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ArrowLeft, MapPin } from "lucide-react";
-import {
-  LS,
-  read,
-  write,
-} from "../../shared/services/lsService";
 import { getPaymentMethods } from "../settings/services/parameterService";
 import { ToastNotification } from "../../shared/ui/ToastNotification";
 import { ordersService } from "../sales/orders/services/ordersService";
@@ -13,11 +8,18 @@ import { notificationService } from "../../shared/services/notificationService";
 import farmaciaImage from "../../assets/farmacia.avif";
 import { useNavigate } from "react-router-dom";
 import { usePublicProducts } from "../../shared/hooks/usePublicProducts";
+import useCart from "../../shared/context/CartContext";
 
 const CarritoPage = () => {
   const navigate = useNavigate();
+  const { currentUser } = useCurrentUser();
   const { products: publicProducts } = usePublicProducts();
-  const [cartItems, setCartItems] = useState([]);
+  const {
+    cartItems: rawCartItems,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+  } = useCart();
   const [toast, setToast] = useState(null);
 
   // Estados para Checkout
@@ -28,47 +30,37 @@ const CarritoPage = () => {
   const [checkoutError, setCheckoutError] = useState(null);
   const [processing, setProcessing] = useState(false);
 
-  useEffect(() => {
-    load();
-    const onCartUpdated = () => load();
-    window.addEventListener(`${LS.CART}_updated`, onCartUpdated);
-    return () => window.removeEventListener(`${LS.CART}_updated`, onCartUpdated);
-  }, [publicProducts]);
+  // Enriquece cada línea del carrito (proveniente de CartContext, que ya
+  // unifica invitado/localStorage y usuario logueado/backend) con los datos
+  // de catálogo público (marca, presentación, restricciones, etc.).
+  const cartItems = (rawCartItems || []).map((item) => {
+    const p = publicProducts.find((x) => x.id === item.id || x.id === Number(item.id)) || {};
+    return {
+      id: p.id || item.id,
+      nombre: p.nombre || item.nombre || "Producto",
+      imagen: p.imagen || item.imagen,
+      precioActual: Number(item.precio ?? p.precio ?? 0),
+      cantidad: item.cantidad || 1,
+      producto: p,
+      marca: p.marca || p.laboratorio || p.proveedor || item.marca || "",
+      concentracion: p.concentracion || p.medicamento?.concentracion || item.concentracion || "",
+      presentacion: p.presentacion || item.presentacion || "",
+      requiereFormula: p.requiereFormula !== undefined ? p.requiereFormula : (p.medicamento?.requiereFormula || false),
+      requiereFormulaMedica: p.requiereFormulaMedica !== undefined ? p.requiereFormulaMedica : (p.medicamento?.requiereFormula || false),
+      formaVentaId: item.formaVentaId ?? null,
+      formaVentaTipo: item.formaVentaTipo || "Unidad",
+      factorUnidades: item.factorUnidades || 1,
+    };
+  });
 
-  function load() {
-    const cart = read(LS.CART) || [];
-    const prods = publicProducts || [];
-    const normalized = (cart || []).map((item) => {
-      const p = prods.find((x) => x.id === item.id || x.id === Number(item)) || {};
-      return {
-        id: p.id || item.id,
-        nombre: p.nombre || item.nombre || "Producto",
-        imagen: p.imagen || item.imagen,
-        precioActual: Number(p.precio || item.precio || 0),
-        cantidad: item.cantidad || 1,
-        producto: p,
-        marca: p.marca || p.laboratorio || p.proveedor || item.marca || "",
-        concentracion: p.concentracion || p.medicamento?.concentracion || item.concentracion || "",
-        presentacion: p.presentacion || item.presentacion || "",
-        requiereFormula: p.requiereFormula !== undefined ? p.requiereFormula : (p.medicamento?.requiereFormula || false),
-        requiereFormulaMedica: p.requiereFormulaMedica !== undefined ? p.requiereFormulaMedica : (p.medicamento?.requiereFormula || false),
-      };
-    });
-    setCartItems(normalized);
-  }
-
-  const changeQty = (id, delta) => {
-    const cart = read(LS.CART) || [];
-    const updated = cart.map(it => it.id === id ? { ...it, cantidad: Math.max(1, (it.cantidad || 1) + delta) } : it);
-    write(LS.CART, updated);
-    load();
+  const changeQty = (id, delta, formaVentaId) => {
+    updateQuantity(id, delta, formaVentaId);
   };
 
-  const handleRemove = (id) => {
-    const cart = read(LS.CART) || [];
-    const updated = cart.filter(it => it.id !== id);
-    write(LS.CART, updated);
-    load();
+  const handleRemove = (id, formaVentaId) => {
+    // qty muy grande para forzar la eliminación completa de la línea,
+    // sin importar cuántas unidades tenga.
+    removeFromCart(id, Infinity, formaVentaId);
     setToast({ message: "Producto eliminado", type: "success" });
   };
 
@@ -76,8 +68,11 @@ const CarritoPage = () => {
   const formatCurrency = (amount) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(amount);
 
   const handleAbrirCheckout = () => {
-    const { currentUser } = useCurrentUser();
-  const user = currentUser || {};
+    // Nota: antes esta función llamaba a useCurrentUser() acá adentro, lo
+    // cual viola las reglas de hooks (se invoca desde un onClick, fuera del
+    // render) y rompía el botón "Finalizar Compra" con un error de React.
+    // currentUser ahora se obtiene arriba, al nivel del componente.
+    const user = currentUser || {};
     const methods = getPaymentMethods();
     setPaymentMethods(methods || []);
     // Pre-llenar con la dirección del perfil si existe
@@ -102,11 +97,20 @@ const CarritoPage = () => {
           <div className="lg:col-span-2 space-y-4">
             {cartItems.map((it) => {
               const isRestricted = !!(it.requiereFormula || it.requiereFormulaMedica);
+              const showForma = it.formaVentaTipo && it.formaVentaTipo !== "Unidad";
               return (
-                <div key={it.id} className="flex items-center gap-4 bg-white border border-gray-100 p-4 rounded-2xl shadow-sm">
+                <div key={`${it.id}-${it.formaVentaId ?? "u"}`} className="flex items-center gap-4 bg-white border border-gray-100 p-4 rounded-2xl shadow-sm">
                   <img src={it.imagen || farmaciaImage} className="w-20 h-20 object-cover rounded-xl" alt="" />
                   <div className="flex-1">
-                    <h4 className={`font-bold ${isRestricted ? "line-through text-gray-400" : "text-gray-900"}`}>{it.nombre}</h4>
+                    <h4 className={`font-bold ${isRestricted ? "line-through text-gray-400" : "text-gray-900"}`}>
+                      {it.nombre}
+                      {showForma && (
+                        <span className="ml-2 text-xs font-semibold text-emerald-600">
+                          · {it.formaVentaTipo}
+                          {it.factorUnidades > 1 ? ` x${it.factorUnidades}` : ""}
+                        </span>
+                      )}
+                    </h4>
                     {(() => {
                       const parts = [it.marca, it.concentracion, it.presentacion].filter(Boolean);
                       return parts.length > 0 ? (
@@ -121,11 +125,11 @@ const CarritoPage = () => {
                     <p className="text-emerald-600 font-black mt-1">{formatCurrency(it.precioActual)}</p>
                   </div>
                   <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-xl">
-                    <button onClick={() => changeQty(it.id, -1)} className="w-8 h-8 flex items-center justify-center bg-white border rounded-lg">-</button>
+                    <button onClick={() => changeQty(it.id, -1, it.formaVentaId)} className="w-8 h-8 flex items-center justify-center bg-white border rounded-lg">-</button>
                     <span className="font-bold w-4 text-center">{it.cantidad}</span>
-                    <button onClick={() => changeQty(it.id, 1)} className="w-8 h-8 flex items-center justify-center bg-white border rounded-lg">+</button>
+                    <button onClick={() => changeQty(it.id, 1, it.formaVentaId)} className="w-8 h-8 flex items-center justify-center bg-white border rounded-lg">+</button>
                   </div>
-                  <button onClick={() => handleRemove(it.id)} className="p-2 text-red-400 hover:text-red-600">✕</button>
+                  <button onClick={() => handleRemove(it.id, it.formaVentaId)} className="p-2 text-red-400 hover:text-red-600">✕</button>
                 </div>
               );
             })}
@@ -248,13 +252,14 @@ const CarritoPage = () => {
                         productoId: Number(it.id),
                         nombre: it.nombre,
                         cantidad: Number(it.cantidad),
-                        precioUnitario: Number(it.precioActual)
+                        precioUnitario: Number(it.precioActual),
+                        formaVentaId: Number(it.formaVentaId) || null,
                       }))
                     };
 
                     await ordersService.create(dataParaGuardar);
 
-                    write(LS.CART, []);
+                    await clearCart();
                     setCheckoutOpen(false);
                     try {
                       await notificationService.create({

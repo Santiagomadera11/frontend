@@ -1,7 +1,7 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useEffect, useState } from "react";
 import { Search } from "lucide-react";
-import { LS, read, write } from "../../shared/services/lsService";
+import useCart from "../../shared/context/CartContext";
 import { usePublicProducts } from "../../shared/hooks/usePublicProducts";
 import { ToastNotification } from "../../shared/ui/ToastNotification";
 import ProductCardGrid, { ProductRowList } from "./components/ProductCard";
@@ -44,6 +44,7 @@ const ClientCatalogo = () => {
   const [userName, setUserName] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const listRef = React.useRef(null);
+  const cart = useCart();
 
   // scroll to product list whenever a category filter is applied
   useEffect(() => {
@@ -80,17 +81,18 @@ const ClientCatalogo = () => {
     setProducts(mappedProducts);
   }, [rawProducts]);
 
+  // Antes escribía LS.CART directamente a mano, sin pasar por CartContext,
+  // por lo que lo agregado acá no siempre se reflejaba en CarritoPage.jsx
+  // para usuarios logueados (carrito persistido en backend). Se centraliza
+  // en cart.addToCart, que además resuelve la forma de venta "Unidad" por
+  // defecto (esta grilla no tiene selector de forma de venta).
   const saveCartAndNotify = (id) => {
-    const raw = read(LS.CART) || [];
     const prods = products || [];
     const prod = prods.find((p) => p.id === id || p.id === Number(id));
     const stock = prod ? (prod.stock ?? 0) : 0;
 
-    const arr = (raw || []).map((it) =>
-      it && typeof it === "object" ? it : { id: it, cantidad: 1 },
-    );
-    const existing = arr.find((it) => it.id === id);
-    const currentQty = existing ? existing.cantidad : 0;
+    const existing = cart.cartItems.find((it) => String(it.id) === String(id));
+    const currentQty = existing ? Number(existing.cantidad) || 0 : 0;
     if (currentQty >= stock) {
       setToast({
         message: "Stock máximo alcanzado",
@@ -100,23 +102,7 @@ const ClientCatalogo = () => {
       return;
     }
 
-    if (existing) {
-      existing.cantidad = Math.min(stock, existing.cantidad + 1);
-      existing.precio =
-        Number(
-          prod
-            ? (prod.price ?? prod.precio ?? existing.precio)
-            : existing.precio,
-        ) || 0;
-    } else {
-      arr.push({
-        id,
-        cantidad: 1,
-        precio: Number(prod ? (prod.price ?? prod.precio ?? 0) : 0) || 0,
-      });
-    }
-
-    write(LS.CART, arr);
+    cart.addToCart(prod || { id });
     setToast({
       message: "Producto añadido al carrito",
       type: "success",
