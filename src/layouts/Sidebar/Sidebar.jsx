@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { authService } from "../../features/auth/authService";
 import {
-  LayoutDashboard, Users, User, ShoppingCart, Package, Tags, Truck,
+  LayoutDashboard, Users, User, ShoppingCart, Package, Tags, Truck, Award, Beaker,
   DollarSign, ClipboardList, Stethoscope, Calendar, Settings,
   ChevronDown, ChevronRight, LogOut, X, BarChart3, TrendingUp,
 } from "lucide-react";
@@ -36,7 +36,7 @@ const Sidebar = ({ onClose, onShowLogoutModal }) => {
   };
 
   return (
-    <aside className="w-60 bg-[#2C3E50] flex flex-col text-white shadow-xl flex-shrink-0 border-l border-gray-700 h-full overflow-hidden">
+    <aside className="w-60 bg-[#2C3E50] flex flex-col text-white shadow-xl flex-shrink-0 border-r border-gray-700 h-full overflow-hidden">
       <div className="h-14 flex items-center justify-between gap-3 px-5 border-b border-gray-700 bg-[#243342] flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <div className="p-0.5 flex-shrink-0">
@@ -64,7 +64,7 @@ const Sidebar = ({ onClose, onShowLogoutModal }) => {
 
         {has("users.view", "users.create", "users.edit", "users.delete", "users.status",
               "purchase.view", "purchase.create", "purchase.edit", "purchase.delete",
-              "products.view", "categories.view", "suppliers.view",
+              "products.view", "categories.view", "brands.view", "presentations.view", "suppliers.view",
               "sales.view", "sales.create", "orders.view",
               "services.view", "appointments.view", "appointments.calendar",
               "appointments.list", "reports.shifts", "reports.performance") && (
@@ -80,6 +80,8 @@ const Sidebar = ({ onClose, onShowLogoutModal }) => {
         {has("purchase.view", "purchase.create", "purchase.edit", "purchase.delete", "purchase.status",
               "products.view", "products.create", "products.edit", "products.delete", "products.status",
               "categories.view", "categories.create", "categories.edit", "categories.delete", "categories.status",
+              "brands.view", "brands.create", "brands.edit", "brands.delete", "brands.status",
+              "presentations.view", "presentations.create", "presentations.edit", "presentations.delete", "presentations.status",
               "suppliers.view", "suppliers.create", "suppliers.edit", "suppliers.delete", "suppliers.status") && (
           <MenuGroup
             to="/admin/compras"
@@ -94,6 +96,12 @@ const Sidebar = ({ onClose, onShowLogoutModal }) => {
             )}
             {has("categories.view", "categories.create", "categories.edit", "categories.delete", "categories.status") && (
               <SubMenuItem to="/admin/categorias" label="Categorías" icon={Tags} active={isActive("/admin/categorias")} />
+            )}
+            {has("brands.view", "brands.create", "brands.edit", "brands.delete", "brands.status") && (
+              <SubMenuItem to="/admin/marcas" label="Marcas" icon={Award} active={isActive("/admin/marcas")} />
+            )}
+            {has("presentations.view", "presentations.create", "presentations.edit", "presentations.delete", "presentations.status") && (
+              <SubMenuItem to="/admin/presentaciones" label="Presentaciones" icon={Beaker} active={isActive("/admin/presentaciones")} />
             )}
             {has("suppliers.view", "suppliers.create", "suppliers.edit", "suppliers.delete", "suppliers.status") && (
               <SubMenuItem to="/admin/proveedores" label="Proveedores" icon={Truck} active={isActive("/admin/proveedores")} />

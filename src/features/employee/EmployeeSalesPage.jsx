@@ -52,7 +52,7 @@ export const EmployeeSalesPage = () => {
   const [selectedSale, setSelectedSale] = useState(null);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [todayExpenses, setTodayExpenses] = useState([]);
-  const itemsPerPage = 20;
+  const itemsPerPage = 10;
 
   // ── Carga de datos
   const loadSales = useCallback(async () => {

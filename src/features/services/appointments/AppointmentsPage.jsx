@@ -2,12 +2,13 @@ import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   Calendar as CalendarIcon, List, Settings, Plus, Search, Eye, Edit, Trash2,
-  ChevronLeft, ChevronRight, Clock, Users, Filter, DollarSign, X, CheckCircle, AlertCircle
+  ChevronLeft, ChevronRight, Clock, Users, Filter, DollarSign, X, CheckCircle
 } from "lucide-react";
 import { apiClient } from "../../../shared/utils/apiClient";
 import AppointmentFormModal from "./components/AppointmentFormModal";
 import AppointmentDetailModal from "./components/AppointmentDetailModal";
 import { StatusNotification } from "../../../shared/ui/StatusNotification";
+import { ConfirmDialog } from "../../../shared/ui/ConfirmDialog";
 import { AvailabilityConfigPage } from "./AvailabilityConfigPage";
 import DoctorsPage from "../doctors/DoctorsPage";
 import { appointmentService } from "./services/appointmentService";
@@ -416,45 +417,17 @@ export const AppointmentsPage = () => {
         <AppointmentDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} appointment={selectedAppointment} />
       )}
 
-      {/* Modal Eliminar Cita con el Estilo Solicitado */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden flex flex-col border border-gray-100">
-            {/* Header */}
-            <div className="bg-red-50/50 px-6 py-4 border-b border-red-100 flex justify-between items-center flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="p-1.5 bg-red-100 text-red-600 rounded-full">
-                  <AlertCircle size={16} />
-                </div>
-                <h3 className="font-bold text-gray-800 text-sm uppercase tracking-wider">Eliminar Registro</h3>
-              </div>
-              <button onClick={() => setShowDeleteConfirm(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                <X size={18} />
-              </button>
-            </div>
-            {/* Body */}
-            <div className="p-6 space-y-3">
-              <p className="text-sm text-gray-700 leading-relaxed">
-                ¿Estás seguro de eliminar a <strong>{showDeleteConfirm.pacienteNombre}</strong>?
-              </p>
-              <p className="text-xs text-red-500 font-semibold italic flex items-start gap-1.5">
-                <span>⚠️</span> Esta acción borrará la cita permanentemente de la base de datos.
-              </p>
-            </div>
-            {/* Footer */}
-            <div className="bg-gray-50/30 px-6 py-3 border-t border-gray-100 flex justify-end gap-3">
-              <button onClick={() => setShowDeleteConfirm(null)} 
-                className="px-4 py-2 text-xs font-black uppercase tracking-widest text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl transition-all">
-                Cancelar
-              </button>
-              <button onClick={confirmDelete} 
-                className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white bg-red-600 hover:bg-red-700 rounded-xl flex items-center gap-2 transition-all shadow-md shadow-red-100">
-                <Trash2 size={14} /> Eliminar ahora
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal Eliminar Cita */}
+      <ConfirmDialog
+        open={!!showDeleteConfirm}
+        title="Eliminar Registro"
+        message={showDeleteConfirm ? `¿Estás seguro de eliminar a "${showDeleteConfirm.pacienteNombre}"?` : ""}
+        subMessage="Esta acción borrará la cita permanentemente de la base de datos."
+        confirmText="Eliminar ahora"
+        danger
+        onCancel={() => setShowDeleteConfirm(null)}
+        onConfirm={confirmDelete}
+      />
 
       {/* Modal Resumen del Día */}
 {isDaySummaryModalOpen && selectedDate && (

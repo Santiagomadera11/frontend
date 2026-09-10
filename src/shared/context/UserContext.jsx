@@ -59,11 +59,13 @@ export const UserProvider = ({ children }) => {
   const loginUser = async (id, token) => {
     setLoading(true);
     await fetchUser(id, token);
+    window.dispatchEvent(new Event("syspharma_auth_changed"));
   };
 
   const logoutUser = () => {
     authService.logout();
     setCurrentUser(null);
+    window.dispatchEvent(new Event("syspharma_auth_changed"));
   };
 
   const refreshUser = async () => {

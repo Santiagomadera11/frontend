@@ -2,13 +2,14 @@ import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useEffect } from "react";
 import {
   Search, Plus, Eye, Edit, Trash2,
-  ChevronLeft, ChevronRight, AlertCircle, CheckCircle, X,
+  ChevronLeft, ChevronRight, CheckCircle,
 } from "lucide-react";
 import { permissionService } from "../settings/permissionService";
 import { userService } from "./services/userService";
 import { UserFormModal } from "./components/UserFormModal";
 import UserDetailModal from "./components/UserDetailModal";
 import { StatusNotification } from "/src/shared/ui/StatusNotification";
+import { ConfirmDialog } from "/src/shared/ui/ConfirmDialog";
 
 export const UsersPage = () => {
   const [users, setUsers] = useState([]);
@@ -36,7 +37,7 @@ export const UsersPage = () => {
   const [confirmStatus, setConfirmStatus] = useState({ show: false, user: null });
   const [currentPage, setCurrentPage] = useState(0);
 
-  const itemsPerPage = 20; 
+  const itemsPerPage = 10;
 
   useEffect(() => {
     loadUsers();
@@ -211,11 +212,11 @@ export const UsersPage = () => {
                 {displayedUsers.length === 0 ? (
                   <tr><td colSpan={7} className="px-3 py-8 text-center text-gray-400">No se encontraron usuarios</td></tr>
                 ) : (
-                  displayedUsers.map(user => {
+                  displayedUsers.map((user, idx) => {
                     const col = roleColorMap[(user.rol || "").toLowerCase()];
                     return (
                       <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-3 py-2.5 font-mono">{user.id}</td>
+                        <td className="px-3 py-2.5 font-mono">{currentPage * itemsPerPage + idx + 1}</td>
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-full border border-gray-200 flex-shrink-0 flex items-center justify-center bg-gray-100 text-gray-600 font-bold text-xs overflow-hidden">
@@ -296,55 +297,27 @@ export const UsersPage = () => {
 
       {notification && <StatusNotification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
 
-      {confirmDelete.show && confirmDelete.user && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden">
-            <div className="bg-red-50 px-5 py-3 border-b border-red-200 flex justify-between items-center">
-              <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-                <AlertCircle size={18} className="text-red-500" />
-                Eliminar Registro
-              </h3>
-              <button onClick={() => setConfirmDelete({ show: false, user: null })}><X size={18} className="text-gray-400" /></button>
-            </div>
-            <div className="p-5">
-              <p className="text-sm text-gray-700">¿Estás seguro de eliminar a <strong>{confirmDelete.user.nombre}</strong>?</p>
-              <p className="text-[11px] text-red-500 mt-2 font-medium italic">⚠️ Esta acción borrará al usuario permanentemente de la base de datos.</p>
-            </div>
-            <div className="bg-gray-50 px-5 py-3 border-t border-gray-200 flex justify-end gap-2">
-              <button onClick={() => setConfirmDelete({ show: false, user: null })} className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded-md">Cancelar</button>
-              <button onClick={confirmDeleteUser} className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-1">
-                <Trash2 size={14} /> Eliminar ahora
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={confirmDelete.show && !!confirmDelete.user}
+        title="Eliminar Registro"
+        message={confirmDelete.user ? `¿Estás seguro de eliminar a "${confirmDelete.user.nombre}"?` : ""}
+        subMessage="Esta acción borrará al usuario permanentemente de la base de datos."
+        confirmText="Eliminar ahora"
+        danger
+        onCancel={() => setConfirmDelete({ show: false, user: null })}
+        onConfirm={confirmDeleteUser}
+      />
 
-      {confirmStatus.show && confirmStatus.user && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden">
-            <div className={`px-5 py-3 border-b flex justify-between items-center ${confirmStatus.user.estado ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}>
-              <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-                {confirmStatus.user.estado ? <AlertCircle size={18} className="text-red-600" /> : <CheckCircle size={18} className="text-green-600" />}
-                {confirmStatus.user.estado ? "Desactivar Usuario" : "Activar Usuario"}
-              </h3>
-              <button onClick={() => setConfirmStatus({ show: false, user: null })}><X size={18} className="text-gray-400" /></button>
-            </div>
-            <div className="p-5">
-              <p className="text-sm text-gray-700">
-                {confirmStatus.user.estado ? `¿Deseas desactivar el acceso de "${confirmStatus.user.nombre}"?` : `¿Deseas activar el acceso de "${confirmStatus.user.nombre}"?`}
-              </p>
-            </div>
-            <div className={`px-5 py-3 border-t flex justify-end gap-2 ${confirmStatus.user.estado ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}>
-              <button onClick={() => setConfirmStatus({ show: false, user: null })} className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded-md">Cancelar</button>
-              <button onClick={confirmToggleStatus}
-                className={`px-4 py-2 text-xs font-bold text-white rounded-md ${confirmStatus.user.estado ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}`}>
-                {confirmStatus.user.estado ? "Desactivar" : "Activar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={confirmStatus.show && !!confirmStatus.user}
+        title={confirmStatus.user?.estado ? "Desactivar Usuario" : "Activar Usuario"}
+        message={confirmStatus.user ? (confirmStatus.user.estado ? `¿Deseas desactivar el acceso de "${confirmStatus.user.nombre}"?` : `¿Deseas activar el acceso de "${confirmStatus.user.nombre}"?`) : ""}
+        subMessage=""
+        confirmText={confirmStatus.user?.estado ? "Desactivar" : "Activar"}
+        danger={!!confirmStatus.user?.estado}
+        onCancel={() => setConfirmStatus({ show: false, user: null })}
+        onConfirm={confirmToggleStatus}
+      />
     </div>
   );
 };

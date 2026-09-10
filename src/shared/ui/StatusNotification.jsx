@@ -1,6 +1,12 @@
-import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useEffect } from "react";
-import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
+
+const STYLES = {
+  success: { icon: CheckCircle, iconColor: "text-green-500", border: "border-green-200" },
+  error: { icon: AlertCircle, iconColor: "text-red-500", border: "border-red-200" },
+  warning: { icon: AlertTriangle, iconColor: "text-amber-500", border: "border-amber-200" },
+  info: { icon: Info, iconColor: "text-blue-500", border: "border-blue-200" },
+};
 
 export const StatusNotification = ({
   message,
@@ -15,53 +21,16 @@ export const StatusNotification = ({
     return () => clearTimeout(timer);
   }, [onClose, duration]);
 
-  const { currentUser } = useCurrentUser();
-  const isAdmin = (currentUser.rol || "").toLowerCase().trim() === "administrador";
-
-  const getStyles = () => {
-    switch (type) {
-      case "success":
-        return {
-          bg: isAdmin ? "bg-emerald-500" : "bg-blue-500",
-          icon: <CheckCircle size={20} className="text-white" />,
-          title: "¡Éxito!",
-        };
-      case "error":
-        return {
-          bg: "bg-red-500",
-          icon: <XCircle size={20} className="text-white" />,
-          title: "Error",
-        };
-      case "warning":
-        return {
-          bg: "bg-amber-500",
-          icon: <AlertCircle size={20} className="text-white" />,
-          title: "Advertencia",
-        };
-      default:
-        return {
-          bg: "bg-blue-500",
-          icon: <AlertCircle size={20} className="text-white" />,
-          title: "Información",
-        };
-    }
-  };
-
-  const { bg, icon, title } = getStyles();
+  const { icon: Icon, iconColor, border } = STYLES[type] || STYLES.success;
 
   return (
-    <div className="fixed bottom-5 left-5 animate-in slide-in-from-left duration-300 z-50">
-      <div
-        className={`${bg} text-white px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 min-w-[240px] max-w-sm border-l-4 border-white/40`}
-      >
-        <div className="bg-white/20 p-1 rounded-full flex items-center justify-center flex-shrink-0">
-          {React.cloneElement(icon, { size: 16 })}
-        </div>
-        <div className="flex-1">
-          <p className="font-semibold text-xs">{title}</p>
-          <p className="text-[11px] opacity-95">{message}</p>
-        </div>
+    <div className="fixed bottom-4 left-4 max-w-xs animate-in fade-in slide-in-from-bottom-2 duration-300 z-50">
+      <div className={`bg-white rounded-lg shadow-lg p-4 flex items-start gap-3 border ${border}`}>
+        <Icon size={18} className={`${iconColor} flex-shrink-0 mt-0.5`} />
+        <p className="text-xs font-bold text-gray-800">{message}</p>
       </div>
     </div>
   );
 };
+
+export default StatusNotification;

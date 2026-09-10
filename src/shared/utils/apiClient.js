@@ -42,7 +42,7 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token") || sessionStorage.getItem("syspharma_token");
+    const token = sessionStorage.getItem("syspharma_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

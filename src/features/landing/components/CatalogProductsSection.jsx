@@ -6,6 +6,7 @@ import GuestOrderModal from "./GuestOrderModal";
 import ProductDetailModal from "../../../shared/ui/ProductDetailModal";
 import { toast } from "../../../shared/utils/toast";
 import ProductCardGrid from "../../client/components/ProductCard";
+import { usePublicProducts } from "../../../shared/hooks/usePublicProducts";
 
 export const CatalogProductsSection = () => {
   // Estado para productos originales (lista completa sin modificar)
@@ -24,56 +25,17 @@ export const CatalogProductsSection = () => {
   const [guestProduct, setGuestProduct] = useState(null);
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const cart = useCart();
+  const { products: publicProducts } = usePublicProducts();
 
-  // Cargar productos y categorías del localStorage al montar el componente
+  // El catálogo público ya viene filtrado a productos activos desde la API
   useEffect(() => {
-    cargarDatos();
-    window.addEventListener("syspharma_products_updated", cargarDatos);
+    setProductosOriginales(publicProducts || []);
 
-    return () => {
-      window.removeEventListener("syspharma_products_updated", cargarDatos);
-    };
-  }, []);
-
-  const cargarDatos = () => {
-    try {
-      // La página pública carga productos desde localStorage
-      // Los productos se sincronizan desde el admin/employee cuando crean nuevos
-
-      const stored = localStorage.getItem("syspharma_products");
-
-      let products = JSON.parse(stored || "[]");
-
-      if (products.length > 0) {
-      }
-
-      // Filtrar solo productos activos (estado === true o estado === "Activo")
-      const activeProducts = products.filter((p) => {
-        const isActive = p.estado === true || p.estado === "Activo" || p.estado === undefined || p.estado === null;
-        if (!isActive) {
-        }
-        return isActive;
-      });
-
-      if (activeProducts.length > 0) {
-      }
-
-      // Guardar en estado original
-      setProductosOriginales(activeProducts);
-
-      // Extraer categorías únicas de los productos activos
-      const uniqueCategories = [
-        ...new Set(activeProducts.map((p) => p.categoria || p.categoría).filter(Boolean)),
-      ].sort();
-
-      setCategorias(uniqueCategories);
-
-    } catch (error) {
-      console.error("❌ Error loading products:", error);
-      setProductosOriginales([]);
-      setCategorias([]);
-    }
-  };
+    const uniqueCategories = [
+      ...new Set((publicProducts || []).map((p) => p.categoria || p.categoría).filter(Boolean)),
+    ].sort();
+    setCategorias(uniqueCategories);
+  }, [publicProducts]);
 
   // FUNCIÓN ÚNICA DE FILTRADO: aplica todos los filtros simultáneamente
   const filtrarProductos = () => {

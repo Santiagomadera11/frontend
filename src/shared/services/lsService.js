@@ -1,10 +1,8 @@
 // Small helper functions to manage Local Storage keys used across the app
 export const LS = {
-  PRODUCTS: 'syspharma_products',
   USERS: 'syspharma_users',
   USER: 'syspharma_user',
   CART: 'syspharma_cart',
-  NOTIFICATIONS: 'syspharma_notifications',
   PEDIDOS: 'syspharma_pedidos'
 };
 
@@ -41,13 +39,4 @@ export const write = (key, value) => {
   } catch {
     return false;
   }
-};
-
-export const pushNotification = (note) => {
-  const arr = read(LS.NOTIFICATIONS) || [];
-  arr.unshift(note);
-  // keep only latest 100 for storage
-  write(LS.NOTIFICATIONS, arr.slice(0, 100));
-  // emit specific event
-  window.dispatchEvent(new CustomEvent('syspharma_notifications_updated', { detail: {} }));
 };

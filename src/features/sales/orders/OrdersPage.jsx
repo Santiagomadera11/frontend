@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { ordersService } from "./services/ordersService";
 import { OrderDetailModal } from "./components/OrderDetailModal";
 import { ToastNotification } from "../../../shared/ui/ToastNotification";
+import { ConfirmDialog } from "../../../shared/ui/ConfirmDialog";
 import { turnService } from "../sales/services/turnService";
 import { authService } from "../../auth/authService";
 
@@ -34,6 +35,7 @@ export const OrdersPage = () => {
     turnService.hasActiveTurn(),
   );
   const [showTurnTooltip, setShowTurnTooltip] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState(null);
 
   const itemsPerPage = 10;
 
@@ -48,18 +50,17 @@ export const OrdersPage = () => {
   }, []);
 
   const handleDeleteOrder = (id) => {
-    if (window.confirm("¿Eliminar pedido?")) {
-      const newList = ordersService.delete(id);
-      setOrders(newList);
-      setNotification({
-        message: "Pedido eliminado",
-        type: "success",
-        zIndex: 50,
-      });
-      if (newList.length <= currentPage * itemsPerPage && currentPage > 0) {
-        setCurrentPage(currentPage - 1);
-      }
+    const newList = ordersService.delete(id);
+    setOrders(newList);
+    setNotification({
+      message: "Pedido eliminado",
+      type: "success",
+      zIndex: 50,
+    });
+    if (newList.length <= currentPage * itemsPerPage && currentPage > 0) {
+      setCurrentPage(currentPage - 1);
     }
+    setOrderToDelete(null);
   };
 
   const handleOpenDetail = (order) => {
@@ -313,7 +314,7 @@ export const OrdersPage = () => {
                           <Eye size={14} />
                         </button>
                         <button
-                          onClick={() => handleDeleteOrder(order.id)}
+                          onClick={() => setOrderToDelete(order)}
                           className="bg-red-50 hover:bg-red-100 text-red-600 p-1.5 rounded-md border border-red-200"
                           title="Eliminar"
                         >
@@ -371,6 +372,16 @@ export const OrdersPage = () => {
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
         order={selectedOrder}
+      />
+
+      <ConfirmDialog
+        open={!!orderToDelete}
+        title="Eliminar Pedido"
+        message={orderToDelete ? `¿Eliminar el pedido "${orderToDelete.numeroPedido || orderToDelete.id}"?` : ""}
+        confirmText="Eliminar"
+        danger
+        onCancel={() => setOrderToDelete(null)}
+        onConfirm={() => handleDeleteOrder(orderToDelete.id)}
       />
     </div>
   );

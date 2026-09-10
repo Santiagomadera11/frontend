@@ -4,14 +4,17 @@ import { useNavigate } from "react-router-dom";
 import {
   Plus, Search, Edit, Trash2, Eye,
   ChevronLeft, ChevronRight, Package,
-  X, CheckCircle, AlertCircle, Database
+  X, CheckCircle, Database
 } from "lucide-react";
 import ProductModal from "./components/ProductFormModal";
 import { ProductLotesModal } from "./components/ProductLotesModal";
 import { productService } from "./services/productService";
 import { categoryService } from "../categories/services/categoryService";
 import { providerService } from "../providers/services/providerService";
+import { brandService } from "../brands/services/brandService";
+import { presentationService } from "../presentations/services/presentationService";
 import { StatusNotification } from "/src/shared/ui/StatusNotification";
+import { ConfirmDialog } from "/src/shared/ui/ConfirmDialog";
 
 const isExpiringSoon = (expiryDateStr) => {
   if (!expiryDateStr) return false;
@@ -28,6 +31,8 @@ export const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [providers, setProviders] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [presentations, setPresentations] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("todos");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,7 +48,7 @@ export const ProductsPage = () => {
   const isMountedRef = useRef(false);
   const isLoadingRef = useRef(false);
 
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
   const navigate = useNavigate();
   const { currentUser } = useCurrentUser();
   const user = currentUser || {};
@@ -89,39 +94,19 @@ export const ProductsPage = () => {
     isLoadingRef.current = true;
     try {
       setLoading(true);
-      const [prods, cats, provs] = await Promise.all([
+      const [prods, cats, provs, brds, press] = await Promise.all([
         productService.getAll(),
         categoryService.getAll(),
         providerService.getAll(),
+        brandService.getAll(),
+        presentationService.getAll(),
       ]);
       if (!isMountedRef.current) return;
       setProducts(prods);
       setCategories(cats);
       setProviders(provs);
-
-      const productsForPublic = prods.map(p => ({
-        id: p.id,
-        nombre: p.nombre,
-        precio: p.precio,
-        stock: p.stock || 0,
-        imagen: p.imagen,
-        categoria: p.categoria || "Sin categoría",
-        marca: p.marca || "",
-        presentacion: p.presentacion || "",
-        tipoProducto: p.tipoProducto || "Producto General",
-        composicion: p.composicion || "",
-        concentracion: p.concentracion || "",
-        viaAdministracion: p.viaAdministracion || "",
-        registroSanitario: p.registroSanitario || "",
-        requiereFormula: p.requiereFormula || false,
-        estado: p.estado !== false,
-      }));
-
-      localStorage.setItem("syspharma_products", JSON.stringify(productsForPublic));
-
-      if (isMountedRef.current) {
-        window.dispatchEvent(new Event("syspharma_products_updated"));
-      }
+      setBrands(brds);
+      setPresentations(press);
     } catch (err) {
       console.error("Error cargando datos:", err);
     } finally {
@@ -139,12 +124,16 @@ export const ProductsPage = () => {
     const handleCategoryChange = () => loadData();
     window.addEventListener("categories:changed", handleCategoryChange);
     window.addEventListener("products:changed", handleCategoryChange);
+    window.addEventListener("brands:changed", handleCategoryChange);
+    window.addEventListener("presentations:changed", handleCategoryChange);
 
     return () => {
       isMountedRef.current = false;
       isLoadingRef.current = false;
       window.removeEventListener("categories:changed", handleCategoryChange);
       window.removeEventListener("products:changed", handleCategoryChange);
+      window.removeEventListener("brands:changed", handleCategoryChange);
+      window.removeEventListener("presentations:changed", handleCategoryChange);
     };
   }, [loadData]);
 
@@ -155,8 +144,7 @@ export const ProductsPage = () => {
 
   const handleEdit = (item) => {
     if (!canEdit) return;
-    localStorage.setItem("syspharma_editing_product", JSON.stringify(item));
-    navigate(isEmployeePanel ? "/employee/productos/nuevo" : "/admin/productos/nuevo");
+    navigate(isEmployeePanel ? "/employee/productos/nuevo" : "/admin/productos/nuevo", { state: { product: item } });
   };
 
   const handleSave = async (data) => {
@@ -190,6 +178,7 @@ export const ProductsPage = () => {
       await productService.toggleStatus(productToToggle.id, productToToggle.estado);
       const newStatus = !productToToggle.estado ? "Activo" : "Inactivo";
       setNotification({ message: `${productToToggle.nombre} ahora está ${newStatus}`, type: "success", duration: 3000 });
+      window.dispatchEvent(new Event("syspharma_products_updated"));
       await loadData();
     } catch (err) {
       console.error("Error al cambiar estado:", err);
@@ -209,6 +198,7 @@ export const ProductsPage = () => {
       await productService.delete(prod.id);
       setNotification({ message: `${prod.nombre} eliminado correctamente`, type: "success", duration: 3000 });
       setShowDeleteConfirm(null);
+      window.dispatchEvent(new Event("syspharma_products_updated"));
       await loadData();
     } catch (err) {
       console.error("Error al eliminar:", err);
@@ -311,9 +301,9 @@ export const ProductsPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {currentItems.length > 0 ? currentItems.map((prod) => (
+                {currentItems.length > 0 ? currentItems.map((prod, idx) => (
                   <tr key={prod.id} className={`${theme.hoverRow} transition-colors`}>
-                    <td className="py-2.5 px-3 sm:px-4 text-xs font-medium text-gray-900">{prod.id}</td>
+                    <td className="py-2.5 px-3 sm:px-4 text-xs font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                     <td className="py-2.5 px-3 sm:px-4">
                       <div className="flex items-center gap-2">
                         <Package size={14} className={`${theme.icon} flex-shrink-0`} />
@@ -394,7 +384,7 @@ export const ProductsPage = () => {
       {/* TARJETAS MÓVIL */}
       {!loading && (
         <div className="sm:hidden flex-1 flex flex-col gap-3 overflow-y-auto no-scrollbar">
-          {currentItems.length > 0 ? currentItems.map((prod) => (
+          {currentItems.length > 0 ? currentItems.map((prod, idx) => (
             <div key={prod.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-2 flex-1 min-w-0">
@@ -406,7 +396,7 @@ export const ProductsPage = () => {
                         <span className="text-xs ml-1 select-none" title={`Próximo a vencer (${prod.fechaVencimientoProxima})`}>⚠️</span>
                       )}
                     </p>
-                    <p className="text-xs text-gray-600">ID: {prod.id}</p>
+                    <p className="text-xs text-gray-600">ID: {(currentPage - 1) * itemsPerPage + idx + 1}</p>
                   </div>
                 </div>
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${prod.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
@@ -458,7 +448,7 @@ export const ProductsPage = () => {
         </div>
       )}
 
-      <ProductModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} initialData={editingItem} categories={categories} providers={providers} />
+      <ProductModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} initialData={editingItem} categories={categories} providers={providers} brands={brands} presentations={presentations} />
 
       {lotesProduct && (
         <ProductLotesModal isOpen={!!lotesProduct} onClose={() => setLotesProduct(null)} product={lotesProduct} />
@@ -543,51 +533,27 @@ export const ProductsPage = () => {
       )}
 
       {/* Modal Eliminar */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
-            <div className="bg-red-50 px-5 py-4 border-b border-red-100 flex justify-between items-center">
-              <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2"><AlertCircle size={18} className="text-red-600" />Eliminar Producto</h3>
-              <button onClick={() => setShowDeleteConfirm(null)} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
-            </div>
-            <div className="p-6">
-              <p className="text-sm text-gray-700">¿Estás seguro de eliminar el producto <strong>"{showDeleteConfirm.nombre}"</strong>?</p>
-              <p className="text-xs text-gray-500 mt-2">Esta acción no se puede deshacer.</p>
-            </div>
-            <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-end gap-2">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors">Cancelar</button>
-              <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center gap-1 shadow-sm">
-                <Trash2 size={14} /> Eliminar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={!!showDeleteConfirm}
+        title="Eliminar Producto"
+        message={showDeleteConfirm ? `¿Estás seguro de eliminar el producto "${showDeleteConfirm.nombre}"?` : ""}
+        confirmText="Eliminar"
+        danger
+        onCancel={() => setShowDeleteConfirm(null)}
+        onConfirm={() => handleDelete(showDeleteConfirm)}
+      />
 
       {/* Modal Estado */}
-      {isStatusConfirmOpen && productToToggle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
-            <div className={`px-5 py-4 border-b flex justify-between items-center ${productToToggle.estado ? "bg-red-50 border-red-100" : `${theme.lightBg} ${theme.border}`}`}>
-              <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-                {productToToggle.estado ? <AlertCircle size={18} className="text-red-600" /> : <CheckCircle size={18} className={theme.text} />}
-                {productToToggle.estado ? "Desactivar Producto" : "Activar Producto"}
-              </h3>
-              <button onClick={() => setIsStatusConfirmOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
-            </div>
-            <div className="p-6">
-              <p className="text-sm text-gray-700">{productToToggle.estado ? `¿Desactivar el producto "${productToToggle.nombre}"?` : `¿Activar el producto "${productToToggle.nombre}"?`}</p>
-              {productToToggle.estado && <p className="text-xs text-gray-500 mt-2">El producto no será visible en el catálogo de ventas.</p>}
-            </div>
-            <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-end gap-2">
-              <button onClick={() => setIsStatusConfirmOpen(false)} className="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors">Cancelar</button>
-              <button onClick={confirmToggleStatus} className={`px-4 py-2 text-xs font-bold text-white rounded-lg transition-colors flex items-center gap-1 shadow-sm ${productToToggle.estado ? "bg-red-600 hover:bg-red-700" : `${theme.main} ${theme.mainHover}`}`}>
-                {productToToggle.estado ? "Desactivar" : "Activar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={isStatusConfirmOpen && !!productToToggle}
+        title={productToToggle?.estado ? "Desactivar Producto" : "Activar Producto"}
+        message={productToToggle ? (productToToggle.estado ? `¿Desactivar el producto "${productToToggle.nombre}"?` : `¿Activar el producto "${productToToggle.nombre}"?`) : ""}
+        subMessage={productToToggle?.estado ? "El producto no será visible en el catálogo de ventas." : ""}
+        confirmText={productToToggle?.estado ? "Desactivar" : "Activar"}
+        danger={!!productToToggle?.estado}
+        onCancel={() => setIsStatusConfirmOpen(false)}
+        onConfirm={confirmToggleStatus}
+      />
     </div>
   );
 };

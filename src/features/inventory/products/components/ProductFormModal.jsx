@@ -8,11 +8,13 @@ const ProductModal = ({
   initialData,
   categories = [],
   providers = [],
+  brands = [],
+  presentations = [],
 }) => {
   const emptyForm = {
     nombre: "",
     descripcion: "", // <-- AGREGADO
-    marca: "",
+    marcaId: "",
     tipoProducto: "Producto General",
     categoriaId: "",
     proveedorId: "",
@@ -23,10 +25,16 @@ const ProductModal = ({
     imagen: null,
     composicion: "",
     concentracion: "",
-    presentacion: "",
+    presentacionId: "",
     viaAdministracion: "",
     registroSanitario: "",
     requiereFormula: false,
+    indicaciones: "",
+    posologia: "",
+    unidadesPorEnvase: "",
+    requiereRefrigeracion: false,
+    afectaConduccion: false,
+    fotosensible: false,
     esDestacado: false,
     enOferta: false,
     porcentajeDescuento: 0,
@@ -45,6 +53,8 @@ const ProductModal = ({
         ...initialData,
         categoriaId: initialData.categoriaId ? String(initialData.categoriaId) : "",
         proveedorId: initialData.proveedorId ? String(initialData.proveedorId) : "",
+        marcaId: initialData.marcaId ? String(initialData.marcaId) : "",
+        presentacionId: initialData.presentacionId ? String(initialData.presentacionId) : "",
       });
       setImagePreview(initialData.imagen || null);
     } else {
@@ -77,6 +87,8 @@ const ProductModal = ({
       ...formData,
       categoriaId: formData.categoriaId ? Number(formData.categoriaId) : null,
       proveedorId: formData.proveedorId ? Number(formData.proveedorId) : null,
+      marcaId: formData.marcaId ? Number(formData.marcaId) : null,
+      presentacionId: formData.presentacionId ? Number(formData.presentacionId) : null,
       precio: Number(formData.precio),
       porcentajeIva: Number(formData.porcentajeIva) || 0,
       stock: Number(formData.stock),
@@ -131,7 +143,11 @@ const ProductModal = ({
           {/* Marca */}
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1">Marca</label>
-            <input type="text" className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-emerald-500" placeholder="Ej: Bayer, Roche, Genfar..." {...field("marca")} />
+            <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-emerald-500 bg-white"
+              value={formData.marcaId} onChange={(e) => setFormData(p => ({ ...p, marcaId: e.target.value }))}>
+              <option value="">Seleccionar...</option>
+              {brands.map(brand => <option key={brand.id} value={brand.id}>{brand.nombre}</option>)}
+            </select>
           </div>
 
           {/* Descripción (AGREGADO) */}
@@ -162,7 +178,11 @@ const ProductModal = ({
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">Presentación</label>
-              <input type="text" className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-emerald-500" placeholder="Ej: Cápsula, Tableta, Jarabe..." {...field("presentacion")} />
+              <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-emerald-500 bg-white"
+                value={formData.presentacionId} onChange={(e) => setFormData(p => ({ ...p, presentacionId: e.target.value }))}>
+                <option value="">Seleccionar...</option>
+                {presentations.map(pres => <option key={pres.id} value={pres.id}>{pres.nombre}</option>)}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">Precio ($)</label>
@@ -214,6 +234,10 @@ const ProductModal = ({
                     <label className="block text-xs font-bold text-gray-700 mb-1">Concentración</label>
                     <input type="text" className="w-full text-sm border border-gray-300 rounded px-3 py-2" placeholder="Ej: 500mg" {...field("concentracion")} />
                   </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Unidades por envase</label>
+                    <input type="number" min="0" className="w-full text-sm border border-gray-300 rounded px-3 py-2" placeholder="Ej: 12" {...field("unidadesPorEnvase")} />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Vía de Administración</label>
@@ -226,12 +250,32 @@ const ProductModal = ({
                   <label className="block text-xs font-bold text-gray-700 mb-1">Registro Sanitario</label>
                   <input type="text" className="w-full text-sm border border-gray-300 rounded px-3 py-2" placeholder="Ej: M-12345-2024" {...field("registroSanitario")} />
                 </div>
-                <div className={`flex items-center justify-between p-3 rounded-lg border ${formData.requiereFormula ? "bg-blue-100 border-blue-400" : "bg-gray-50 border-gray-200"}`}>
-                  <label className="text-xs font-bold text-gray-700">Requiere Fórmula Médica</label>
-                  <button onClick={() => setFormData(p => ({ ...p, requiereFormula: !p.requiereFormula }))}
-                    className={`relative inline-flex h-5 w-10 items-center rounded-full transition-all ${formData.requiereFormula ? "bg-blue-600" : "bg-gray-300"}`}>
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.requiereFormula ? "translate-x-5" : "translate-x-0.5"}`} />
-                  </button>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Indicaciones (para qué sirve)</label>
+                  <textarea className="w-full text-sm border border-gray-300 rounded px-3 py-2" rows="2" placeholder="Ej: Alivio del dolor leve o moderado y estados febriles" {...field("indicaciones")} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Posología (modo de empleo)</label>
+                  <textarea className="w-full text-sm border border-gray-300 rounded px-3 py-2" rows="2" placeholder="Ej: Tomar 1 comprimido cada 8 horas, máximo 3 al día" {...field("posologia")} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Símbolos de advertencia</label>
+                  <div className="space-y-2">
+                    {[
+                      { key: "requiereFormula", label: "Requiere Fórmula Médica" },
+                      { key: "requiereRefrigeracion", label: "Requiere refrigeración (cadena de frío)" },
+                      { key: "afectaConduccion", label: "Puede afectar la capacidad de conducir" },
+                      { key: "fotosensible", label: "Puede producir sensibilidad al sol" },
+                    ].map(({ key, label }) => (
+                      <div key={key} className={`flex items-center justify-between p-3 rounded-lg border ${formData[key] ? "bg-blue-100 border-blue-400" : "bg-gray-50 border-gray-200"}`}>
+                        <label className="text-xs font-bold text-gray-700">{label}</label>
+                        <button type="button" onClick={() => setFormData(p => ({ ...p, [key]: !p[key] }))}
+                          className={`relative inline-flex h-5 w-10 items-center rounded-full transition-all ${formData[key] ? "bg-blue-600" : "bg-gray-300"}`}>
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData[key] ? "translate-x-5" : "translate-x-0.5"}`} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

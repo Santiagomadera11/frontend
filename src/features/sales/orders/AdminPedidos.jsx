@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { ordersService } from "./services/ordersService";
 import { OrderDetailModal } from "./components/OrderDetailModal";
 import { ToastNotification } from "../../../shared/ui/ToastNotification";
+import { ConfirmDialog } from "../../../shared/ui/ConfirmDialog";
 
 export const AdminPedidos = () => {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export const AdminPedidos = () => {
   // ── NUEVO: ocultar pedidos Entregados por default ────────────────────────
   const [showEntregados, setShowEntregados]   = useState(false);
 
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
   const isMountedRef = useRef(false);
   const isLoadingRef = useRef(false);
 
@@ -440,21 +441,15 @@ export const AdminPedidos = () => {
       )}
 
       {/* Modal eliminar */}
-      {isDeleteModalOpen && orderToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-bold text-red-600 mb-4">Confirmar Eliminación</h3>
-            <p className="text-sm text-gray-600 mb-2">¿Eliminar el pedido <span className="font-semibold">{orderToDelete.numeroPedido}</span>?</p>
-            <p className="text-xs text-gray-500 mb-6">Esta acción no se puede deshacer.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setIsDeleteModalOpen(false)}
-                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium">Cancelar</button>
-              <button onClick={confirmDeleteOrder}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium">Eliminar</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={isDeleteModalOpen && !!orderToDelete}
+        title="Eliminar Pedido"
+        message={orderToDelete ? `¿Eliminar el pedido "${orderToDelete.numeroPedido}"?` : ""}
+        confirmText="Eliminar"
+        danger
+        onCancel={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDeleteOrder}
+      />
     </div>
   );
 };

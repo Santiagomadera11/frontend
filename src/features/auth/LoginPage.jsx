@@ -261,7 +261,6 @@ const LoginPage = () => {
       }
 
       sessionStorage.setItem("syspharma_token", data.token);
-      localStorage.setItem("token", data.token);
 
       const userSession = {
         id: data.user.id,
@@ -269,30 +268,6 @@ const LoginPage = () => {
       };
       sessionStorage.setItem("syspharma_user", JSON.stringify(userSession));
       await loginUser(data.user.id, data.token);
-
-      try {
-        const response = await apiClient.get("/api/Producto", {
-          headers: { Authorization: `Bearer ${data.token}` },
-        });
-        if (response.data && Array.isArray(response.data)) {
-          const productsForPublic = response.data.map((p) => ({
-            id: p.id,
-            nombre: p.nombre,
-            precio: p.precio,
-            stock: p.stock || 0,
-            imagen: p.imagen,
-            categoria: p.categoria || "Sin categoría",
-            estado: p.estado !== false,
-          }));
-          localStorage.setItem(
-            "syspharma_products",
-            JSON.stringify(productsForPublic),
-          );
-          window.dispatchEvent(new Event("syspharma_products_updated"));
-        }
-      } catch (err) {
-        console.warn("⚠️ No se pudieron sincronizar productos:", err.message);
-      }
 
       const role = userSession.rol;
       const userPerms = data.user?.permisos || [];
@@ -306,8 +281,6 @@ const LoginPage = () => {
       if (!redirectPath) {
         redirectPath = "/employee/inicio";
       }
-
-      navigate(redirectPath);
 
       navigate(redirectPath);
     } catch (err) {

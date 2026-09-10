@@ -28,8 +28,8 @@ const ClientSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static w-60 bg-[#1B5E20] flex flex-col text-white shadow-xl z-50 flex-shrink-0 border-l border-gray-700 transition-transform duration-300 h-full ${
-          isOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
+        className={`fixed lg:static w-60 bg-[#1B5E20] flex flex-col text-white shadow-xl z-50 flex-shrink-0 border-r border-gray-700 transition-transform duration-300 h-full ${
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Encabezado Sidebar */}

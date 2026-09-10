@@ -1,12 +1,18 @@
 import React, { useEffect } from "react";
-import { CheckCircle, X, XCircle } from "lucide-react";
+import { CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
+
+const STYLES = {
+  success: { icon: CheckCircle, iconColor: "text-green-500", border: "border-green-200" },
+  error: { icon: AlertCircle, iconColor: "text-red-500", border: "border-red-200" },
+  warning: { icon: AlertTriangle, iconColor: "text-amber-500", border: "border-amber-200" },
+  info: { icon: Info, iconColor: "text-blue-500", border: "border-blue-200" },
+};
 
 export const ToastNotification = ({
   message,
   onClose,
   type = "success",
   zIndex = 50,
-  title,
 }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -15,37 +21,16 @@ export const ToastNotification = ({
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const isError = type === "error";
-  const bg = isError ? "bg-red-500" : "bg-[#34D399]";
-  const icon = isError ? (
-    <XCircle size={20} className="text-white" />
-  ) : (
-    <CheckCircle size={20} className="text-white" />
-  );
-  const header = title || (isError ? "Error" : "¡Éxito!");
+  const { icon: Icon, iconColor, border } = STYLES[type] || STYLES.success;
 
   return (
-    <div
-      style={{ zIndex }}
-      className="fixed bottom-5 left-5 animate-bounce-in-right"
-    >
-      <div
-        className={`${bg} text-white px-4 py-2.5 rounded-lg shadow-xl flex items-center gap-3 min-w-[220px] max-w-xs border-l-4 border-white/30`}
-      >
-        <div className="bg-white/15 p-1 rounded-full flex items-center justify-center">
-          {icon}
-        </div>
-        <div className="flex-1">
-          <p className="font-semibold text-sm">{header}</p>
-          <p className="text-[12px] opacity-95">{message}</p>
-        </div>
-        <button
-          onClick={onClose}
-          className="text-white/70 hover:text-white transition-colors"
-        >
-          <X size={16} />
-        </button>
+    <div style={{ zIndex }} className="fixed bottom-4 left-4 max-w-xs animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className={`bg-white rounded-lg shadow-lg p-4 flex items-start gap-3 border ${border}`}>
+        <Icon size={18} className={`${iconColor} flex-shrink-0 mt-0.5`} />
+        <p className="text-xs font-bold text-gray-800">{message}</p>
       </div>
     </div>
   );
 };
+
+export default ToastNotification;

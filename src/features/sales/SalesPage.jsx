@@ -10,6 +10,7 @@ import { expensesService } from "./services/expensesService";
 import { SaleDetailModal } from "./components/SaleDetailModal";
 import ExpenseFormModal from "../services/appointments/components/ExpenseFormModal";
 import { ToastNotification } from "/src/shared/ui/ToastNotification";
+import { ConfirmDialog } from "/src/shared/ui/ConfirmDialog";
 
 const ESTADO_CONFIG = {
   completada: { label: "Completada", bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
@@ -55,7 +56,7 @@ export const SalesPage = () => {
   const isMountedRef = useRef(false);
   const isLoadingRef = useRef(false);
 
-  const itemsPerPage = 8; 
+  const itemsPerPage = 10;
 
   const { currentUser } = useCurrentUser();
   const user = currentUser || {};
@@ -319,33 +320,16 @@ export const SalesPage = () => {
       
       {/* Modal de confirmación de anulación */}
       {confirmAnular && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col">
-            <div className="bg-red-600 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white">Anular venta {confirmAnular.numeroVenta}</h2>
-              <button onClick={() => setConfirmAnular(null)} className="text-white hover:bg-red-700 p-1 rounded">
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              <p className="text-sm text-gray-600">
-                ¿Estás seguro? Se devolverá el stock y se descontará <span className="font-bold">{fmt(confirmAnular.total)}</span> del turno activo.
-              </p>
-            </div>
-
-            <div className="flex gap-3 px-6 py-4 bg-gray-50 border-t border-gray-100">
-              <button onClick={() => setConfirmAnular(null)}
-                className="flex-1 py-2 rounded-xl border border-gray-200 text-[11px] font-bold text-gray-500 hover:bg-gray-50">
-                CANCELAR
-              </button>
-              <button onClick={handleAnular}
-                className="flex-1 py-2 rounded-xl bg-red-600 text-white text-[11px] font-bold hover:bg-red-700">
-                ANULAR
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          open={!!confirmAnular}
+          title={`Anular venta "${confirmAnular.numeroVenta}"`}
+          message={<>¿Estás seguro? Se devolverá el stock y se descontará <strong>{fmt(confirmAnular.total)}</strong> del turno activo.</>}
+          subMessage=""
+          confirmText="Anular"
+          danger
+          onCancel={() => setConfirmAnular(null)}
+          onConfirm={handleAnular}
+        />
       )}
       
       {toast && <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />}

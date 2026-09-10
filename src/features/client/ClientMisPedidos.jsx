@@ -2,9 +2,10 @@ import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useEffect, useRef } from "react";
 import {
   ShoppingBag, DollarSign, Search, ChevronLeft, ChevronRight,
-  Clock, Eye, X, Package, FileText, Printer, AlertCircle,
+  Clock, Eye, X, Package, FileText, Printer,
 } from "lucide-react";
 import { ordersService } from "../sales/orders/services/ordersService";
+import { ConfirmDialog } from "../../shared/ui/ConfirmDialog";
 
 // ─────────────────────────────────────────────────────────────
 //  IDs de estados_pedido  (mismos que el back)
@@ -525,64 +526,25 @@ export const ClientMisPedidos = () => {
       )}
 
       {/* Modal de confirmación de cancelación */}
-      {showConfirmCancel && orderToCancel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden">
-            {/* Header */}
-            <div className="bg-red-50 px-5 py-3 border-b border-red-200 flex justify-between items-center">
-              <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-                <AlertCircle size={18} className="text-red-600" />
-                ¿Cancelar pedido?
-              </h3>
-              <button
-                onClick={() => {
-                  setShowConfirmCancel(false);
-                  setOrderToCancel(null);
-                }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Body */}
-            <div className="p-5">
-              <p className="text-sm text-gray-700">
-                ¿Estás seguro de que deseas cancelar el pedido <strong>{orderToCancel.numeroPedido}</strong>?
-              </p>
-              <p className="text-xs text-gray-500 mt-3">
-                Esta acción no se puede deshacer y se registrará en tu historial de pedidos.
-              </p>
-              <div className="mt-4 bg-gray-50 rounded-lg p-3">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total a cancelar</p>
-                <p className="text-xl font-black text-gray-900">
-                  ${(orderToCancel.total || 0).toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="bg-red-50 px-5 py-3 border-t border-red-200 flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setShowConfirmCancel(false);
-                  setOrderToCancel(null);
-                }}
-                className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded-md transition-colors"
-              >
-                No, mantener
-              </button>
-              <button
-                onClick={handleConfirmCancel}
-                disabled={cancellingId === orderToCancel.id}
-                className="px-4 py-2 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {cancellingId === orderToCancel.id ? "Cancelando..." : "Sí, cancelar"}
-              </button>
-            </div>
+      <ConfirmDialog
+        open={showConfirmCancel && !!orderToCancel}
+        title="¿Cancelar pedido?"
+        message={orderToCancel ? `¿Estás seguro de que deseas cancelar el pedido "${orderToCancel.numeroPedido}"?` : ""}
+        subMessage="Esta acción no se puede deshacer y se registrará en tu historial de pedidos."
+        confirmText={orderToCancel && cancellingId === orderToCancel.id ? "Cancelando..." : "Sí, cancelar"}
+        cancelText="No, mantener"
+        danger
+        confirmDisabled={orderToCancel && cancellingId === orderToCancel.id}
+        onCancel={() => { setShowConfirmCancel(false); setOrderToCancel(null); }}
+        onConfirm={handleConfirmCancel}
+      >
+        {orderToCancel && (
+          <div className="mt-4 bg-gray-50 rounded-lg p-3">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total a cancelar</p>
+            <p className="text-xl font-black text-gray-900">${(orderToCancel.total || 0).toLocaleString()}</p>
           </div>
-        </div>
-      )}
+        )}
+      </ConfirmDialog>
     </div>
   );
 };

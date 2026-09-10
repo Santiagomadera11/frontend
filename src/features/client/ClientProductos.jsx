@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Search } from "lucide-react";
 import ProductCardGrid from "./components/ProductCard";
 import FilterSidebar from "./components/FilterSidebar";
 import ProductDetailModal from "../../shared/ui/ProductDetailModal";
 import useCart from "../../shared/context/CartContext";
+import { usePublicProducts } from "../../shared/hooks/usePublicProducts";
 
 // Map product schema used by backend to the interface expected by ProductCardGrid
 const ProductCard = ({ product, onAdd, onOpenDetail }) => {
@@ -31,44 +32,10 @@ const ProductCard = ({ product, onAdd, onOpenDetail }) => {
 const ClientProductos = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchValue, setSearchValue] = useState("");
-  const [allProducts, setAllProducts] = useState([]);
+  const { products: allProducts } = usePublicProducts();
   const [priceRange, setPriceRange] = useState([0, 500000]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const cart = useCart();
-
-  useEffect(() => {
-    // Cargar productos desde localStorage
-    try {
-      const products = JSON.parse(
-        localStorage.getItem("syspharma_products") || "[]",
-      );
-      setAllProducts(Array.isArray(products) ? products : []);
-    } catch {
-      setAllProducts([]);
-    }
-
-    // Escuchar actualizaciones de productos
-    const handleProductsUpdate = () => {
-      try {
-        const products = JSON.parse(
-          localStorage.getItem("syspharma_products") || "[]",
-        );
-        setAllProducts(Array.isArray(products) ? products : []);
-      } catch {
-        setAllProducts([]);
-      }
-    };
-
-    window.addEventListener("syspharma_products_updated", handleProductsUpdate);
-    return () => {
-      window.removeEventListener(
-        "syspharma_products_updated",
-        handleProductsUpdate,
-      );
-    };
-  }, []);
-
-
 
   const saveCartAndNotify = (id) => {
     try {

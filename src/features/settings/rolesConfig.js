@@ -147,6 +147,74 @@ export const PERMISSIONS_CONFIG = [
   },
 
   // =====================================================
+  // MARCAS
+  // =====================================================
+  {
+    id: "brands.view",
+    label: "Ver marcas",
+    description: "Ver la lista y detalle de marcas",
+    category: "Marcas",
+  },
+  {
+    id: "brands.create",
+    label: "Agregar marca",
+    description: "Crear nuevas marcas de productos",
+    category: "Marcas",
+  },
+  {
+    id: "brands.edit",
+    label: "Editar marca",
+    description: "Modificar marcas existentes",
+    category: "Marcas",
+  },
+  {
+    id: "brands.delete",
+    label: "Eliminar marca",
+    description: "Eliminar marcas del sistema",
+    category: "Marcas",
+  },
+  {
+    id: "brands.status",
+    label: "Cambiar estado",
+    description: "Activar o desactivar marcas",
+    category: "Marcas",
+  },
+
+  // =====================================================
+  // PRESENTACIONES
+  // =====================================================
+  {
+    id: "presentations.view",
+    label: "Ver presentaciones",
+    description: "Ver la lista y detalle de presentaciones",
+    category: "Presentaciones",
+  },
+  {
+    id: "presentations.create",
+    label: "Agregar presentación",
+    description: "Crear nuevas presentaciones de productos",
+    category: "Presentaciones",
+  },
+  {
+    id: "presentations.edit",
+    label: "Editar presentación",
+    description: "Modificar presentaciones existentes",
+    category: "Presentaciones",
+  },
+  {
+    id: "presentations.delete",
+    label: "Eliminar presentación",
+    description: "Eliminar presentaciones del sistema",
+    category: "Presentaciones",
+  },
+  {
+    id: "presentations.status",
+    label: "Cambiar estado",
+    description: "Activar o desactivar presentaciones",
+    category: "Presentaciones",
+  },
+
+  // =====================================================
   // PROVEEDORES
   // =====================================================
   {

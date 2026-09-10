@@ -1,28 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { 
+import {
   Plus, Search, Eye, Edit, Trash2,
-  ChevronLeft, ChevronRight, Filter, Tag,
+  ChevronLeft, ChevronRight, Filter, Award,
   CheckCircle,
 } from "lucide-react";
-import CategoryFormModal from "./components/CategoryFormModal";
-import { categoryService } from "./services/categoryService";
+import BrandFormModal from "./components/BrandFormModal";
+import { brandService } from "./services/brandService";
 import { ToastNotification } from "../../../shared/ui/ToastNotification";
 import { ConfirmDialog } from "../../../shared/ui/ConfirmDialog";
 
-export const CategoriesPage = () => {
+export const BrandsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedBrand, setSelectedBrand] = useState(null);
   const [modalMode, setModalMode] = useState("create");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isStatusConfirmOpen, setIsStatusConfirmOpen] = useState(false);
-  const [categoryToToggle, setCategoryToToggle] = useState(null);
+  const [brandToToggle, setBrandToToggle] = useState(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [brandToDelete, setBrandToDelete] = useState(null);
   const [notification, setNotification] = useState(null);
   const currentUser = JSON.parse(sessionStorage.getItem("syspharma_user") || "{}");
   const userRole = (currentUser.rol || "").toLowerCase().trim();
@@ -30,10 +30,10 @@ export const CategoriesPage = () => {
   const isAdmin = userRole === "administrador";
   const isEmployeePanel = userRole !== "administrador";
   const hasPerm = (perm) => isAdmin || userPerms.includes(perm);
-  const canCreate = hasPerm("categories.create");
-  const canEdit = hasPerm("categories.edit");
-  const canDelete = hasPerm("categories.delete");
-  const canToggleStatus = hasPerm("categories.status");
+  const canCreate = hasPerm("brands.create");
+  const canEdit = hasPerm("brands.edit");
+  const canDelete = hasPerm("brands.delete");
+  const canToggleStatus = hasPerm("brands.status");
   const theme = isEmployeePanel
     ? {
         main: "bg-blue-600",
@@ -67,14 +67,14 @@ export const CategoriesPage = () => {
       if (statusFilter === "Activo") filterParam = "activo";
       if (statusFilter === "Inactivo") filterParam = "inactivo";
 
-      const cats = await categoryService.getAllIncludingInactive(filterParam);
-      const enriched = cats.map((cat) => ({
-        ...cat,
-        productos: cat.productosCount ?? 0,
+      const brds = await brandService.getAllIncludingInactive(filterParam);
+      const enriched = brds.map((brd) => ({
+        ...brd,
+        productos: brd.productosCount ?? 0,
       }));
-      setCategories(enriched);
+      setBrands(enriched);
     } catch (err) {
-      console.error("Error cargando categorías:", err);
+      console.error("Error cargando marcas:", err);
     } finally {
       setLoading(false);
     }
@@ -82,10 +82,10 @@ export const CategoriesPage = () => {
 
   useEffect(() => {
     loadData();
-    window.addEventListener("categories:changed", loadData);
+    window.addEventListener("brands:changed", loadData);
     window.addEventListener("products:changed", loadData);
     return () => {
-      window.removeEventListener("categories:changed", loadData);
+      window.removeEventListener("brands:changed", loadData);
       window.removeEventListener("products:changed", loadData);
     };
   }, [statusFilter]);
@@ -97,12 +97,12 @@ export const CategoriesPage = () => {
     }
   }, [notification]);
 
-  const filteredItems = categories.filter((cat) => {
+  const filteredItems = brands.filter((brd) => {
     const texto = searchTerm.toLowerCase();
-    const matchTexto = cat.nombre.toLowerCase().includes(texto) || String(cat.id).includes(texto);
+    const matchTexto = brd.nombre.toLowerCase().includes(texto) || String(brd.id).includes(texto);
     const matchEstado = statusFilter === "Todos" ||
-      (statusFilter === "Activo" && cat.estado) ||
-      (statusFilter === "Inactivo" && !cat.estado);
+      (statusFilter === "Activo" && brd.estado) ||
+      (statusFilter === "Inactivo" && !brd.estado);
     return matchTexto && matchEstado;
   });
 
@@ -112,56 +112,59 @@ export const CategoriesPage = () => {
   const handleSave = async (data) => {
     try {
       if (modalMode === "edit") {
-        await categoryService.update(data.id, data);
-        setNotification({ message: `Categoría "${data.nombre}" actualizada correctamente`, type: "success" });
+        await brandService.update(data.id, data);
+        setNotification({ message: `Marca "${data.nombre}" actualizada correctamente`, type: "success" });
       } else {
-        await categoryService.create(data);
-        setNotification({ message: `Categoría "${data.nombre}" creada correctamente`, type: "success" });
+        await brandService.create(data);
+        setNotification({ message: `Marca "${data.nombre}" creada correctamente`, type: "success" });
       }
       setIsModalOpen(false);
-      setSelectedCategory(null);
+      setSelectedBrand(null);
       setModalMode("create");
       await loadData();
+      window.dispatchEvent(new CustomEvent("brands:changed"));
     } catch (err) {
       console.error("Error al guardar:", err);
-      setNotification({ message: "Error al guardar la categoría.", type: "error" });
+      setNotification({ message: "Error al guardar la marca.", type: "error" });
     }
   };
 
-  const confirmDeleteCategory = async () => {
+  const confirmDeleteBrand = async () => {
     if (!canDelete) {
-      setNotification({ message: "No tienes permiso para eliminar categorías.", type: "error" });
+      setNotification({ message: "No tienes permiso para eliminar marcas.", type: "error" });
       setIsDeleteConfirmOpen(false);
-      setCategoryToDelete(null);
+      setBrandToDelete(null);
       return;
     }
     try {
-      await categoryService.remove(categoryToDelete.id);
-      setNotification({ message: `Categoría "${categoryToDelete.nombre}" eliminada correctamente`, type: "success" });
+      await brandService.remove(brandToDelete.id);
+      setNotification({ message: `Marca "${brandToDelete.nombre}" eliminada correctamente`, type: "success" });
       await loadData();
+      window.dispatchEvent(new CustomEvent("brands:changed"));
     } catch (err) {
       console.error("Error al eliminar:", err);
-      const errorMsg = err.response?.data?.message || "No se puede eliminar la categoría porque está relacionada a un producto.";
+      const errorMsg = err.response?.data?.message || "No se puede eliminar la marca porque está relacionada a un producto.";
       setNotification({ message: errorMsg, type: "error" });
     } finally {
       setIsDeleteConfirmOpen(false);
-      setCategoryToDelete(null);
+      setBrandToDelete(null);
     }
   };
 
   const confirmToggleStatus = async () => {
     if (!canToggleStatus) return;
     try {
-      const newStatus = !categoryToToggle.estado;
-      await categoryService.toggleStatus(categoryToToggle.id, newStatus);
-      setNotification({ message: `Categoría "${categoryToToggle.nombre}" ${newStatus ? "activada" : "desactivada"} correctamente`, type: "success" });
+      const newStatus = !brandToToggle.estado;
+      await brandService.toggleStatus(brandToToggle.id, newStatus);
+      setNotification({ message: `Marca "${brandToToggle.nombre}" ${newStatus ? "activada" : "desactivada"} correctamente`, type: "success" });
       await loadData();
+      window.dispatchEvent(new CustomEvent("brands:changed"));
     } catch (err) {
       console.error("Error al cambiar estado:", err);
       setNotification({ message: "Error al cambiar el estado.", type: "error" });
     } finally {
       setIsStatusConfirmOpen(false);
-      setCategoryToToggle(null);
+      setBrandToToggle(null);
     }
   };
 
@@ -171,12 +174,12 @@ export const CategoriesPage = () => {
       {/* HEADER */}
       <div className="flex items-center justify-between mb-3 flex-shrink-0">
         <div>
-          <h1 className="text-lg font-bold text-gray-800">Categorías</h1>
-          <p className="text-xs text-gray-500">Clasificación de productos</p>
+          <h1 className="text-lg font-bold text-gray-800">Marcas</h1>
+          <p className="text-xs text-gray-500">Marcas / laboratorios de productos</p>
         </div>
         {canCreate && (
           <button
-            onClick={() => { setSelectedCategory(null); setModalMode("create"); setIsModalOpen(true); }}
+            onClick={() => { setSelectedBrand(null); setModalMode("create"); setIsModalOpen(true); }}
             className={`flex items-center gap-1.5 ${theme.main} ${theme.mainHover} text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm`}
           >
             <Plus size={16} /> Nueva
@@ -190,7 +193,7 @@ export const CategoriesPage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
             type="text"
-            placeholder="Buscar categoría..."
+            placeholder="Buscar marca..."
             className={`w-full pl-9 pr-3 py-1.5 rounded-md border border-gray-300 focus:outline-none ${theme.focus} text-sm bg-white`}
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
@@ -232,44 +235,44 @@ export const CategoriesPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {currentItems.length > 0 ? currentItems.map((cat, idx) => (
-                  <tr key={cat.id} className="hover:bg-gray-50 transition-colors">
+                {currentItems.length > 0 ? currentItems.map((brd, idx) => (
+                  <tr key={brd.id} className="hover:bg-gray-50 transition-colors">
                     <td className="py-1.5 px-3 text-xs font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                     <td className="py-1.5 px-3">
                       <div className="flex items-center gap-2">
                         <div className={`w-5 h-5 rounded ${theme.lightBg} flex items-center justify-center ${theme.text} flex-shrink-0`}>
-                          <Tag size={12} />
+                          <Award size={12} />
                         </div>
-                        <span className="text-xs font-bold text-gray-700">{cat.nombre}</span>
+                        <span className="text-xs font-bold text-gray-700">{brd.nombre}</span>
                       </div>
                     </td>
                     <td className="py-1.5 px-3 text-xs text-center font-bold">
-                      {cat.productos > 0
-                        ? <span className={theme.text}>{cat.productos}</span>
+                      {brd.productos > 0
+                        ? <span className={theme.text}>{brd.productos}</span>
                         : <span className="text-gray-400">Sin asociar</span>}
                     </td>
                     <td className="py-1.5 px-3 text-center">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${cat.estado ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
-                        {cat.estado ? "Activo" : "Inactivo"}
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${brd.estado ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                        {brd.estado ? "Activo" : "Inactivo"}
                       </span>
                     </td>
                     <td className="py-1.5 px-3">
                       <div className="flex items-center justify-center gap-1.5">
-                        <button onClick={() => { setSelectedCategory(cat); setModalMode("view"); setIsModalOpen(true); }} className="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors" title="Ver detalle">
+                        <button onClick={() => { setSelectedBrand(brd); setModalMode("view"); setIsModalOpen(true); }} className="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors" title="Ver detalle">
                           <Eye size={16} />
                         </button>
                         {canToggleStatus && (
-                          <button onClick={() => { setCategoryToToggle(cat); setIsStatusConfirmOpen(true); }} className="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors" title="Cambiar estado">
+                          <button onClick={() => { setBrandToToggle(brd); setIsStatusConfirmOpen(true); }} className="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors" title="Cambiar estado">
                             <CheckCircle size={16} />
                           </button>
                         )}
                         {canEdit && (
-                          <button onClick={() => { setSelectedCategory(cat); setModalMode("edit"); setIsModalOpen(true); }} className="p-1.5 rounded-md text-yellow-600 hover:bg-yellow-50 transition-colors" title="Editar">
+                          <button onClick={() => { setSelectedBrand(brd); setModalMode("edit"); setIsModalOpen(true); }} className="p-1.5 rounded-md text-yellow-600 hover:bg-yellow-50 transition-colors" title="Editar">
                             <Edit size={16} />
                           </button>
                         )}
                         {canDelete && (
-                          <button onClick={() => { setCategoryToDelete(cat); setIsDeleteConfirmOpen(true); }} className="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+                          <button onClick={() => { setBrandToDelete(brd); setIsDeleteConfirmOpen(true); }} className="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
                             <Trash2 size={16} />
                           </button>
                         )}
@@ -278,7 +281,7 @@ export const CategoriesPage = () => {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-gray-400 text-xs">No hay categorías registradas.</td>
+                    <td colSpan={5} className="py-8 text-center text-gray-400 text-xs">No hay marcas registradas.</td>
                   </tr>
                 )}
               </tbody>
@@ -296,27 +299,27 @@ export const CategoriesPage = () => {
         </div>
       )}
 
-      <CategoryFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} initialData={selectedCategory} mode={modalMode} onSave={handleSave} onDelete={(cat) => { setCategoryToDelete(cat); setIsDeleteConfirmOpen(true); }} accentColor={isEmployeePanel ? "blue" : "emerald"} />
+      <BrandFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} initialData={selectedBrand} mode={modalMode} onSave={handleSave} onDelete={(brd) => { setBrandToDelete(brd); setIsDeleteConfirmOpen(true); }} accentColor={isEmployeePanel ? "blue" : "emerald"} />
 
       {/* Modal Eliminar */}
       <ConfirmDialog
-        open={isDeleteConfirmOpen && !!categoryToDelete}
-        title="Eliminar Categoría"
-        message={categoryToDelete ? `¿Estás seguro de eliminar la categoría "${categoryToDelete.nombre}"?` : ""}
+        open={isDeleteConfirmOpen && !!brandToDelete}
+        title="Eliminar Marca"
+        message={brandToDelete ? `¿Estás seguro de eliminar la marca "${brandToDelete.nombre}"?` : ""}
         confirmText="Eliminar"
         danger
         onCancel={() => setIsDeleteConfirmOpen(false)}
-        onConfirm={confirmDeleteCategory}
+        onConfirm={confirmDeleteBrand}
       />
 
       {/* Modal Estado */}
       <ConfirmDialog
-        open={isStatusConfirmOpen && !!categoryToToggle}
-        title={categoryToToggle?.estado ? "Desactivar Categoría" : "Activar Categoría"}
-        message={categoryToToggle ? (categoryToToggle.estado ? `¿Desactivar la categoría "${categoryToToggle.nombre}"?` : `¿Activar la categoría "${categoryToToggle.nombre}"?`) : ""}
-        subMessage={categoryToToggle?.estado ? "Los productos de esta categoría no serán visibles en el catálogo." : ""}
-        confirmText={categoryToToggle?.estado ? "Desactivar" : "Activar"}
-        danger={!!categoryToToggle?.estado}
+        open={isStatusConfirmOpen && !!brandToToggle}
+        title={brandToToggle?.estado ? "Desactivar Marca" : "Activar Marca"}
+        message={brandToToggle ? (brandToToggle.estado ? `¿Desactivar la marca "${brandToToggle.nombre}"?` : `¿Activar la marca "${brandToToggle.nombre}"?`) : ""}
+        subMessage={brandToToggle?.estado ? "Los productos de esta marca no serán visibles en el catálogo." : ""}
+        confirmText={brandToToggle?.estado ? "Desactivar" : "Activar"}
+        danger={!!brandToToggle?.estado}
         onCancel={() => setIsStatusConfirmOpen(false)}
         onConfirm={confirmToggleStatus}
       />
@@ -329,4 +332,4 @@ export const CategoriesPage = () => {
   );
 };
 
-export default CategoriesPage;
+export default BrandsPage;

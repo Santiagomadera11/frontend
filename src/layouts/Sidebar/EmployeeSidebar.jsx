@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, ShoppingCart, DollarSign, Package,
-  ClipboardList, Calendar, Stethoscope, User, LogOut, X, Tags, Truck,
+  ClipboardList, Calendar, Stethoscope, User, LogOut, X, Tags, Truck, Award, Beaker,
   BarChart3, TrendingUp, Settings, ChevronDown, ChevronRight,
 } from "lucide-react";
 
@@ -45,8 +45,8 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />
       )}
 
-      <aside className={`fixed lg:static w-60 bg-[#1E3A5F] flex flex-col text-white shadow-xl z-50 flex-shrink-0 border-l border-gray-700 transition-transform duration-300 h-full ${
-        isOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
+      <aside className={`fixed lg:static w-60 bg-[#1E3A5F] flex flex-col text-white shadow-xl z-50 flex-shrink-0 border-r border-gray-700 transition-transform duration-300 h-full ${
+        isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       }`}>
         <div className="h-14 flex items-center justify-between px-5 border-b border-gray-700 bg-[#152A47]">
           <div className="flex items-center gap-3">
@@ -74,6 +74,8 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
             "purchase.view", "purchase.create", "purchase.edit", "purchase.delete", "purchase.status",
             "products.view", "products.create", "products.edit", "products.delete", "products.status",
             "categories.view", "categories.create", "categories.edit", "categories.delete", "categories.status",
+            "brands.view", "brands.create", "brands.edit", "brands.delete", "brands.status",
+            "presentations.view", "presentations.create", "presentations.edit", "presentations.delete", "presentations.status",
             "suppliers.view", "suppliers.create", "suppliers.edit", "suppliers.delete", "suppliers.status",
             "sales.view", "sales.create", "sales.cancel", "sales.return", "sales.invoice", "sales.export",
             "orders.view", "orders.create", "orders.edit", "orders.delete", "orders.status", "orders.export",
@@ -98,6 +100,8 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
             "purchase.view", "purchase.create", "purchase.edit", "purchase.delete", "purchase.status",
             "products.view", "products.create", "products.edit", "products.delete", "products.status",
             "categories.view", "categories.create", "categories.edit", "categories.delete", "categories.status",
+            "brands.view", "brands.create", "brands.edit", "brands.delete", "brands.status",
+            "presentations.view", "presentations.create", "presentations.edit", "presentations.delete", "presentations.status",
             "suppliers.view", "suppliers.create", "suppliers.edit", "suppliers.delete", "suppliers.status"
           ) && (
             <MenuGroup
@@ -113,6 +117,12 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
               )}
               {has("categories.view", "categories.create", "categories.edit", "categories.delete", "categories.status") && (
                 <SubMenuItem to="/employee/categorias" label="Categorías" icon={Tags} active={isActive("/employee/categorias")} />
+              )}
+              {has("brands.view", "brands.create", "brands.edit", "brands.delete", "brands.status") && (
+                <SubMenuItem to="/employee/marcas" label="Marcas" icon={Award} active={isActive("/employee/marcas")} />
+              )}
+              {has("presentations.view", "presentations.create", "presentations.edit", "presentations.delete", "presentations.status") && (
+                <SubMenuItem to="/employee/presentaciones" label="Presentaciones" icon={Beaker} active={isActive("/employee/presentaciones")} />
               )}
               {has("suppliers.view", "suppliers.create", "suppliers.edit", "suppliers.delete", "suppliers.status") && (
                 <SubMenuItem to="/employee/proveedores" label="Proveedores" icon={Truck} active={isActive("/employee/proveedores")} />

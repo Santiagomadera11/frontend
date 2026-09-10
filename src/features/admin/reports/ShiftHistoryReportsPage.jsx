@@ -167,12 +167,12 @@ export const ShiftHistoryReportsPage = () => {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={isAdmin ? 10 : 9} className="py-6 text-center text-gray-500 text-sm">No hay turnos en el período</td></tr>
               ) : (
-                filtered.map(t => {
+                filtered.map((t, idx) => {
                   const saldo = (t.montoBase || 0) + (t.totalVentas || 0) - (t.totalGastos || 0);
                   const activo = t.estado === "activo";
                   return (
                     <tr key={t.id} className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${activo ? "bg-green-50 border-l-4 border-l-green-500" : ""}`}>
-                      <td className="py-3 px-4 text-xs font-mono text-gray-600">{t.id}</td>
+                      <td className="py-3 px-4 text-xs font-mono text-gray-600">{idx + 1}</td>
                       <td className="py-3 px-4 text-xs font-semibold text-gray-700">{t.usuarioNombre}</td>
                       <td className="py-3 px-4 text-xs text-gray-600">{formatDate(t.fechaApertura)} {formatTime(t.fechaApertura)}</td>
                       <td className="py-3 px-4 text-xs">
