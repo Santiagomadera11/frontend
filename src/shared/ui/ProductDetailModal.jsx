@@ -1,15 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { X, ShoppingCart } from "lucide-react";
-import useCart from "../context/CartContext";
-import QuickPurchaseModal from "./QuickPurchaseModal";
+import { X } from "lucide-react";
 
 const ProductDetailModal = ({ product, onClose }) => {
-  if (!product) return null;
-
-  const [added, setAdded] = useState(false);
-  const [showQuickPurchase, setShowQuickPurchase] = useState(false);
-
   // Detectar rol para colores dinámicos
   const currentUser = JSON.parse(
     sessionStorage.getItem("syspharma_user") || "{}",
@@ -18,22 +10,19 @@ const ProductDetailModal = ({ product, onClose }) => {
   const headerBgColor = isEmployee
     ? "from-blue-50 to-blue-50"
     : "from-green-50 to-emerald-50";
-  const buttonBgColor = isEmployee
-    ? "bg-blue-600 hover:bg-blue-700"
-    : "bg-emerald-600 hover:bg-emerald-700";
   const badgeBgColor = isEmployee
     ? "bg-blue-100 text-blue-700"
     : "bg-emerald-100 text-emerald-700";
 
-  const title = product.nombre || product.name || "Producto";
-  const price = Number(product.precio ?? product.price ?? 0);
-  const isActive = product.estado !== false;
+  const title = product?.nombre || product?.name || "Producto";
+  const price = Number(product?.precio ?? product?.price ?? 0);
+  const isActive = product?.estado !== false;
 
   // Formas de venta habilitadas (Unidad/Blister/Caja). Si el producto no
   // trae ninguna (catálogos viejos o no-medicamentos), se sintetiza una
   // única forma "Unidad" con el precio del producto.
   const formasVenta = (() => {
-    const activas = (product.formasVenta || []).filter((f) => f.activo !== false);
+    const activas = (product?.formasVenta || []).filter((f) => f.activo !== false);
     return activas.length > 0
       ? activas
       : [{ id: null, tipo: "Unidad", precio: price, factorUnidades: 1, activo: true }];
@@ -48,28 +37,11 @@ const ProductDetailModal = ({ product, onClose }) => {
   useEffect(() => {
     setFormaVentaSeleccionada(formasVenta.find((f) => f.tipo === "Unidad") || formasVenta[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product.id]);
+  }, [product?.id]);
+
+  if (!product) return null;
 
   const precioSeleccionado = Number(formaVentaSeleccionada?.precio ?? price);
-
-  const cart = useCart();
-  const addToCart = () => {
-    try {
-      cart.addToCart({
-        ...product,
-        precio: precioSeleccionado,
-        formaVentaId: formaVentaSeleccionada?.id ?? null,
-        formaVentaTipo: formaVentaSeleccionada?.tipo ?? "Unidad",
-        factorUnidades: formaVentaSeleccionada?.factorUnidades ?? 1,
-      });
-      setAdded(true);
-      setTimeout(() => setAdded(false), 2000);
-    } catch (err) {
-      console.error("Error agregando al carrito", err);
-    }
-  };
-
-  const blockPurchase = (product.requiereFormula || product.requiereFormulaMedica) && !isEmployee;
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200 overflow-y-auto">
@@ -287,58 +259,6 @@ const ProductDetailModal = ({ product, onClose }) => {
           })()}
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 bg-white flex flex-col gap-3 flex-shrink-0">
-          {blockPurchase && (
-            <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3 text-xs font-semibold leading-relaxed">
-              Este medicamento requiere fórmula médica vigente. Por regulación sanitaria, la verificación se realiza únicamente de manera física.
-            </div>
-          )}
-          <div className="flex items-center justify-between gap-2">
-            <button
-              onClick={addToCart}
-              disabled={blockPurchase}
-              className={`px-4 py-2 text-sm font-medium text-white ${blockPurchase ? "bg-gray-300 cursor-not-allowed" : buttonBgColor} rounded-lg flex items-center gap-2 transition-all`}
-            >
-              <ShoppingCart size={16} />
-              Agregar
-            </button>
-            <div className="flex items-center gap-2">
-              {added && (
-                <span
-                  className={`text-xs font-semibold ${isEmployee ? "text-blue-600" : "text-emerald-600"}`}
-                >
-                  ✓ Agregado
-                </span>
-              )}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowQuickPurchase(true);
-                }}
-                disabled={blockPurchase}
-                className={`px-4 py-2 text-sm font-medium text-white ${blockPurchase ? "bg-gray-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"} rounded-lg flex items-center gap-2 transition-all`}
-              >
-                <ShoppingCart size={16} />
-                Comprar Ahora
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Purchase Modal - Renderizado con Portal para evitar contexto de apilamiento */}
-        {showQuickPurchase &&
-          createPortal(
-            <QuickPurchaseModal
-              product={product}
-              onClose={() => setShowQuickPurchase(false)}
-              onSuccess={() => {
-                setShowQuickPurchase(false);
-                onClose();
-              }}
-            />,
-            document.body,
-          )}
       </div>
     </div>
   );

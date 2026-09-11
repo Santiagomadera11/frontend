@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Save, DollarSign, Package, X, CheckCircle, AlertCircle, Barcode } from "lucide-react";
+import { ArrowLeft, Save, DollarSign, Package, X, CheckCircle, AlertCircle, Barcode, Loader2 } from "lucide-react";
 import { productService } from "./services/productService";
 import { categoryService } from "../categories/services/categoryService";
 import { providerService } from "../providers/services/providerService";
 import { brandService } from "../brands/services/brandService";
 import { presentationService } from "../presentations/services/presentationService";
+import { uploadService } from "../../../shared/services/uploadService";
 
 const NewProductPage = () => {
   const navigate = useNavigate();
@@ -28,10 +29,6 @@ const NewProductPage = () => {
     porcentajeIva: 0,
     stock: 0,
     estado: true,
-    esDestacado: false,
-    enOferta: false,
-    porcentajeDescuento: 0,
-    esRecomendado: false,
     composicion: "",
     concentracion: "",
     presentacionId: "",
@@ -40,11 +37,12 @@ const NewProductPage = () => {
     requiereFormula: false,
     imagen: null,
     formasVenta: {
-      blister: { habilitado: false, precio: "", factorUnidades: "" },
-      caja: { habilitado: false, precio: "", factorUnidades: "" },
+      blister: { habilitado: false, precio: "", factorUnidades: "", precioAuto: true },
+      caja: { habilitado: false, precio: "", factorUnidades: "", blisteresPorCaja: "", precioAuto: true },
     },
   });
   const [imagePreview, setImagePreview] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmData, setConfirmData] = useState({
     type: "success",
@@ -85,10 +83,6 @@ const NewProductPage = () => {
           porcentajeIva: product.porcentajeIva ?? 0,
           stock: product.stock ?? 0,
           estado: product.estado !== undefined ? product.estado : true,
-          esDestacado: product.esDestacado || false,
-          enOferta: product.enOferta || false,
-          porcentajeDescuento: product.porcentajeDescuento || 0,
-          esRecomendado: product.esRecomendado || false,
           composicion: product.composicion || "",
           concentracion: product.concentracion || "",
           presentacion: product.presentacion || "",
@@ -102,11 +96,11 @@ const NewProductPage = () => {
             const caja = formas.find((f) => f.tipo === "Caja" && f.activo !== false);
             return {
               blister: blister
-                ? { habilitado: true, precio: blister.precio ?? "", factorUnidades: blister.factorUnidades ?? "" }
-                : { habilitado: false, precio: "", factorUnidades: "" },
+                ? { habilitado: true, precio: blister.precio ?? "", factorUnidades: blister.factorUnidades ?? "", precioAuto: false }
+                : { habilitado: false, precio: "", factorUnidades: "", precioAuto: true },
               caja: caja
-                ? { habilitado: true, precio: caja.precio ?? "", factorUnidades: caja.factorUnidades ?? "" }
-                : { habilitado: false, precio: "", factorUnidades: "" },
+                ? { habilitado: true, precio: caja.precio ?? "", factorUnidades: caja.factorUnidades ?? "", blisteresPorCaja: "", precioAuto: false }
+                : { habilitado: false, precio: "", factorUnidades: "", blisteresPorCaja: "", precioAuto: true },
             };
           })(),
         });
@@ -139,20 +133,84 @@ const NewProductPage = () => {
     };
   }, []);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    if (file.size > 500 * 1024) {
-      showError("Imagen Demasiado Grande", "La imagen es demasiado grande. El tamaño máximo permitido es 500KB.");
+    if (file.size > 5 * 1024 * 1024) {
+      showError("Imagen Demasiado Grande", "La imagen es demasiado grande. El tamaño máximo permitido es 5MB.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setImagePreview(ev.target.result);
-      setFormData((f) => ({ ...f, imagen: ev.target.result }));
-    };
-    reader.readAsDataURL(file);
+
+    setUploadingImage(true);
+    try {
+      const url = await uploadService.uploadImage(file, "productos");
+      setImagePreview(url);
+      setFormData((f) => ({ ...f, imagen: url }));
+    } catch (err) {
+      showError("Error al subir la imagen", err.response?.data?.message || "No se pudo subir la imagen. Intenta nuevamente.");
+    } finally {
+      setUploadingImage(false);
+    }
   };
+
+  // Auto-calcula el precio del blister/caja a partir del precio de la unidad,
+  // y las unidades de la caja a partir de los blisteres que trae (si se indican).
+  // No pisa un precio que el usuario haya editado a mano (precioAuto: false).
+  useEffect(() => {
+    const precioUnidad = Number(formData.precio);
+    if (!precioUnidad || precioUnidad <= 0) return;
+
+    setFormData((f) => {
+      let changed = false;
+      const blister = { ...f.formasVenta.blister };
+      const caja = { ...f.formasVenta.caja };
+
+      if (blister.habilitado && blister.precioAuto) {
+        const factor = Number(blister.factorUnidades);
+        if (factor > 0) {
+          const nuevoPrecio = Math.round(precioUnidad * factor * 100) / 100;
+          if (Number(blister.precio) !== nuevoPrecio) {
+            blister.precio = nuevoPrecio;
+            changed = true;
+          }
+        }
+      }
+
+      if (caja.habilitado) {
+        if (blister.habilitado && caja.blisteresPorCaja) {
+          const blisteresPorCaja = Number(caja.blisteresPorCaja);
+          const factorBlister = Number(blister.factorUnidades);
+          if (blisteresPorCaja > 0 && factorBlister > 0) {
+            const unidadesCaja = blisteresPorCaja * factorBlister;
+            if (Number(caja.factorUnidades) !== unidadesCaja) {
+              caja.factorUnidades = unidadesCaja;
+              changed = true;
+            }
+          }
+        }
+        if (caja.precioAuto) {
+          const factorCaja = Number(caja.factorUnidades);
+          if (factorCaja > 0) {
+            const nuevoPrecioCaja = Math.round(precioUnidad * factorCaja * 100) / 100;
+            if (Number(caja.precio) !== nuevoPrecioCaja) {
+              caja.precio = nuevoPrecioCaja;
+              changed = true;
+            }
+          }
+        }
+      }
+
+      return changed ? { ...f, formasVenta: { blister, caja } } : f;
+    });
+  }, [
+    formData.precio,
+    formData.formasVenta.blister.habilitado,
+    formData.formasVenta.blister.factorUnidades,
+    formData.formasVenta.blister.precioAuto,
+    formData.formasVenta.caja.habilitado,
+    formData.formasVenta.caja.blisteresPorCaja,
+    formData.formasVenta.caja.precioAuto,
+  ]);
 
   const showError = (title, message) => {
     setConfirmData({ type: "error", title, message, onConfirm: () => setShowConfirmModal(false) });
@@ -160,12 +218,11 @@ const NewProductPage = () => {
   };
 
   const handleSave = async () => {
+    if (uploadingImage) return showError("Espera un momento", "La imagen todavía se está subiendo.");
     if (!formData.nombre.trim()) return showError("Campo Requerido", "Por favor ingresa el nombre del producto");
     if (!formData.categoriaId) return showError("Campo Requerido", "Por favor selecciona una categoría");
     if (!formData.precio || Number(formData.precio) <= 0) return showError("Precio Inválido", "Por favor ingresa un precio válido mayor a 0");
     if (formData.stock !== undefined && Number(formData.stock) < 0) return showError("Stock Inválido", "El stock no puede ser negativo");
-    if (formData.enOferta && (Number(formData.porcentajeDescuento) < 0 || Number(formData.porcentajeDescuento) > 100))
-      return showError("Descuento Inválido", "El porcentaje de descuento debe estar entre 0 y 100");
 
     const { blister, caja } = formData.formasVenta;
     if (blister.habilitado) {
@@ -204,11 +261,6 @@ const NewProductPage = () => {
       registroSanitario: formData.registroSanitario,
       requiereFormula: formData.requiereFormula,
 
-      esDestacado: formData.esDestacado,
-      enOferta: formData.enOferta,
-      porcentajeDescuento: Number(formData.porcentajeDescuento) || 0,
-      esRecomendado: formData.esRecomendado,
-
       formasVenta: [
         ...(formData.formasVenta.blister.habilitado
           ? [{ tipo: "Blister", precio: Number(formData.formasVenta.blister.precio), factorUnidades: Number(formData.formasVenta.blister.factorUnidades) }]
@@ -245,12 +297,11 @@ const NewProductPage = () => {
             setShowConfirmModal(false);
             setFormData({
               nombre: "", descripcion: "", codigoBarras: "", marcaId: "", tipoProducto: "Producto General", categoriaId: "", proveedorId: "",
-              precio: "", porcentajeIva: 0, stock: "", estado: true, esDestacado: false, enOferta: false,
-              porcentajeDescuento: 0, esRecomendado: false, composicion: "", concentracion: "",
+              precio: "", porcentajeIva: 0, stock: "", estado: true, composicion: "", concentracion: "",
               presentacionId: "", viaAdministracion: "", registroSanitario: "", requiereFormula: false, imagen: null,
               formasVenta: {
-                blister: { habilitado: false, precio: "", factorUnidades: "" },
-                caja: { habilitado: false, precio: "", factorUnidades: "" },
+                blister: { habilitado: false, precio: "", factorUnidades: "", precioAuto: true },
+                caja: { habilitado: false, precio: "", factorUnidades: "", blisteresPorCaja: "", precioAuto: true },
               },
             });
             setImagePreview(null);
@@ -294,9 +345,14 @@ const NewProductPage = () => {
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Imagen del Producto</label>
                 <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-emerald-500 transition bg-gray-50">
-                  <input ref={fileRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                  <button type="button" onClick={() => fileRef.current?.click()} className="w-full flex flex-col items-center">
-                    {imagePreview ? (
+                  <input ref={fileRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" disabled={uploadingImage} />
+                  <button type="button" onClick={() => fileRef.current?.click()} disabled={uploadingImage} className="w-full flex flex-col items-center disabled:opacity-60">
+                    {uploadingImage ? (
+                      <div className="flex flex-col items-center py-2">
+                        <Loader2 size={24} className="text-emerald-500 animate-spin mb-2" />
+                        <p className="text-xs font-semibold text-gray-600">Subiendo imagen...</p>
+                      </div>
+                    ) : imagePreview ? (
                       <div className="flex flex-col items-center">
                         <img src={imagePreview} alt="Preview" className="max-h-36 max-w-full object-contain mb-2 rounded" />
                         <p className="text-xs text-gray-500">Haz clic para cambiar imagen</p>
@@ -305,7 +361,7 @@ const NewProductPage = () => {
                       <div className="text-center">
                         <Package size={28} className="text-gray-400 mx-auto mb-2" />
                         <p className="text-xs font-semibold text-gray-600">Sube una imagen</p>
-                        <p className="text-xs text-gray-500 mt-1">PNG, JPG hasta 500KB</p>
+                        <p className="text-xs text-gray-500 mt-1">PNG, JPG hasta 5MB</p>
                       </div>
                     )}
                   </button>
@@ -438,7 +494,23 @@ const NewProductPage = () => {
                     {formData.formasVenta.blister.habilitado && (
                       <div className="grid grid-cols-2 gap-3 mt-3">
                         <div>
-                          <label className="block text-xs font-bold text-gray-700 mb-1">Precio por blister ($)</label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-xs font-bold text-gray-700">Precio por blister ($)</label>
+                            {!formData.formasVenta.blister.precioAuto && (
+                              <button
+                                type="button"
+                                className="text-[10px] font-semibold text-emerald-600 hover:underline"
+                                onClick={() =>
+                                  setFormData((f) => ({
+                                    ...f,
+                                    formasVenta: { ...f.formasVenta, blister: { ...f.formasVenta.blister, precioAuto: true } },
+                                  }))
+                                }
+                              >
+                                Calcular automático
+                              </button>
+                            )}
+                          </div>
                           <input
                             type="number"
                             className="w-full text-sm border border-gray-300 rounded px-3 py-2"
@@ -446,10 +518,13 @@ const NewProductPage = () => {
                             onChange={(e) =>
                               setFormData((f) => ({
                                 ...f,
-                                formasVenta: { ...f.formasVenta, blister: { ...f.formasVenta.blister, precio: e.target.value } },
+                                formasVenta: { ...f.formasVenta, blister: { ...f.formasVenta.blister, precio: e.target.value, precioAuto: false } },
                               }))
                             }
                           />
+                          {formData.formasVenta.blister.precioAuto && (
+                            <p className="text-[10px] text-gray-400 mt-1">Calculado desde el precio unitario.</p>
+                          )}
                         </div>
                         <div>
                           <label className="block text-xs font-bold text-gray-700 mb-1">Unidades por blister</label>
@@ -489,7 +564,23 @@ const NewProductPage = () => {
                     {formData.formasVenta.caja.habilitado && (
                       <div className="grid grid-cols-2 gap-3 mt-3">
                         <div>
-                          <label className="block text-xs font-bold text-gray-700 mb-1">Precio por caja ($)</label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-xs font-bold text-gray-700">Precio por caja ($)</label>
+                            {!formData.formasVenta.caja.precioAuto && (
+                              <button
+                                type="button"
+                                className="text-[10px] font-semibold text-emerald-600 hover:underline"
+                                onClick={() =>
+                                  setFormData((f) => ({
+                                    ...f,
+                                    formasVenta: { ...f.formasVenta, caja: { ...f.formasVenta.caja, precioAuto: true } },
+                                  }))
+                                }
+                              >
+                                Calcular automático
+                              </button>
+                            )}
+                          </div>
                           <input
                             type="number"
                             className="w-full text-sm border border-gray-300 rounded px-3 py-2"
@@ -497,27 +588,56 @@ const NewProductPage = () => {
                             onChange={(e) =>
                               setFormData((f) => ({
                                 ...f,
-                                formasVenta: { ...f.formasVenta, caja: { ...f.formasVenta.caja, precio: e.target.value } },
+                                formasVenta: { ...f.formasVenta, caja: { ...f.formasVenta.caja, precio: e.target.value, precioAuto: false } },
                               }))
                             }
                           />
+                          {formData.formasVenta.caja.precioAuto && (
+                            <p className="text-[10px] text-gray-400 mt-1">Calculado desde el precio unitario.</p>
+                          )}
                         </div>
-                        <div>
-                          <label className="block text-xs font-bold text-gray-700 mb-1">Unidades por caja</label>
-                          <input
-                            type="number"
-                            min="1"
-                            step="1"
-                            className="w-full text-sm border border-gray-300 rounded px-3 py-2"
-                            value={formData.formasVenta.caja.factorUnidades}
-                            onChange={(e) =>
-                              setFormData((f) => ({
-                                ...f,
-                                formasVenta: { ...f.formasVenta, caja: { ...f.formasVenta.caja, factorUnidades: e.target.value } },
-                              }))
-                            }
-                          />
-                        </div>
+
+                        {formData.formasVenta.blister.habilitado ? (
+                          <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">Blísteres por caja</label>
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              placeholder="Ej: 10"
+                              className="w-full text-sm border border-gray-300 rounded px-3 py-2"
+                              value={formData.formasVenta.caja.blisteresPorCaja}
+                              onChange={(e) =>
+                                setFormData((f) => ({
+                                  ...f,
+                                  formasVenta: { ...f.formasVenta, caja: { ...f.formasVenta.caja, blisteresPorCaja: e.target.value } },
+                                }))
+                              }
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1">
+                              {formData.formasVenta.caja.blisteresPorCaja && formData.formasVenta.blister.factorUnidades
+                                ? `= ${Number(formData.formasVenta.caja.blisteresPorCaja) * Number(formData.formasVenta.blister.factorUnidades)} unidades por caja`
+                                : "Se calculan las unidades por caja automáticamente."}
+                            </p>
+                          </div>
+                        ) : (
+                          <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">Unidades por caja</label>
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              className="w-full text-sm border border-gray-300 rounded px-3 py-2"
+                              value={formData.formasVenta.caja.factorUnidades}
+                              onChange={(e) =>
+                                setFormData((f) => ({
+                                  ...f,
+                                  formasVenta: { ...f.formasVenta, caja: { ...f.formasVenta.caja, factorUnidades: e.target.value } },
+                                }))
+                              }
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -572,40 +692,6 @@ const NewProductPage = () => {
             </div>
           </div>
 
-          {/* Visibilidad */}
-          <div className="md:col-span-1">
-            <div className="bg-white border border-gray-100 rounded-lg p-4 shadow-sm space-y-3">
-              <h4 className="text-sm font-bold text-gray-800">Configuración de Visibilidad</h4>
-              {[
-                { label: "Mostrar en Destacados", key: "esDestacado" },
-                { label: "Mostrar en Recomendados", key: "esRecomendado" },
-              ].map(({ label, key }) => (
-                <div key={key} className="flex items-center justify-between p-3 rounded-lg border bg-white border-gray-200">
-                  <label className="text-xs font-bold text-gray-700">{label}</label>
-                  <button onClick={() => setFormData((f) => ({ ...f, [key]: !f[key] }))}
-                    className={`relative inline-flex h-5 w-10 items-center rounded-full transition-all ${formData[key] ? "bg-emerald-600" : "bg-gray-300"}`}>
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData[key] ? "translate-x-5" : "translate-x-0.5"}`} />
-                  </button>
-                </div>
-              ))}
-              <div className="flex items-center justify-between p-3 rounded-lg border bg-white border-gray-200">
-                <label className="text-xs font-bold text-gray-700">Mostrar en Ofertas</label>
-                <button onClick={() => setFormData((f) => ({ ...f, enOferta: !f.enOferta }))}
-                  className={`relative inline-flex h-5 w-10 items-center rounded-full transition-all ${formData.enOferta ? "bg-emerald-600" : "bg-gray-300"}`}>
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.enOferta ? "translate-x-5" : "translate-x-0.5"}`} />
-                </button>
-              </div>
-              {formData.enOferta && (
-                <div className="pl-3 pr-3 py-2">
-                  <label className="block text-xs font-bold text-gray-700 mb-2">Porcentaje de Descuento (%)</label>
-                  <input type="number" min="0" max="100" className="w-full text-sm border border-emerald-300 rounded px-3 py-2"
-                    value={formData.porcentajeDescuento}
-                    onChange={(e) => setFormData({ ...formData, porcentajeDescuento: Math.min(100, Math.max(0, Number(e.target.value))) })} />
-                </div>
-              )}
-            </div>
-            <div className="mt-4 text-xs text-gray-500">Los ajustes de visibilidad controlan cómo aparece el producto en el catálogo público.</div>
-          </div>
         </div>
 
         {/* Footer */}

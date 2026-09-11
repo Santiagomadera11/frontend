@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, Save, Upload } from "lucide-react";
+import { X, Save, Upload, Loader2 } from "lucide-react";
+import { uploadService } from "../../../../shared/services/uploadService";
 
 const ProductModal = ({
   isOpen,
@@ -35,15 +36,11 @@ const ProductModal = ({
     requiereRefrigeracion: false,
     afectaConduccion: false,
     fotosensible: false,
-    esDestacado: false,
-    enOferta: false,
-    porcentajeDescuento: 0,
-    esRecomendado: false,
   };
 
   const [formData, setFormData] = useState(emptyForm);
   const [imagePreview, setImagePreview] = useState(null);
-  const [showVisibility, setShowVisibility] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -63,26 +60,33 @@ const ProductModal = ({
     }
   }, [initialData, isOpen]);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (file.size > 500 * 1024) {
-        alert("La imagen es demasiado grande. El tamaño máximo permitido es 500KB.");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64 = event.target.result;
-        setFormData(p => ({ ...p, imagen: base64 }));
-        setImagePreview(base64);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert("La imagen es demasiado grande. El tamaño máximo permitido es 5MB.");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const url = await uploadService.uploadImage(file, "productos");
+      setFormData(p => ({ ...p, imagen: url }));
+      setImagePreview(url);
+    } catch (err) {
+      alert(err.response?.data?.message || "No se pudo subir la imagen. Intenta nuevamente.");
+    } finally {
+      setUploadingImage(false);
     }
   };
 
   if (!isOpen) return null;
 
   const handleSubmit = () => {
+    if (uploadingImage) {
+      alert("Espera a que termine de subir la imagen.");
+      return;
+    }
     onSave({
       ...formData,
       categoriaId: formData.categoriaId ? Number(formData.categoriaId) : null,
@@ -116,9 +120,14 @@ const ProductModal = ({
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-2">Imagen del Producto</label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-emerald-500 transition bg-gray-50">
-              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-              <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full flex flex-col items-center">
-                {imagePreview ? (
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" disabled={uploadingImage} />
+              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingImage} className="w-full flex flex-col items-center disabled:opacity-60">
+                {uploadingImage ? (
+                  <>
+                    <Loader2 size={22} className="text-emerald-500 animate-spin mb-2" />
+                    <p className="text-xs font-semibold text-gray-600">Subiendo imagen...</p>
+                  </>
+                ) : imagePreview ? (
                   <>
                     <img src={imagePreview} alt="Preview" className="max-h-32 max-w-full object-contain mb-2 rounded shadow-sm" />
                     <p className="text-xs text-gray-500">Haz clic para cambiar imagen</p>
@@ -127,7 +136,7 @@ const ProductModal = ({
                   <>
                     <Upload size={24} className="text-gray-400 mx-auto mb-2" />
                     <p className="text-xs font-semibold text-gray-600">Sube una imagen</p>
-                    <p className="text-xs text-gray-500 mt-1">PNG, JPG hasta 500KB</p>
+                    <p className="text-xs text-gray-500 mt-1">PNG, JPG hasta 5MB</p>
                   </>
                 )}
               </button>
@@ -281,54 +290,6 @@ const ProductModal = ({
             </div>
           )}
 
-          {/* Configuración de Visibilidad */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <button type="button" onClick={() => setShowVisibility(v => !v)}
-              className="w-full flex items-center justify-between gap-3 p-2 rounded-md hover:bg-gray-50">
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-gray-800">📍 Configuración de Visibilidad</span>
-                <div className="flex items-center gap-2">
-                  {formData.esDestacado && <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Destacado</span>}
-                  {formData.enOferta && <span className="text-[10px] px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">Oferta</span>}
-                  {formData.esRecomendado && <span className="text-[10px] px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">Recomendado</span>}
-                </div>
-              </div>
-              <svg className={`w-4 h-4 text-gray-500 transition-transform ${showVisibility ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9" /></svg>
-            </button>
-
-            {showVisibility && (
-              <div className="mt-3 space-y-3">
-                {[
-                  { key: "esDestacado", label: "Mostrar en Destacados" },
-                  { key: "esRecomendado", label: "Mostrar en Recomendados" },
-                ].map(({ key, label }) => (
-                  <div key={key} className="flex items-center justify-between p-3 rounded-lg border bg-white border-gray-200 hover:border-emerald-300">
-                    <label className="text-xs font-bold text-gray-700">{label}</label>
-                    <button onClick={() => setFormData(p => ({ ...p, [key]: !p[key] }))}
-                      className={`relative inline-flex h-5 w-10 items-center rounded-full transition-all ${formData[key] ? "bg-emerald-600" : "bg-gray-300"}`}>
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData[key] ? "translate-x-5" : "translate-x-0.5"}`} />
-                    </button>
-                  </div>
-                ))}
-                <div className="flex items-center justify-between p-3 rounded-lg border bg-white border-gray-200 hover:border-emerald-300">
-                  <label className="text-xs font-bold text-gray-700">Mostrar en Ofertas</label>
-                  <button onClick={() => setFormData(p => ({ ...p, enOferta: !p.enOferta }))}
-                    className={`relative inline-flex h-5 w-10 items-center rounded-full transition-all ${formData.enOferta ? "bg-emerald-600" : "bg-gray-300"}`}>
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.enOferta ? "translate-x-5" : "translate-x-0.5"}`} />
-                  </button>
-                </div>
-                {formData.enOferta && (
-                  <div className="pl-3 pr-3 py-2">
-                    <label className="block text-xs font-bold text-gray-700 mb-2">Porcentaje de Descuento (%)</label>
-                    <input type="number" min="0" max="100"
-                      className="w-full text-sm border border-emerald-300 rounded px-3 py-2 focus:outline-none"
-                      value={formData.porcentajeDescuento}
-                      onChange={(e) => setFormData(p => ({ ...p, porcentajeDescuento: Math.min(100, Math.max(0, Number(e.target.value))) }))} />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Footer */}

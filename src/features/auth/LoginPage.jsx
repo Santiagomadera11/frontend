@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { User, Lock, ArrowRight, ChevronLeft, X, Key } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { User, Lock, ArrowRight, X, Key } from "lucide-react";
 import { authService } from "../auth/authService";
 import { useCurrentUser } from "/src/shared/context/UserContext";
 import { sendRecoveryEmail } from "./passwordRecoveryService";
@@ -218,6 +218,7 @@ const LoginPage = () => {
     try {
       await apiClient.post("/api/Auth/reset-password", {
         email: recoveryEmail,
+        code: codeInputs.join(""),
         newPassword,
       });
       setToast({
@@ -274,7 +275,6 @@ const LoginPage = () => {
 
       const rutasPorRol = {
         administrador: "/admin/dashboard",
-        cliente: "/client/inicio",
       };
 
       let redirectPath = rutasPorRol[role];
@@ -325,17 +325,6 @@ const LoginPage = () => {
 
       {/* Panel derecho - SIN CAMBIOS */}
       <div className="w-full lg:w-[30%] flex items-center justify-center bg-white px-6 md:px-10 shadow-2xl z-20 relative">
-        <Link
-          to="/"
-          className="absolute top-6 left-6 flex items-center gap-1 text-gray-400 hover:text-primary-600 transition-colors text-sm font-medium group"
-        >
-          <ChevronLeft
-            size={16}
-            className="group-hover:-translate-x-1 transition-transform"
-          />
-          Volver al inicio
-        </Link>
-
         <div className="w-full">
           <div className="text-center mb-8 mt-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-1">
@@ -417,18 +406,6 @@ const LoginPage = () => {
               {loading ? "Cargando..." : "Iniciar Sesión"}{" "}
               <ArrowRight size={16} />
             </button>
-
-            <div className="text-center pt-4 border-t border-gray-100 mt-6">
-              <p className="text-xs text-gray-500">
-                ¿Eres cliente nuevo?{" "}
-                <Link
-                  to="/registro"
-                  className="text-primary-600 font-bold hover:underline"
-                >
-                  Regístrate aquí
-                </Link>
-              </p>
-            </div>
           </form>
         </div>
       </div>

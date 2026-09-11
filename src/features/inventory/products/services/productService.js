@@ -32,12 +32,6 @@ export const productService = {
     return (response.data || []).map(mapProduct);
   },
 
-  // Catálogo público (sin autenticación) para landing/tienda de clientes no logueados.
-  getPublicCatalog: async () => {
-    const response = await apiClient.get(`${ENDPOINT}/publico`);
-    return response.data || [];
-  },
-
   getById: async (id) => {
     const response = await apiClient.get(`${ENDPOINT}/${id}`);
     return mapProduct(response.data);

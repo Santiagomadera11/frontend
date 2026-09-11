@@ -1,4 +1,5 @@
 import { apiClient } from "../../../shared/utils/apiClient";
+import { resolveAvatarUrl } from "../../../shared/utils/resolveAvatarUrl";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://syspharma-backend.onrender.com";
 const USER_ENDPOINT = "Usuario";
@@ -10,12 +11,7 @@ const mapUser = (u) => ({
   estado: u.estado,
   tipoDocumentoId: u.tipoDocumentoId || null,
   tipoDocumento: u.tipoDocumento || "",
-  // ✅ Si tiene avatar real del backend usa URL completa, si no usa DiceBear
-  avatar: u.avatar
-    ? u.avatar.startsWith("http")
-      ? u.avatar
-      : `${API_BASE}${u.avatar}`
-    : `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(u.nombre || u.id)}`,
+  avatar: resolveAvatarUrl(u.avatar, u.nombre || u.id),
 });
 
 export const userService = {
@@ -57,6 +53,7 @@ export const userService = {
       tipoDocumentoId: userData.tipoDocumentoId ? Number(userData.tipoDocumentoId) : null,
       documento: userData.documento || null,
       telefono: userData.telefono || null,
+      direccion: userData.direccion || null,
       rolId: Number(userData.rolId),
       estado: typeof userData.estado === "boolean" ? userData.estado : true,
     };
@@ -79,7 +76,10 @@ export const userService = {
     
     const token = sessionStorage.getItem("syspharma_token");
     const response = await apiClient.post(`/api/Usuario/${userId}/foto`, formData, {
-      headers: { Authorization: `Bearer ${token}` },
+      // La instancia de apiClient fija Content-Type: application/json por defecto.
+      // Hay que pisarlo para este request: axios detecta que el body es FormData y
+      // genera el boundary correcto solo si el header no quedó fijo en "application/json".
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
     });
 
     const data = response.data;

@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useCurrentUser } from "/src/shared/context/UserContext";
 
-const ROLES_FIJOS = ["administrador", "empleado", "cliente"];
+const ROLES_FIJOS = ["administrador", "empleado"];
 
 const PERMS_ADMIN = [
   "dashboard.view", "users.view", "users.create", "users.edit", "users.delete",
@@ -59,11 +59,6 @@ const ProtectedRoute = ({ children, requiredRole, requiredPerm, requiredAnyPerm 
       }
     }
 
-    if (req === "cliente") {
-      if (userRole !== "cliente") {
-        return <Navigate to="/" replace />;
-      }
-    }
   }
 
   // Verificar permiso requerido
@@ -72,11 +67,9 @@ const ProtectedRoute = ({ children, requiredRole, requiredPerm, requiredAnyPerm 
     const hasPermission = isAdmin || userPerms.includes(normalizePerm(requiredPerm));
 
     if (!hasPermission) {
-      const defaultPath = userRole === "cliente"
-        ? "/client/inicio"
-        : userRole === "administrador" && tienePermisosAdmin
-          ? "/admin/dashboard"
-          : "/employee/inicio";
+      const defaultPath = userRole === "administrador" && tienePermisosAdmin
+        ? "/admin/dashboard"
+        : "/employee/inicio";
       return <Navigate to={defaultPath} replace />;
     }
   }
@@ -86,8 +79,7 @@ const ProtectedRoute = ({ children, requiredRole, requiredPerm, requiredAnyPerm 
     const hasPermission = isAdmin || requiredAnyPerm.some((perm) => userPerms.includes(normalizePerm(perm)));
 
     if (!hasPermission) {
-      const defaultPath = userRole === "cliente" ? "/client/inicio" : "/employee/inicio";
-      return <Navigate to={defaultPath} replace />;
+      return <Navigate to="/employee/inicio" replace />;
     }
   }
 

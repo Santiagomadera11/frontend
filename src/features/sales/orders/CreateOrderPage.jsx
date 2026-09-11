@@ -8,7 +8,6 @@ import { UnifiedCart } from "../components/UnifiedCart";
 import { IntegratedCart } from "../components/IntegratedCart";
 import { salesService } from "../services/salesService";
 import { turnService } from "../services/turnService";
-import { ordersService } from "./services/ordersService";
 import { authService } from "../../auth/authService";
 import { fetchPaymentMethods, getPaymentMethods } from "../../settings/services/parameterService";
 import { ToastNotification } from "../../../shared/ui/ToastNotification";
@@ -25,7 +24,6 @@ export const CreateOrderPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const esUnPedido = location.pathname.toLowerCase().includes("pedido");
   const isEmployeePath = location.pathname.startsWith("/employee");
   const { currentUser } = useCurrentUser();
   const isEmployeeRole = (currentUser.rol || "") === "Empleado";
@@ -226,90 +224,50 @@ export const CreateOrderPage = () => {
       // ============ NUEVO: Calcular totales con IVA ============
       const { subtotal, iva, total } = calcularTotales();
 
-      if (esUnPedido) {
-        const pedidoPayload = {
-          usuarioId: Number(userId),
-          clienteNombre: clientInfo.nombre,
-          clienteDocumento: clientInfo.documento || "",
-          clienteTelefono: clientInfo.telefono || "",
-          clienteEmail: clientInfo.correo || "",
-          metodoPagoId: Number(clientInfo.metodoPagoId),
-          porcentajeIva: porcentajeIva, // ← CAMBIO: usar variable de estado
-          notas: [
-            clientInfo.correo ? `Email: ${clientInfo.correo}` : "",
-            ...serviceCart.map((s) => s.notas).filter(Boolean)
-          ].filter(Boolean).join(" | ") || "Pedido realizado desde terminal",
-          origen: "Terminal",
-          subtotal: subtotal,  // ← NUEVO
-          iva: iva,            // ← NUEVO
-          total: total,        // ← NUEVO
-          detalles: productCart.map((p) => ({
-            productoId: Number(p.id),
-            nombre: p.nombre || p.name || p.nombreProducto || p.descripcion || "Producto",
-            cantidad: Number(p.cantidad),
-            precioUnitario: Number(p.precio),
-            subtotal: Number(p.cantidad * p.precio), // ← NUEVO
-            formaVentaId: p.formaVentaId ?? null,
-          })),
-          citaIds: serviceCart.map((s) => s.appointmentId).filter(Boolean), // ← NUEVO
-        };
+      const ventaPayload = {
+        turnoId: Number(currentTurnoId),
+        usuarioId: Number(userId),
+        clienteNombre: clientInfo.nombre,
+        clienteDocumento: clientInfo.documento || "",
+        clienteTelefono: clientInfo.telefono || "",
+        metodoPagoId: Number(clientInfo.metodoPagoId),
+        referenciasPago: referenciaPago || null,
+        porcentajeIva: porcentajeIva,
+        subtotal: subtotal,
+        iva: iva,
+        total: total,
+        notas: [
+          clientInfo.correo ? `Email: ${clientInfo.correo}` : "",
+          ...serviceCart.map((s) => s.notas).filter(Boolean)
+        ].filter(Boolean).join(" | ") || null,
+        detalles: productCart.map((p) => ({
+          productoId: Number(p.id),
+          cantidad: Number(p.cantidad),
+          precioUnitario: Number(p.precio),
+          descuento: 0,
+          subtotal: Number(p.cantidad * p.precio),
+          loteId: p.loteId ? Number(p.loteId) : null,
+          formaVentaId: p.formaVentaId ?? null,
+        })),
+        servicios: serviceCart.map((s) => ({
+          servicioId: Number(s.servicioId),
+          cantidad: 1,
+          precioUnitario: Number(s.precio),
+          descuento: 0,
+          subtotal: Number(s.precio),
+          citaId: s.appointmentId || null,
+        })),
+      };
 
-        const pedidoResponse = await ordersService.create(pedidoPayload);
+      const ventaResponse = await salesService.create(ventaPayload);
 
-        window.dispatchEvent(new Event("syspharma_products_updated"));
-        window.dispatchEvent(new Event("orders:changed"));
-        setNotification({ message: "Pedido guardado con éxito", type: "success" });
-        
-        setTimeout(() => {
-          navigate(isEmployeePath ? "/employee/pedidos" : "/admin/pedidos");
-        }, 1500);
+      window.dispatchEvent(new Event("syspharma_products_updated"));
+      window.dispatchEvent(new Event("sales:changed"));
+      setNotification({ message: "Transacción exitosa", type: "success" });
 
-      } else {
-        const ventaPayload = {
-          turnoId: Number(currentTurnoId),
-          usuarioId: Number(userId),
-          clienteNombre: clientInfo.nombre,
-          clienteDocumento: clientInfo.documento || "",
-          clienteTelefono: clientInfo.telefono || "",
-          metodoPagoId: Number(clientInfo.metodoPagoId),
-          referenciasPago: referenciaPago || null,
-          porcentajeIva: porcentajeIva,
-          subtotal: subtotal,
-          iva: iva,
-          total: total,
-          notas: [
-            clientInfo.correo ? `Email: ${clientInfo.correo}` : "",
-            ...serviceCart.map((s) => s.notas).filter(Boolean)
-          ].filter(Boolean).join(" | ") || null,
-          detalles: productCart.map((p) => ({
-            productoId: Number(p.id),
-            cantidad: Number(p.cantidad),
-            precioUnitario: Number(p.precio),
-            descuento: 0,
-            subtotal: Number(p.cantidad * p.precio),
-            loteId: p.loteId ? Number(p.loteId) : null,
-            formaVentaId: p.formaVentaId ?? null,
-          })),
-          servicios: serviceCart.map((s) => ({
-            servicioId: Number(s.servicioId),
-            cantidad: 1,
-            precioUnitario: Number(s.precio),
-            descuento: 0,
-            subtotal: Number(s.precio),
-            citaId: s.appointmentId || null,
-          })),
-        };
-
-        const ventaResponse = await salesService.create(ventaPayload);
-
-        window.dispatchEvent(new Event("syspharma_products_updated"));
-        window.dispatchEvent(new Event("sales:changed"));
-        setNotification({ message: "Transacción exitosa", type: "success" });
-        
-        setTimeout(() => {
-          navigate(isEmployeePath ? "/employee/ventas" : "/admin/ventas");
-        }, 1500);
-      }
+      setTimeout(() => {
+        navigate(isEmployeePath ? "/employee/ventas" : "/admin/ventas");
+      }, 1500);
 
     } catch (err) {
       console.error("❌ Error API completo:", JSON.stringify(err.response?.data, null, 2));
@@ -347,7 +305,7 @@ export const CreateOrderPage = () => {
           </button>
           <div>
             <h1 className="text-xs font-black uppercase tracking-widest" style={{ color: primary }}>
-              {esUnPedido ? "Nuevo Pedido" : "Realizar Venta"}
+              Realizar Venta
             </h1>
             <p className="text-[9px] text-gray-400 font-bold uppercase">{new Date().toLocaleDateString()}</p>
           </div>
@@ -473,7 +431,6 @@ export const CreateOrderPage = () => {
               primary={primary}
               disabled={!clientInfo.nombre || (isEmployeeRole && !turnoActivo)}
               porcentajeIva={porcentajeIva}
-              esUnPedido={esUnPedido}
               metodoPagoId={clientInfo.metodoPagoId}
               paymentMethods={paymentMethods}
               montoRecibido={montoRecibido}
