@@ -3,7 +3,6 @@ export const LS = {
   USERS: 'syspharma_users',
   USER: 'syspharma_user',
   CART: 'syspharma_cart',
-  PEDIDOS: 'syspharma_pedidos'
 };
 
 export const read = (key) => {

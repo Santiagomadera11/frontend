@@ -65,7 +65,7 @@ const Sidebar = ({ onClose, onShowLogoutModal }) => {
         {has("users.view", "users.create", "users.edit", "users.delete", "users.status",
               "purchase.view", "purchase.create", "purchase.edit", "purchase.delete",
               "products.view", "categories.view", "brands.view", "presentations.view", "suppliers.view",
-              "sales.view", "sales.create", "orders.view",
+              "sales.view", "sales.create",
               "services.view", "appointments.view", "appointments.calendar",
               "appointments.list", "reports.shifts", "reports.performance") && (
           <div className="pt-3 pb-1">
@@ -109,20 +109,8 @@ const Sidebar = ({ onClose, onShowLogoutModal }) => {
           </MenuGroup>
         )}
 
-        {has("sales.view", "sales.create", "sales.cancel", "sales.return", "sales.invoice", "sales.export",
-              "orders.view", "orders.create", "orders.edit", "orders.delete", "orders.status", "orders.export") && (
-          <MenuGroup
-            to="/admin/ventas"
-            title="Ventas"
-            icon={DollarSign}
-            isOpen={openMenus.ventas}
-            onToggle={() => toggleMenu("ventas")}
-            active={isActive("/admin/ventas")}
-          >
-            {has("orders.view", "orders.create", "orders.edit", "orders.delete", "orders.status", "orders.export") && (
-              <SubMenuItem to="/admin/pedidos" label="Pedidos" icon={ClipboardList} active={isActive("/admin/pedidos")} />
-            )}
-          </MenuGroup>
+        {has("sales.view", "sales.create", "sales.cancel", "sales.return", "sales.invoice", "sales.export") && (
+          <MenuItem to="/admin/ventas" icon={DollarSign} label="Ventas" active={isActive("/admin/ventas")} />
         )}
 
         {has("services.view", "services.create", "services.edit", "services.delete", "services.status",

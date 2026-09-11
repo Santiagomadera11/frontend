@@ -289,46 +289,6 @@ export const PERMISSIONS_CONFIG = [
   },
 
   // =====================================================
-  // PEDIDOS
-  // =====================================================
-  {
-    id: "orders.view",
-    label: "Ver pedidos",
-    description: "Ver lista y detalle de pedidos",
-    category: "Pedidos",
-  },
-  {
-    id: "orders.create",
-    label: "Agregar pedido",
-    description: "Crear nuevos pedidos de clientes",
-    category: "Pedidos",
-  },
-  {
-    id: "orders.edit",
-    label: "Editar pedido",
-    description: "Modificar pedidos existentes",
-    category: "Pedidos",
-  },
-  {
-    id: "orders.delete",
-    label: "Eliminar pedido",
-    description: "Eliminar pedidos del sistema",
-    category: "Pedidos",
-  },
-  {
-    id: "orders.status",
-    label: "Cambiar estado",
-    description: "Cambiar el estado de un pedido",
-    category: "Pedidos",
-  },
-  {
-    id: "orders.export",
-    label: "Exportar pedidos",
-    description: "Exportar pedidos a Excel",
-    category: "Pedidos",
-  },
-
-  // =====================================================
   // SERVICIOS
   // =====================================================
   {

@@ -46,12 +46,11 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
           (apt.documento || "").toLowerCase().includes(searchTerm.toLowerCase())
       );
 
-      // Filtrar citas COMPLETADAS y que NO tengan pedido/venta asociado
+      // Filtrar citas COMPLETADAS y que NO tengan venta asociada
       const completedAndUnpaid = filtered.filter(
         (apt) => {
           const estado = (apt.estado || apt.estadoNombre || "").toLowerCase();
-          const hasOrderOrSale = apt.pedidoId || apt.ventaId;
-          return estado.includes("completada") && !hasOrderOrSale;
+          return estado.includes("completada") && !apt.ventaId;
         }
       );
 

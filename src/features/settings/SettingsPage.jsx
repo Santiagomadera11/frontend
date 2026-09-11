@@ -73,10 +73,6 @@ const PERMISSION_GROUPS = [
       {
         title: "Registro de Ventas",
         perms: ["sales.view", "sales.create", "sales.cancel", "sales.return", "sales.invoice", "sales.export"]
-      },
-      {
-        title: "Submódulo: Pedidos",
-        perms: ["orders.view", "orders.create", "orders.edit", "orders.delete", "orders.status", "orders.export"]
       }
     ]
   },

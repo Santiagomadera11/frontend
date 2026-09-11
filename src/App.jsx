@@ -1,7 +1,5 @@
 import React, { useEffect } from "react";
 import { AppRouter } from "./routes/AppRouter";
-import { CartProvider } from "./shared/context/CartContext";
-import CartDrawer from "./features/landing/components/CartDrawer";
 import { ToastHost } from "./shared/ui/ToastHost";
 import { authService } from "./features/auth/authService";
 import { usePermissionsSync } from "./hooks/usePermissionsSync";
@@ -58,7 +56,6 @@ function AppContent() {
     <div className="app-container">
       <AppRouter />
       <ToastHost />
-      <CartDrawer />
     </div>
   );
 }
@@ -67,9 +64,7 @@ function App() {
   return (
     <ErrorBoundary>
       <UserProvider>
-        <CartProvider>
-          <AppContent />
-        </CartProvider>
+        <AppContent />
       </UserProvider>
     </ErrorBoundary>
   );

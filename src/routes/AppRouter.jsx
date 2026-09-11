@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 /* -------------------------------------------------------------------------- */
 import DashboardLayout from "../layouts/DashboardLayout";
 import EmployeeLayout from "../layouts/EmployeeLayout";
-import ClientLayout from "../layouts/ClientLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
 /* -------------------------------------------------------------------------- */
@@ -15,15 +14,8 @@ import ProtectedRoute from "./ProtectedRoute";
 /*  gigante desde el primer segundo.                                         */
 /* -------------------------------------------------------------------------- */
 
-// --- PÚBLICO ---
-const LandingPage = React.lazy(() => import("../features/landing/LandingPage").then(m => ({ default: m.LandingPage })));
-const CatalogPage = React.lazy(() => import("../features/landing/CatalogPage").then(m => ({ default: m.CatalogPage })));
-const PublicServicesPage = React.lazy(() => import("../features/landing/ServicesPage").then(m => ({ default: m.ServicesPage })));
-const ContactPage = React.lazy(() => import("../features/landing/ContactPage").then(m => ({ default: m.ContactPage })));
-
 // --- AUTENTICACIÓN ---
 const LoginPage = React.lazy(() => import("../features/auth/LoginPage").then(m => ({ default: m.LoginPage })));
-const RegisterPage = React.lazy(() => import("../features/auth/RegisterPage").then(m => ({ default: m.RegisterPage })));
 
 // --- PÁGINAS GENERALES ADMIN ---
 const DashboardPage = React.lazy(() => import("../features/dashboard/DashboardPage").then(m => ({ default: m.DashboardPage })));
@@ -49,7 +41,6 @@ const AvailabilityConfigPage = React.lazy(() => import("../features/services/app
 const DoctorsPage = React.lazy(() => import("../features/services/doctors/DoctorsPage"));
 const CreateOrderPage = React.lazy(() => import("../features/sales/orders/CreateOrderPage").then(m => ({ default: m.CreateOrderPage })));
 const CartProductsPage = React.lazy(() => import("../features/sales/orders/CartProductsPage").then(m => ({ default: m.CartProductsPage })));
-const AdminPedidos = React.lazy(() => import("../features/sales/orders/AdminPedidos").then(m => ({ default: m.AdminPedidos })));
 
 /* -------------------------------------------------------------------------- */
 /*                       SISTEMA DE EMPLEADO                                  */
@@ -58,7 +49,6 @@ const EmployeeInicio = React.lazy(() => import("../features/employee/EmployeeIni
 const EmployeeCompras = React.lazy(() => import("../features/employee/EmployeeCompras"));
 const EmployeeSalesPage = React.lazy(() => import("../features/employee/EmployeeSalesPage"));
 const EmployeeProductos = React.lazy(() => import("../features/employee/EmployeeProductos"));
-const EmployeePedidos = React.lazy(() => import("../features/employee/EmployeePedidos"));
 const EmployeeCitas = React.lazy(() => import("../features/employee/EmployeeCitas"));
 const EmployeeServicesPage = React.lazy(() => import("../features/employee/EmployeeServicesPage").then(m => ({ default: m.EmployeeServicesPage })));
 const EmployeeAppointmentsPage = React.lazy(() => import("../features/employee/EmployeeAppointmentsPage").then(m => ({ default: m.EmployeeAppointmentsPage })));
@@ -70,15 +60,9 @@ const ShiftHistoryReportsPage = React.lazy(() => import("../features/admin/repor
 const SalesPerformanceReportsPage = React.lazy(() => import("../features/admin/reports/SalesPerformanceReportsPage").then(m => ({ default: m.SalesPerformanceReportsPage })));
 
 /* -------------------------------------------------------------------------- */
-/*                         SISTEMA DE CLIENTE                                 */
+/*                              PERFIL (COMPARTIDO)                           */
 /* -------------------------------------------------------------------------- */
-const ClientCatalogo = React.lazy(() => import("../features/client/ClientCatalogo"));
-const ClientInicio = React.lazy(() => import("../features/client/ClientInicio"));
-const ClientProductos = React.lazy(() => import("../features/client/ClientProductos"));
-const ClientMisPedidos = React.lazy(() => import("../features/client/ClientMisPedidos"));
-const ClientMisCitas = React.lazy(() => import("../features/client/ClientMisCitas"));
-const ClientMiPerfil = React.lazy(() => import("../features/client/ClientMiPerfil"));
-const CarritoPage = React.lazy(() => import("../features/client/CarritoPage"));
+const MiPerfil = React.lazy(() => import("../features/profile/ClientMiPerfil"));
 
 const RouteFallback = () => (
   <div className="h-screen w-full flex items-center justify-center">
@@ -114,18 +98,10 @@ export const AppRouter = () => {
       <Suspense fallback={<RouteFallback />}>
       <Routes>
         {/* =================================================================
-            ZONA PÚBLICA
-        ================================================================= */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/productos" element={<CatalogPage />} />
-        <Route path="/servicios" element={<PublicServicesPage />} />
-        <Route path="/contacto" element={<ContactPage />} />
-
-        {/* =================================================================
             ZONA DE ACCESO
         ================================================================= */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/registro" element={<RegisterPage />} />
 
         {/* =================================================================
             ZONA PRIVADA (Dashboard Admin)
@@ -224,18 +200,6 @@ export const AppRouter = () => {
             </ProtectedRoute>
           } />
 
-          {/* PEDIDOS */}
-          <Route path="pedidos" element={
-            <ProtectedRoute requiredPerm="orders.view">
-              <AdminPedidos />
-            </ProtectedRoute>
-          } />
-          <Route path="pedidos/crear" element={
-            <ProtectedRoute requiredPerm="orders.create">
-              <CreateOrderPage />
-            </ProtectedRoute>
-          } />
-
           {/* SERVICIOS */}
           <Route path="servicios" element={
             <ProtectedRoute requiredPerm="services.view">
@@ -273,7 +237,7 @@ export const AppRouter = () => {
           } />
 
           {/* PERFIL */}
-          <Route path="mi-perfil" element={<ClientMiPerfil />} />
+          <Route path="mi-perfil" element={<MiPerfil />} />
 
           {/* CONFIGURACIÓN */}
           <Route path="configuracion" element={
@@ -363,16 +327,6 @@ export const AppRouter = () => {
               <ProvidersPage />
             </ProtectedRoute>
           } />
-          <Route path="pedidos" element={
-            <ProtectedRoute requiredPerm="orders.view">
-              <EmployeePedidos />
-            </ProtectedRoute>
-          } />
-          <Route path="pedidos/crear" element={
-            <ProtectedRoute requiredPerm="orders.create">
-              <CreateOrderPage />
-            </ProtectedRoute>
-          } />
           <Route path="servicios" element={
             <ProtectedRoute requiredPerm="services.view">
               <ServicesPage />
@@ -403,33 +357,12 @@ export const AppRouter = () => {
               <SalesPerformanceReportsPage />
             </ProtectedRoute>
           } />
-          <Route path="mi-perfil" element={<ClientMiPerfil />} />
+          <Route path="mi-perfil" element={<MiPerfil />} />
           <Route path="configuracion" element={
             <ProtectedRoute requiredAnyPerm={CONFIG_PERMS}>
               <SettingsPage />
             </ProtectedRoute>
           } />
-        </Route>
-
-        {/* =================================================================
-            ZONA PRIVADA (Panel Cliente)
-        ================================================================= */}
-        <Route
-          path="/client"
-          element={
-            <ProtectedRoute requiredRole="cliente">
-              <ClientLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Navigate to="inicio" replace />} />
-          <Route path="inicio" element={<ClientInicio />} />
-          <Route path="catalogo" element={<ClientCatalogo />} />
-          <Route path="productos" element={<ClientProductos />} />
-          <Route path="carrito" element={<CarritoPage />} />
-          <Route path="mis-pedidos" element={<ClientMisPedidos />} />
-          <Route path="mis-citas" element={<ClientMisCitas />} />
-          <Route path="mi-perfil" element={<ClientMiPerfil />} />
         </Route>
 
         {/* Redirección por defecto */}

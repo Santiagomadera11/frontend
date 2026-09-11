@@ -4,7 +4,6 @@ import {
   Search, Plus, Eye, Edit, Trash2,
   CheckCircle,
 } from "lucide-react";
-import { permissionService } from "../settings/permissionService";
 import { userService } from "./services/userService";
 import { UserFormModal } from "./components/UserFormModal";
 import UserDetailModal from "./components/UserDetailModal";
@@ -53,7 +52,7 @@ export const UsersPage = () => {
       setLoading(true);
       const data = await userService.getAll();
       setUsers(data);
-    } catch (error) {
+    } catch {
       setNotification({ message: "Error al cargar usuarios", type: "error" });
     } finally {
       setLoading(false);
@@ -65,7 +64,7 @@ export const UsersPage = () => {
       const roles = await userService.getRoles();
       const colorMap = {};
       const savedColors = JSON.parse(localStorage.getItem("syspharma_role_colors") || "{}");
-      const defaultColors = { "Administrador": "#4fd1c5", "Empleado": "#3b82f6", "Cliente": "#10b981" };
+      const defaultColors = { "Administrador": "#4fd1c5", "Empleado": "#3b82f6" };
       const palette = ["#4fd1c5", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#6b7280"];
       roles.forEach((r, i) => {
         const key = (r.nombre || "").toLowerCase();
@@ -92,12 +91,18 @@ export const UsersPage = () => {
         }
         await loadUsers();
         setIsModalOpen(false);
-    } catch (error) {
+    } catch {
         setNotification({ message: "Error al guardar usuario", type: "error" });
     }
   };
 
-  const handleToggleStatus = (user) => setConfirmStatus({ show: true, user });
+  const handleToggleStatus = (user) => {
+    if (user.estado && (user.rol || "").toLowerCase() === "administrador") {
+      setNotification({ message: "No se puede desactivar a un usuario con rol Administrador", type: "error" });
+      return;
+    }
+    setConfirmStatus({ show: true, user });
+  };
 
   const confirmToggleStatus = async () => {
     if (!confirmStatus.user) return;
@@ -109,8 +114,8 @@ export const UsersPage = () => {
         message: `${confirmStatus.user.nombre} ahora está ${newStatus ? "Activo" : "Inactivo"}`,
         type: newStatus ? "success" : "warning",
       });
-    } catch {
-      setNotification({ message: "Error al cambiar estado", type: "error" });
+    } catch (error) {
+      setNotification({ message: error?.response?.data?.message || "Error al cambiar estado", type: "error" });
     } finally {
       setConfirmStatus({ show: false, user: null });
     }
@@ -123,17 +128,11 @@ export const UsersPage = () => {
       await userService.delete(confirmDelete.user.id); 
       setUsers(prev => prev.filter(u => u.id !== confirmDelete.user.id));
       setNotification({ message: `${confirmDelete.user.nombre} ha sido eliminado permanentemente`, type: "success" });
-    } catch (error) {
+    } catch {
       setNotification({ message: "Error al eliminar usuario", type: "error" });
     } finally {
       setConfirmDelete({ show: false, user: null });
     }
-  };
-
-  const handleUpdateUser = async (userData) => {
-    await userService.update(userData);
-    await loadUsers();
-    setIsDetailOpen(false);
   };
 
   const filteredUsers = users.filter(u => {
@@ -253,9 +252,18 @@ export const UsersPage = () => {
                               </button>
                             )}
                             {canToggleStatus && (
-                              <button onClick={() => handleToggleStatus(user)} className="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors" title="Cambiar estado">
-                                <CheckCircle size={16} />
-                              </button>
+                              (() => {
+                                const isLockedAdmin = user.estado && (user.rol || "").toLowerCase() === "administrador";
+                                return (
+                                  <button
+                                    onClick={() => handleToggleStatus(user)}
+                                    className={`p-1.5 rounded-md transition-colors ${isLockedAdmin ? "text-gray-300 cursor-not-allowed" : "text-emerald-600 hover:bg-emerald-50"}`}
+                                    title={isLockedAdmin ? "No se puede desactivar al Administrador" : "Cambiar estado"}
+                                  >
+                                    <CheckCircle size={16} />
+                                  </button>
+                                );
+                              })()
                             )}
                             {canEditUser && (
                               <button onClick={() => handleOpenEdit(user)} className="p-1.5 rounded-md text-yellow-600 hover:bg-yellow-50 transition-colors" title="Editar">
@@ -290,7 +298,7 @@ export const UsersPage = () => {
       </div>
 
       <UserFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveUser} userToEdit={editingUser} />
-      <UserDetailModal isOpen={isDetailOpen} onClose={() => setIsDetailOpen(false)} user={detailUser} onUpdate={handleUpdateUser} />
+      <UserDetailModal isOpen={isDetailOpen} onClose={() => setIsDetailOpen(false)} user={detailUser} />
 
       {notification && <StatusNotification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
 

@@ -31,7 +31,6 @@ const mapToApiFormat = (appointmentData) => {
     notas: appointmentData.notas,
     estadoId: appointmentData.estadoId || 1,
     usuarioId: appointmentData.userId || currentUser?.id,
-    pedidoId: appointmentData.pedidoId || null,
     ventaId: appointmentData.ventaId || null,
   };
 };
@@ -56,7 +55,6 @@ const mapFromApiFormat = (apiData) => ({
   estadoId: apiData.estadoId,
   estado: apiData.estadoNombre || apiData.estado,
   estadoNombre: apiData.estadoNombre || apiData.estado,
-  pedidoId: apiData.pedidoId,
   ventaId: apiData.ventaId,
 });
 

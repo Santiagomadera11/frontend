@@ -78,7 +78,6 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
             "presentations.view", "presentations.create", "presentations.edit", "presentations.delete", "presentations.status",
             "suppliers.view", "suppliers.create", "suppliers.edit", "suppliers.delete", "suppliers.status",
             "sales.view", "sales.create", "sales.cancel", "sales.return", "sales.invoice", "sales.export",
-            "orders.view", "orders.create", "orders.edit", "orders.delete", "orders.status", "orders.export",
             "services.view", "services.create", "services.edit", "services.delete", "services.status",
             "appointments.create", "appointments.calendar", "appointments.list", "appointments.status",
             "appointments.availability", "appointments.doctors.view", "appointments.doctors.create",
@@ -130,23 +129,9 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
             </MenuGroup>
           )}
 
-          {/* Ventas (Grupo) */}
-          {has(
-            "sales.view", "sales.create", "sales.cancel", "sales.return", "sales.invoice", "sales.export",
-            "orders.view", "orders.create", "orders.edit", "orders.delete", "orders.status", "orders.export"
-          ) && (
-            <MenuGroup
-              to="/employee/ventas"
-              title="Ventas"
-              icon={DollarSign}
-              isOpen={openMenus.ventas}
-              onToggle={() => toggleMenu("ventas")}
-              active={isActive("/employee/ventas")}
-            >
-              {has("orders.view", "orders.create", "orders.edit", "orders.delete", "orders.status", "orders.export") && (
-                <SubMenuItem to="/employee/pedidos" label="Pedidos" icon={ClipboardList} active={isActive("/employee/pedidos")} />
-              )}
-            </MenuGroup>
+          {/* Ventas */}
+          {has("sales.view", "sales.create", "sales.cancel", "sales.return", "sales.invoice", "sales.export") && (
+            <MenuItem to="/employee/ventas" icon={DollarSign} label="Ventas" active={isActive("/employee/ventas")} />
           )}
 
           {/* Servicios (Grupo) */}

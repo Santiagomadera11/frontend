@@ -12,7 +12,6 @@ export const IntegratedCart = ({
   primary, 
   disabled,
   porcentajeIva = 19,
-  esUnPedido = false,
   metodoPagoId,
   paymentMethods = [],
   montoRecibido,
@@ -43,7 +42,7 @@ export const IntegratedCart = ({
 
   const isMontoInsuficiente = isEfectivo && (!montoRecibido || Number(montoRecibido) < totalGeneral);
   const isRefMissing = isRefRequired && (!referenciaPago || !referenciaPago.trim());
-  const finishDisabled = disabled || isLoading || (!esUnPedido && (isMontoInsuficiente || isRefMissing));
+  const finishDisabled = disabled || isLoading || isMontoInsuficiente || isRefMissing;
 
   return (
     <div className="w-full bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-fit">
@@ -52,9 +51,7 @@ export const IntegratedCart = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <ShoppingCart size={14} style={{ color: primary }} />
-            <h3 className="font-bold text-xs text-gray-900">
-              {esUnPedido ? "Resumen de Pedido" : "Resumen de Venta"}
-            </h3>
+            <h3 className="font-bold text-xs text-gray-900">Resumen de Venta</h3>
           </div>
           {hasItems && (
             <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded-full font-semibold text-gray-600">
@@ -103,7 +100,7 @@ export const IntegratedCart = ({
           </div>
 
           {/* Campos adicionales contextuales */}
-          {isEfectivo && !esUnPedido && (
+          {isEfectivo && (
             <div className="mt-2 space-y-1.5 border-t border-gray-100 pt-2">
               <div className="flex flex-col gap-0.5">
                 <label className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">Monto Recibido</label>
@@ -134,7 +131,7 @@ export const IntegratedCart = ({
             </div>
           )}
 
-          {isRefRequired && !esUnPedido && (
+          {isRefRequired && (
             <div className="mt-2 space-y-1.5 border-t border-gray-100 pt-2">
               <div className="flex flex-col gap-0.5">
                 <div className="flex justify-between items-center">
@@ -162,7 +159,7 @@ export const IntegratedCart = ({
             }}
           >
             <DollarSign size={13} />
-            {isLoading ? "Procesando..." : (esUnPedido ? "Confirmar Pedido" : "Finalizar Venta")}
+            {isLoading ? "Procesando..." : "Finalizar Venta"}
           </button>
         </div>
       )}

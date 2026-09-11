@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { apiClient } from "../utils/apiClient";
 import { authService } from "../../features/auth/authService";
+import { resolveAvatarUrl } from "../utils/resolveAvatarUrl";
 
 const UserContext = createContext(null);
 
@@ -27,7 +28,8 @@ export const UserProvider = ({ children }) => {
       const fullUser = {
         ...userData,
         rol: currentRole,
-        permisos: permissions
+        permisos: permissions,
+        avatar: resolveAvatarUrl(userData.avatar, userData.nombre || userData.id),
       };
 
       setCurrentUser(fullUser);

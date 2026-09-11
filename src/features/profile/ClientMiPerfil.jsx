@@ -123,18 +123,6 @@ export const ClientMiPerfil = () => {
         return;
       }
 
-      const unmanagedName = `${formData.nombres.trim()} ${formData.apellidos.trim()}`.trim();
-      const sessionUpdates = {
-        nombre: unmanagedName,
-        email: formData.correo,
-        correo: formData.correo,
-        documento: formData.documento,
-        telefono: formData.telefono,
-        direccion: formData.direccion,
-        // FIX: sincronizamos el ID en sesión para que al reabrir el form cargue correcto
-        tipoDocumentoId: formData.tipoDocumento ? Number(formData.tipoDocumento) : null,
-      };
-
       await refreshUser();
       setIsEditing(false);
       setToast({
@@ -142,7 +130,7 @@ export const ClientMiPerfil = () => {
         type: "success",
         zIndex: 70,
       });
-    } catch (error) {
+    } catch {
       setToast({
         message: "Error de conexion al guardar los cambios",
         type: "error",
@@ -195,7 +183,7 @@ export const ClientMiPerfil = () => {
       <div className="grid grid-cols-3 gap-6 items-start">
         {/* Card 1: Avatar y Información Básica */}
         <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 flex flex-col items-center justify-start">
-          <div className="relative mb-4">
+          <div className="relative mb-4 w-28 h-28">
             <div className="w-28 h-28 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center border-4 border-emerald-300 shadow-lg overflow-hidden">
               {tempAvatar ? (
                 <img src={tempAvatar} alt="avatar-preview" className="w-full h-full object-cover" />
@@ -224,46 +212,36 @@ export const ClientMiPerfil = () => {
             >
               <Camera size={18} />
             </button>
-
-            {tempAvatar && (
-              <div className="mt-3 text-center w-full">
-                <button
-                  onClick={async () => {
-                    try {
-                      const file = fileInputRef.current?.files[0];
-                      
-                      // ✅ Log 1: ver si el archivo existe
-                      console.log("Archivo seleccionado:", file);
-                      console.log("Usuario ID:", user.id);
-                      
-                      if (!file) {
-                        setToast({ message: "No se encontró el archivo", type: "error", zIndex: 70 });
-                        return;
-                      }
-
-                      console.log("Llamando a uploadFoto...");
-                      const result = await userService.uploadFoto(user.id, file);
-                      console.log("Resultado:", result);
-
-                      await refreshUser();
-                      setTempAvatar(null);
-                      setToast({ message: "Foto actualizada correctamente", type: "success", zIndex: 70 });
-
-                    } catch (error) {
-                      // ✅ Log 2: ver el error completo
-                      console.error("ERROR COMPLETO:", error);
-                      console.error("Mensaje:", error.message);
-                      console.error("Stack:", error.stack);
-                      setToast({ message: `Error: ${error.message}`, type: "error", zIndex: 70 });
-                    }
-                  }}
-                  className="mt-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-sm font-bold"
-                >
-                  Confirmar Foto
-                </button>
-              </div>
-            )}
           </div>
+
+          {tempAvatar && (
+            <div className="mb-4 text-center w-full">
+              <button
+                onClick={async () => {
+                  try {
+                    const file = fileInputRef.current?.files[0];
+
+                    if (!file) {
+                      setToast({ message: "No se encontró el archivo", type: "error", zIndex: 70 });
+                      return;
+                    }
+
+                    await userService.uploadFoto(user.id, file);
+
+                    await refreshUser();
+                    setTempAvatar(null);
+                    setToast({ message: "Foto actualizada correctamente", type: "success", zIndex: 70 });
+
+                  } catch (error) {
+                    setToast({ message: `Error: ${error.message}`, type: "error", zIndex: 70 });
+                  }
+                }}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-sm font-bold"
+              >
+                Confirmar Foto
+              </button>
+            </div>
+          )}
 
           <h3 className="text-base font-bold text-gray-900 text-center mt-3 line-clamp-2">
             {user.nombre || "Nombre no asignado"}

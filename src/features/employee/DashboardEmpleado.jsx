@@ -201,7 +201,6 @@ export const DashboardEmpleado = () => {
               <div className="grid grid-cols-2 gap-3">
                 <QuickAction icon={ShoppingCart} label="Ventas" onClick={() => navigate("/employee/ventas")} color="blue" />
                 <QuickAction icon={Calendar} label="Citas" onClick={() => navigate("/employee/citas")} color="blue" />
-                <QuickAction icon={Users} label="Pedidos" onClick={() => navigate("/employee/pedidos")} color="purple" />
                 <QuickAction icon={Package} label="Inventario" onClick={() => navigate("/employee/productos")} color="orange" />
               </div>
             </div>
