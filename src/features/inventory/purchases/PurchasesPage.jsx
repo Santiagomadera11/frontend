@@ -250,7 +250,7 @@ export const PurchasesPage = () => {
                             <CheckCircle size={16} />
                           </button>
                         )}
-                        {canEdit && (
+                        {canEdit && compra.estadoNombre?.toLowerCase() !== "recibida" && (
                           <button onClick={() => { setSelectedPurchase(compra); setModalMode("edit"); setIsModalOpen(true); }}
                             className="p-1.5 rounded-md text-yellow-600 hover:bg-yellow-50 transition-colors" title="Editar">
                             <Edit size={16} />

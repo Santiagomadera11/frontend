@@ -11,6 +11,7 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
   const [searchVentaId, setSearchVentaId] = useState("");
   const [venta, setVenta] = useState(null);
   const [cantidades, setCantidades] = useState({});
+  const [reingresa, setReingresa] = useState({});
   const [motivo, setMotivo] = useState("");
   const [observaciones, setObservaciones] = useState("");
   const [loading, setLoading] = useState(false);
@@ -81,6 +82,7 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
         detalleVentaId: d.id,
         productoId: d.productoId,
         cantidadDevuelta: cantidades[d.id],
+        reingresa: reingresa[d.id] !== false,
       }));
 
     if (detallesParaDevolver.length === 0) {
@@ -128,6 +130,7 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
     setSearchVentaId("");
     setVenta(null);
     setCantidades({});
+    setReingresa({});
     setMotivo("");
     setObservaciones("");
     setSearchError("");
@@ -238,27 +241,41 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
                   </label>
                   <div className="space-y-2">
                     {venta.detalles.map((detalle) => (
-                      <div key={detalle.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex-1">
-                          <div className="font-medium text-sm text-gray-900">
-                            {detalle.productoNombre}
+                      <div key={detalle.id} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1">
+                            <div className="font-medium text-sm text-gray-900">
+                              {detalle.productoNombre}
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              Vendidos: {detalle.cantidad} × $
+                              {detalle.precioUnitario.toLocaleString("es-CO")}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-600">
-                            Vendidos: {detalle.cantidad} × $
-                            {detalle.precioUnitario.toLocaleString("es-CO")}
-                          </div>
+                          <input
+                            type="number"
+                            min="0"
+                            max={detalle.cantidad}
+                            value={cantidades[detalle.id] || 0}
+                            onChange={(e) => handleCantidadChange(detalle.id, e.target.value)}
+                            className={`w-16 px-2 py-1 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 ${
+                              userRole === "administrador" ? "focus:ring-emerald-500" : "focus:ring-blue-500"
+                            } text-sm`}
+                            placeholder="0"
+                          />
                         </div>
-                        <input
-                          type="number"
-                          min="0"
-                          max={detalle.cantidad}
-                          value={cantidades[detalle.id] || 0}
-                          onChange={(e) => handleCantidadChange(detalle.id, e.target.value)}
-                          className={`w-16 px-2 py-1 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 ${
-                            userRole === "administrador" ? "focus:ring-emerald-500" : "focus:ring-blue-500"
-                          } text-sm`}
-                          placeholder="0"
-                        />
+                        {(cantidades[detalle.id] || 0) > 0 && (
+                          <label className="mt-2 flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={reingresa[detalle.id] !== false}
+                              onChange={(e) =>
+                                setReingresa((prev) => ({ ...prev, [detalle.id]: e.target.checked }))
+                              }
+                            />
+                            El producto está en buen estado y puede reingresar al inventario
+                          </label>
+                        )}
                       </div>
                     ))}
                   </div>

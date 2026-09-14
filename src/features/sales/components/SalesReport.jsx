@@ -42,16 +42,22 @@ export const SalesReport = () => {
     });
   }, [sales, startDate, endDate]);
 
+  // Las ventas anuladas (estadoId 3) siguen en la lista para que se vean en la tabla,
+  // pero no deben contar como ingreso real: antes se sumaban igual que cualquier venta
+  // válida, inflando Total/Subtotal/IVA/Transacciones/Items con dinero que en realidad
+  // se revirtió.
+  const validSales = useMemo(() => filteredSales.filter(s => s.estadoId !== 3), [filteredSales]);
+
   const stats = useMemo(() => {
-    const total = filteredSales.reduce((sum, s) => sum + (s.total || 0), 0);
-    const subtotal = filteredSales.reduce((sum, s) => sum + (s.subtotal || 0), 0);
-    const iva = filteredSales.reduce((sum, s) => sum + (s.iva || 0), 0);
-    const count = filteredSales.length;
-    const items = filteredSales.reduce((sum, s) => 
+    const total = validSales.reduce((sum, s) => sum + (s.total || 0), 0);
+    const subtotal = validSales.reduce((sum, s) => sum + (s.subtotal || 0), 0);
+    const iva = validSales.reduce((sum, s) => sum + (s.iva || 0), 0);
+    const count = validSales.length;
+    const items = validSales.reduce((sum, s) =>
       sum + (s.detalles || []).reduce((a, d) => a + d.cantidad, 0), 0);
-    
+
     return { total, subtotal, iva, count, items };
-  }, [filteredSales]);
+  }, [validSales]);
 
   const fmt = (v) => new Intl.NumberFormat("es-CO", { 
     style: "currency", currency: "COP", maximumFractionDigits: 0 
@@ -59,10 +65,10 @@ export const SalesReport = () => {
 
   const exportCSV = () => {
     const csv = "data:text/csv;charset=utf-8," +
-      "Fecha,Numero,Cliente,Documento,Subtotal,IVA,Total,MetodoPago,Items\n" +
+      "Fecha,Numero,Cliente,Documento,Subtotal,IVA,Total,MetodoPago,Items,Estado\n" +
       filteredSales.map(s => {
         const items = (s.detalles || []).reduce((a, d) => a + d.cantidad, 0);
-        return `${new Date(s.fechaVenta).toLocaleDateString()},${s.numeroVenta || s.id},${s.clienteNombre},${s.clienteDocumento || ""},${s.subtotal || 0},${s.iva || 0},${s.total || 0},${s.metodoPagoNombre || ""},${items}`;
+        return `${new Date(s.fechaVenta).toLocaleDateString()},${s.numeroVenta || s.id},${s.clienteNombre},${s.clienteDocumento || ""},${s.subtotal || 0},${s.iva || 0},${s.total || 0},${s.metodoPagoNombre || ""},${items},${s.estadoNombre || ""}`;
       }).join("\n");
     
     const link = document.createElement("a");
@@ -167,29 +173,30 @@ export const SalesReport = () => {
           <table className="w-full text-left">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {["Fecha", "Número", "Cliente", "Items", "Subtotal", "IVA", "Total", "Método Pago"].map(h => (
+                {["Fecha", "Número", "Cliente", "Items", "Subtotal", "IVA", "Total", "Método Pago", "Estado"].map(h => (
                   <th key={h} className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={8} className="text-center py-8 text-gray-400">Cargando...</td></tr>
+                <tr><td colSpan={9} className="text-center py-8 text-gray-400">Cargando...</td></tr>
               ) : filteredSales.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-8 text-gray-400">No hay ventas en el período seleccionado</td></tr>
+                <tr><td colSpan={9} className="text-center py-8 text-gray-400">No hay ventas en el período seleccionado</td></tr>
               ) : (
                 filteredSales.map(sale => {
                   const items = (sale.detalles || []).reduce((a, d) => a + d.cantidad, 0) +
                     (sale.servicios || []).reduce((a, s) => a + s.cantidad, 0);
+                  const anulada = sale.estadoId === 3;
                   return (
-                    <tr key={sale.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-xs text-gray-600">
+                    <tr key={sale.id} className={`hover:bg-gray-50 ${anulada ? "opacity-50" : ""}`}>
+                      <td className={`px-4 py-3 text-xs text-gray-600 ${anulada ? "line-through" : ""}`}>
                         {new Date(sale.fechaVenta).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3 text-xs font-mono font-bold text-gray-700">
+                      <td className={`px-4 py-3 text-xs font-mono font-bold text-gray-700 ${anulada ? "line-through" : ""}`}>
                         {sale.numeroVenta || sale.id}
                       </td>
-                      <td className="px-4 py-3 text-xs font-medium text-gray-800">
+                      <td className={`px-4 py-3 text-xs font-medium text-gray-800 ${anulada ? "line-through" : ""}`}>
                         {sale.clienteNombre || "C. Final"}
                       </td>
                       <td className="px-4 py-3 text-xs text-center">
@@ -197,17 +204,24 @@ export const SalesReport = () => {
                           {items}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-right font-semibold text-gray-600">
+                      <td className={`px-4 py-3 text-xs text-right font-semibold text-gray-600 ${anulada ? "line-through" : ""}`}>
                         {fmt(sale.subtotal)}
                       </td>
-                      <td className="px-4 py-3 text-xs text-right font-semibold text-gray-600">
+                      <td className={`px-4 py-3 text-xs text-right font-semibold text-gray-600 ${anulada ? "line-through" : ""}`}>
                         {fmt(sale.iva)}
                       </td>
-                      <td className="px-4 py-3 text-xs text-right font-black text-emerald-600">
+                      <td className={`px-4 py-3 text-xs text-right font-black ${anulada ? "text-gray-400 line-through" : "text-emerald-600"}`}>
                         {fmt(sale.total)}
                       </td>
                       <td className="px-4 py-3 text-xs text-gray-500">
                         {sale.metodoPagoNombre || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-xs">
+                        {anulada ? (
+                          <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded text-[10px] font-bold">Anulada</span>
+                        ) : (
+                          <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold">{sale.estadoNombre || "Completada"}</span>
+                        )}
                       </td>
                     </tr>
                   );

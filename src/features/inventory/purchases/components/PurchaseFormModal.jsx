@@ -125,6 +125,10 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
     p.nombre.toLowerCase().includes(productSearch.toLowerCase())
   );
 
+  // El lote y la fecha de vencimiento solo aplican a medicamentos
+  const selectedProductData = products.find(p => String(p.id) === String(selectedProduct));
+  const requiereLote = selectedProductData?.tipoProducto === "Medicamento";
+
   const handleAddProduct = () => {
     setFormErrorMsg("");
     if (!selectedProduct) { setFormErrorMsg("Selecciona un producto."); return; }
@@ -346,7 +350,9 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
                 {/* Agregar items */}
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
                   <h4 className="text-xs font-bold text-gray-500 uppercase mb-3 border-b border-gray-200 pb-1">Agregar Productos</h4>
-                  <div className="flex flex-col md:flex-row gap-3 items-end">
+
+                  {/* Fila 1: qué producto y cuánto */}
+                  <div className="flex flex-col md:flex-row gap-3 items-end mb-3">
                     <div className="flex-1 relative">
                       <label className="block text-[10px] font-bold text-gray-600 mb-1">Producto</label>
                       <input
@@ -388,28 +394,32 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
                         </div>
                       )}
                     </div>
-                    <div className="w-32">
+                    <div className="w-full md:w-32">
                       <label className="block text-[10px] font-bold text-gray-600 mb-1">Costo Unit.</label>
                       <input type="number" placeholder="0" value={productCost} onChange={e => setProductCost(e.target.value)}
                         className={`w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none ${focusBorder}`} />
                     </div>
-                    <div className="w-24">
+                    <div className="w-full md:w-24">
                       <label className="block text-[10px] font-bold text-gray-600 mb-1">Cantidad</label>
                       <input type="number" placeholder="1" value={productQuantity} onChange={e => setProductQuantity(e.target.value)}
                         className={`w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none ${focusBorder}`} />
                     </div>
-                    <div className="w-28">
-                      <label className="block text-[10px] font-bold text-gray-600 mb-1">Lote</label>
+                  </div>
+
+                  {/* Fila 2: lote y vencimiento, disponibles para cualquier producto (obligatorios solo para medicamentos) */}
+                  <div className="flex flex-col md:flex-row gap-3 items-end">
+                    <div className="w-full md:w-40">
+                      <label className="block text-[10px] font-bold text-gray-600 mb-1">Lote{requiereLote ? " *" : ""}</label>
                       <input type="text" placeholder="Lote" value={productLote} onChange={e => setProductLote(e.target.value)}
                         className={`w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none ${focusBorder}`} />
                     </div>
-                    <div className="w-32">
-                      <label className="block text-[10px] font-bold text-gray-600 mb-1">Fecha Venc.</label>
+                    <div className="w-full md:w-40">
+                      <label className="block text-[10px] font-bold text-gray-600 mb-1">Fecha Venc.{requiereLote ? " *" : ""}</label>
                       <input type="date" value={productFechaVencimiento} onChange={e => setProductFechaVencimiento(e.target.value)}
                         className={`w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none ${focusBorder}`} />
                     </div>
                     <button onClick={handleAddProduct}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-1 shadow-sm">
+                      className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm font-medium flex items-center justify-center gap-1 shadow-sm">
                       <Plus size={14} /> Agregar
                     </button>
                   </div>

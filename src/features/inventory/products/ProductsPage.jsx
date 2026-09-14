@@ -1,6 +1,6 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Plus, Search, Edit, Trash2, Eye,
   Package,
@@ -34,8 +34,9 @@ export const ProductsPage = () => {
   const [providers, setProviders] = useState([]);
   const [brands, setBrands] = useState([]);
   const [presentations, setPresentations] = useState([]);
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("todos");
+  const [filterStatus, setFilterStatus] = useState(location.state?.filterStatus || "todos");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
