@@ -65,8 +65,14 @@ export const DashboardPage = () => {
       return d >= start && d <= end;
     };
 
-    const vF = data.ventas.filter(v => inRange(v.fechaVenta || v.fechaCreacion));
-    const cF = data.compras.filter(c => inRange(c.fechaCompra || c.fechaCreacion));
+    // Se excluyen las ventas anuladas (estadoId 3): antes se sumaban igual que cualquier
+    // venta válida, inflando Ingresos, Utilidad, la tendencia y el top de productos con
+    // dinero y unidades que en realidad se revirtieron.
+    const vF = data.ventas.filter(v => v.estadoId !== 3 && inRange(v.fechaVenta || v.fechaCreacion));
+    // Igual que con las ventas: una compra Cancelada no representa un gasto real.
+    const cF = data.compras.filter(c =>
+      (c.estadoNombre || "").toLowerCase() !== "cancelada" && inRange(c.fechaCompra || c.fechaCreacion)
+    );
     const ciF = data.citas.filter(ci => inRange(ci.fecha));
 
     // KPIs

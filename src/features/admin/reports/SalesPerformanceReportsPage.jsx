@@ -61,10 +61,11 @@ export const SalesPerformanceReportsPage = () => {
     return Array.from(map.values()).sort((a, b) => b.totalVentas - a.totalVentas);
   }, [turnos]);
 
-  // Resumen por médico desde citas completadas
+  // Resumen por médico desde citas pagadas: "Completada" solo significa que se atendió,
+  // no que se cobró — usar eso como ingreso inflaba la cifra con consultas nunca pagadas.
   const medicosSummary = useMemo(() => {
     const map = new Map();
-    citas.filter(c => (c.estadoNombre || "").toLowerCase() === "completada").forEach(c => {
+    citas.filter(c => (c.estadoNombre || "").toLowerCase() === "pagada").forEach(c => {
       const id = c.medicoId;
       const nombre = c.medicoNombre || "Médico";
       if (!map.has(id)) map.set(id, { medicoId: id, nombreMedico: nombre, totalServicios: 0, totalIngresos: 0 });

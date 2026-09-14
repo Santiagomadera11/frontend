@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar/Sidebar";
 import { Header } from "./Header/Header";
 import { authService } from "../features/auth/authService";
 import { ConfirmDialog } from "../shared/ui/ConfirmDialog";
+import { ExpiryAlertBanner } from "../shared/ui/ExpiryAlertBanner";
 
 const DashboardLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -43,6 +44,9 @@ const DashboardLayout = () => {
       <div className="flex flex-col flex-1 h-full w-full min-w-0">
         {/* Header: Le pasamos la función para ABRIR el menú */}
         <Header onMenuClick={() => setIsMobileMenuOpen(true)} />
+
+        {/* Alerta de productos vencidos / próximos a vencer */}
+        <ExpiryAlertBanner />
 
         {/* Área de trabajo */}
         <main className="flex-1 overflow-hidden relative px-2 sm:px-4 py-2 sm:py-4">

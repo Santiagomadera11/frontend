@@ -23,6 +23,14 @@ export const returnService = {
     return res.data;
   },
 
+  getMermas: async ({ desde, hasta } = {}) => {
+    const params = {};
+    if (desde) params.desde = desde;
+    if (hasta) params.hasta = hasta;
+    const res = await apiClient.get(`${ENDPOINT}/mermas`, { params });
+    return res.data;
+  },
+
   create: async (dto) => {
     const payload = {
       ventaId: dto.ventaId,
@@ -33,6 +41,7 @@ export const returnService = {
         detalleVentaId: d.detalleVentaId,
         productoId: d.productoId,
         cantidadDevuelta: d.cantidadDevuelta,
+        reingresa: d.reingresa !== false,
       })),
     };
 

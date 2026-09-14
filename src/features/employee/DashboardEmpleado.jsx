@@ -79,9 +79,10 @@ export const DashboardEmpleado = () => {
   const lowStockProducts = useMemo(() =>
     productos.filter(p => Number(p.stock) < LOW_STOCK_THRESHOLD).slice(0, 4), [productos]);
 
-  // Ventas de hoy
+  // Ventas de hoy (excluye anuladas: si no, el monto y el conteo quedan inflados con
+  // dinero que en realidad se revirtió)
   const ventasHoy = useMemo(() =>
-    ventas.filter(v => v.fechaVenta && new Date(v.fechaVenta).toISOString().split("T")[0] === todayStr),
+    ventas.filter(v => v.estadoId !== 3 && v.fechaVenta && new Date(v.fechaVenta).toISOString().split("T")[0] === todayStr),
     [ventas, todayStr]);
 
   const getEstadoColor = (estado) => {

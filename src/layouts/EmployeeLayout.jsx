@@ -4,6 +4,7 @@ import EmployeeSidebar from "./Sidebar/EmployeeSidebar";
 import { EmployeeHeader } from "./Header/EmployeeHeader";
 import { authService } from "../features/auth/authService";
 import { ConfirmDialog } from "../shared/ui/ConfirmDialog";
+import { ExpiryAlertBanner } from "../shared/ui/ExpiryAlertBanner";
 
 const EmployeeLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -70,6 +71,9 @@ const EmployeeLayout = () => {
 
       <div className="flex flex-col flex-1 h-full w-full min-w-0">
         <EmployeeHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
+
+        {/* Alerta de productos vencidos / próximos a vencer */}
+        <ExpiryAlertBanner />
 
         <main className="flex-1 overflow-hidden relative px-2 sm:px-4 py-2 sm:py-4">
           <div className="h-full w-full bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 overflow-y-auto no-scrollbar p-3 sm:p-5">

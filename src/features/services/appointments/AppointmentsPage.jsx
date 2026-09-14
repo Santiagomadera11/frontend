@@ -129,9 +129,12 @@ export const AppointmentsPage = () => {
     });
   }, [appointments, range, searchTerm]);
 
+  // "Completada" solo significa que se atendió, no que se cobró: contarla como ingreso
+  // inflaba la cifra con consultas nunca pagadas. Los ingresos reales solo cuentan
+  // cuando la cita quedó "Pagada" (vía una venta real).
   const financialSummary = useMemo(() => {
     const ingresos = filteredAppointments
-      .filter(a => (a.estadoNombre || "").toLowerCase().includes("completada"))
+      .filter(a => (a.estadoNombre || "").toLowerCase() === "pagada")
       .reduce((s, a) => s + (Number(a.precio) || 0), 0);
     return { ingresos, totalCitas: filteredAppointments.length };
   }, [filteredAppointments]);
@@ -255,7 +258,9 @@ export const AppointmentsPage = () => {
                       {activeStatusPopover === apt.id && (
                         <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-100 rounded-2xl shadow-xl z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-150">
                           <p className="text-[9px] font-black uppercase text-gray-400 px-3 pb-1.5 border-b border-gray-50 tracking-wider">Cambiar Estado</p>
-                          {estados.map(est => (
+                          {/* "Pagada" no es seleccionable a mano: solo se marca automáticamente
+                              al cobrar la cita a través de una venta real. */}
+                          {estados.filter(est => est.nombre.toLowerCase() !== "pagada").map(est => (
                             <button
                               key={est.id}
                               onClick={() => {
@@ -397,6 +402,34 @@ export const AppointmentsPage = () => {
             <input type="date" value={range.start} onChange={(e) => setRange(p => ({ ...p, start: e.target.value }))} className="bg-transparent text-xs font-bold outline-none p-1" />
             <div className="h-4 w-[1px] bg-gray-300"></div>
             <input type="date" value={range.end} onChange={(e) => setRange(p => ({ ...p, end: e.target.value }))} className="bg-transparent text-xs font-bold outline-none p-1" />
+          </div>
+        </div>
+      )}
+
+      {/* Ingresos por citas — aparte de "Ventas Totales" del Dashboard/Reporte de Ventas.
+          Solo cuenta citas en estado "Pagada" (cobradas de verdad), nunca mezclado con lo
+          que se vendió en productos dentro de esa misma transacción de caja. */}
+      {(activeTab === "calendario" || activeTab === "citas") && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className={`bg-white p-4 rounded-3xl border ${theme.border} shadow-sm flex items-center gap-3`}>
+            <div className={`${isEmployeePanel ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-600"} p-2.5 rounded-xl`}>
+              <DollarSign size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Ingresos por Citas (pagadas)</p>
+              <p className="text-xl font-black text-gray-900">
+                {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(financialSummary.ingresos)}
+              </p>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-3">
+            <div className="bg-gray-100 text-gray-600 p-2.5 rounded-xl">
+              <CalendarIcon size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Citas en el rango</p>
+              <p className="text-xl font-black text-gray-900">{financialSummary.totalCitas}</p>
+            </div>
           </div>
         </div>
       )}

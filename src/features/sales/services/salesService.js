@@ -88,10 +88,14 @@ export const salesService = {
   },
 
   // ── Helpers de estadísticas ───────────────────────────────────────────────
+  // Excluye anuladas (estadoId 3): de lo contrario, los totales derivados de esta lista
+  // (getTotalSalesToday, getTotalProductsToday) cuentan dinero/unidades que en realidad
+  // se revirtieron.
   getTodaySales: async () => {
     const all = await salesService.getAll();
     const today = new Date().toLocaleDateString("es-CO");
     return all.filter(s => {
+      if (s.estadoId === 3) return false;
       const fecha = s.fechaVenta ? new Date(s.fechaVenta).toLocaleDateString("es-CO") : "";
       return fecha === today;
     });

@@ -1,13 +1,15 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { RotateCcw, ArrowLeft } from "lucide-react";
 import { useReturns } from "../hooks/useReturns";
 import { ReturnList } from "../components/ReturnList";
+import { MermasPanel } from "../components/MermasPanel";
 
 export const ReturnsPage = () => {
   const navigate = useNavigate();
   const { devoluciones, loading, fetchAll } = useReturns();
+  const [tab, setTab] = useState("devoluciones");
 
   const { currentUser } = useCurrentUser();
   const user = currentUser || {};
@@ -63,8 +65,34 @@ export const ReturnsPage = () => {
         </button>
       </div>
 
+      {/* Pestañas */}
+      <div className="flex gap-2 border-b border-gray-200">
+        {[
+          { key: "devoluciones", label: "Devoluciones" },
+          { key: "mermas", label: "Mermas" },
+        ].map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              tab === t.key
+                ? userRole === "administrador"
+                  ? "border-emerald-600 text-emerald-700"
+                  : "border-blue-600 text-blue-700"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {/* Contenido */}
-      <ReturnList devoluciones={devoluciones} loading={loading} onRefresh={fetchAll} />
+      {tab === "devoluciones" ? (
+        <ReturnList devoluciones={devoluciones} loading={loading} onRefresh={fetchAll} />
+      ) : (
+        <MermasPanel colorClass={colorClass} />
+      )}
     </div>
   );
 };

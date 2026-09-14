@@ -167,10 +167,13 @@ export const EmployeeSalesPage = () => {
   };
 
   // ── Métricas
+  // Se excluyen las ventas anuladas (estadoId 3): antes se sumaban igual que cualquier
+  // venta válida, inflando el total y el conteo de "Ventas de hoy" con dinero que en
+  // realidad se revirtió.
   const ventasHoy = useMemo(() => {
     const today = new Date().toLocaleDateString("es-CO");
     return sales.filter(s =>
-      s.fechaVenta ? new Date(s.fechaVenta).toLocaleDateString("es-CO") === today : false
+      s.estadoId !== 3 && (s.fechaVenta ? new Date(s.fechaVenta).toLocaleDateString("es-CO") === today : false)
     );
   }, [sales]);
 

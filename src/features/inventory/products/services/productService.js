@@ -128,7 +128,7 @@ export const productService = {
 
   getProximosAVencer: async () => {
     const response = await apiClient.get(`${ENDPOINT}/proximos-a-vencer`);
-    return response.data || [];
+    return response.data || { vencidos: 0, porVencer: 0, diasAlerta: 30, items: [] };
   },
 
   getLotes: async (productoId) => {
