@@ -61,6 +61,14 @@ const PERMISSION_GROUPS = [
         perms: ["categories.view", "categories.create", "categories.edit", "categories.delete", "categories.status"]
       },
       {
+        title: "Submódulo: Marcas",
+        perms: ["brands.view", "brands.create", "brands.edit", "brands.delete", "brands.status"]
+      },
+      {
+        title: "Submódulo: Presentaciones",
+        perms: ["presentations.view", "presentations.create", "presentations.edit", "presentations.delete", "presentations.status"]
+      },
+      {
         title: "Submódulo: Proveedores",
         perms: ["suppliers.view", "suppliers.create", "suppliers.edit", "suppliers.delete", "suppliers.status"]
       }
@@ -159,8 +167,15 @@ export const SettingsPage = () => {
 
   const { currentUser } = useCurrentUser();
   const user = currentUser || {};
+  const isAdmin = (user.rol || "").toLowerCase().trim() === "administrador";
+  const userPerms = (user.permisos || []).map((p) => String(p || "").toLowerCase().trim());
+  const canManageRoles = isAdmin || userPerms.includes("system.roles");
 
   React.useEffect(() => { loadRoles(); }, []);
+
+  React.useEffect(() => {
+    if (!canManageRoles && activeSection === "roles") setActiveSection("params");
+  }, [canManageRoles, activeSection]);
 
   // Cargar configuración de días de alerta
   React.useEffect(() => {
@@ -318,7 +333,7 @@ export const SettingsPage = () => {
           <h1 className="text-2xl font-black text-slate-800 tracking-tight">CONFIGURACIÓN</h1>
           <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Seguridad y Parámetros</p>
         </div>
-        {activeSection === "roles" && (
+        {activeSection === "roles" && canManageRoles && (
           <button
             onClick={() => {
               setEditRole(null);
@@ -339,16 +354,18 @@ export const SettingsPage = () => {
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-slate-100">
-        <button
-          onClick={() => setActiveSection("roles")}
-          className={`pb-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${
-            activeSection === "roles"
-              ? "border-emerald-600 text-emerald-600"
-              : "border-transparent text-slate-400"
-          }`}
-        >
-          Gestión de Roles
-        </button>
+        {canManageRoles && (
+          <button
+            onClick={() => setActiveSection("roles")}
+            className={`pb-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${
+              activeSection === "roles"
+                ? "border-emerald-600 text-emerald-600"
+                : "border-transparent text-slate-400"
+            }`}
+          >
+            Gestión de Roles
+          </button>
+        )}
         <button
           onClick={() => setActiveSection("params")}
           className={`pb-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${
@@ -362,7 +379,7 @@ export const SettingsPage = () => {
       </div>
 
       {/* ── SECCIÓN ROLES ── */}
-      {activeSection === "roles" && (
+      {activeSection === "roles" && canManageRoles && (
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col">
           <table className="w-full text-left">
             <thead className="bg-slate-50">

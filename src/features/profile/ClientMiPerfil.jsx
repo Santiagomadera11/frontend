@@ -29,6 +29,44 @@ export const ClientMiPerfil = () => {
   const [documentTypes, setDocumentTypes] = useState([]);
   const fileInputRef = useRef(null);
 
+  const userRole = (currentUser?.rol || "").toLowerCase().trim();
+  const isEmployeePanel = userRole !== "administrador";
+  const theme = isEmployeePanel
+    ? {
+        spinner: "border-blue-500",
+        avatarGradient: "from-blue-100 to-blue-50",
+        avatarBorder: "border-blue-300",
+        avatarText: "text-blue-600",
+        solidBtn: "bg-blue-600 hover:bg-blue-700",
+        badgeBg: "bg-blue-100",
+        badgeText: "text-blue-700",
+        ghostBtn: "bg-blue-50 hover:bg-blue-100 text-blue-600",
+        ring: "focus:ring-blue-400",
+        secBoxBg: "bg-blue-50",
+        secBoxBorder: "border-blue-200",
+        secIcon: "text-blue-600",
+        secTitle: "text-blue-900",
+        secText: "text-blue-700",
+        secDate: "text-blue-600",
+      }
+    : {
+        spinner: "border-emerald-500",
+        avatarGradient: "from-emerald-100 to-emerald-50",
+        avatarBorder: "border-emerald-300",
+        avatarText: "text-emerald-600",
+        solidBtn: "bg-emerald-600 hover:bg-emerald-700",
+        badgeBg: "bg-emerald-100",
+        badgeText: "text-emerald-700",
+        ghostBtn: "bg-emerald-50 hover:bg-emerald-100 text-emerald-600",
+        ring: "focus:ring-emerald-400",
+        secBoxBg: "bg-emerald-50",
+        secBoxBorder: "border-emerald-200",
+        secIcon: "text-emerald-600",
+        secTitle: "text-emerald-900",
+        secText: "text-emerald-700",
+        secDate: "text-emerald-600",
+      };
+
   useEffect(() => {
     if (!currentUser) return;
     setUser(currentUser);
@@ -150,7 +188,7 @@ export const ClientMiPerfil = () => {
   if (!user) {
     return (
       <div className="h-full flex items-center justify-center p-8 font-sans">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500 mr-3"></div>
+        <div className={`animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 ${theme.spinner} mr-3`}></div>
         <span className="text-gray-600 font-medium">Cargando perfil...</span>
       </div>
     );
@@ -184,13 +222,13 @@ export const ClientMiPerfil = () => {
         {/* Card 1: Avatar y Información Básica */}
         <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 flex flex-col items-center justify-start">
           <div className="relative mb-4 w-28 h-28">
-            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center border-4 border-emerald-300 shadow-lg overflow-hidden">
+            <div className={`w-28 h-28 rounded-full bg-gradient-to-br ${theme.avatarGradient} flex items-center justify-center border-4 ${theme.avatarBorder} shadow-lg overflow-hidden`}>
               {tempAvatar ? (
                 <img src={tempAvatar} alt="avatar-preview" className="w-full h-full object-cover" />
               ) : user.avatar ? (
                 <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-3xl font-bold text-emerald-600">{getInitials()}</span>
+                <span className={`text-3xl font-bold ${theme.avatarText}`}>{getInitials()}</span>
               )}
             </div>
             <input
@@ -208,7 +246,7 @@ export const ClientMiPerfil = () => {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="absolute bottom-1 right-1 bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-full shadow-lg transition-all active:scale-95"
+              className={`absolute bottom-1 right-1 ${theme.solidBtn} text-white p-2.5 rounded-full shadow-lg transition-all active:scale-95`}
             >
               <Camera size={18} />
             </button>
@@ -236,7 +274,7 @@ export const ClientMiPerfil = () => {
                     setToast({ message: `Error: ${error.message}`, type: "error", zIndex: 70 });
                   }
                 }}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-sm font-bold"
+                className={`px-4 py-2 ${theme.solidBtn} text-white rounded-md text-sm font-bold`}
               >
                 Confirmar Foto
               </button>
@@ -249,7 +287,7 @@ export const ClientMiPerfil = () => {
           <p className="text-xs text-gray-600 text-center mt-1 truncate max-w-full">
             {user.email || user.correo || "Sin correo"}
           </p>
-          <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full mt-2 capitalize">
+          <span className={`inline-block px-3 py-1 ${theme.badgeBg} ${theme.badgeText} text-xs font-bold rounded-full mt-2 capitalize`}>
             {user.rol || "Usuario"}
           </span>
         </div>
@@ -261,7 +299,7 @@ export const ClientMiPerfil = () => {
             {!isEditing ? (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all active:scale-95"
+                className={`px-4 py-2 ${theme.ghostBtn} rounded-lg font-semibold text-sm flex items-center gap-2 transition-all active:scale-95`}
               >
                 <Edit2 size={16} /> Editar
               </button>
@@ -275,7 +313,7 @@ export const ClientMiPerfil = () => {
                 </button>
                 <button
                   onClick={handleSaveProfile}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-sm flex items-center gap-2 transition-all active:scale-95 shadow-md hover:shadow-lg"
+                  className={`px-4 py-2 ${theme.solidBtn} text-white rounded-lg font-semibold text-sm flex items-center gap-2 transition-all active:scale-95 shadow-md hover:shadow-lg`}
                 >
                   <Check size={16} /> Guardar
                 </button>
@@ -294,7 +332,7 @@ export const ClientMiPerfil = () => {
                 value={formData.nombres}
                 onChange={handleInputChange}
                 readOnly={!isEditing}
-                className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm read-only:bg-gray-50 read-only:text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                className={`w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm read-only:bg-gray-50 read-only:text-gray-700 focus:outline-none focus:ring-2 ${theme.ring} transition-all`}
               />
             </div>
 
@@ -308,7 +346,7 @@ export const ClientMiPerfil = () => {
                 value={formData.apellidos}
                 onChange={handleInputChange}
                 readOnly={!isEditing}
-                className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm read-only:bg-gray-50 read-only:text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                className={`w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm read-only:bg-gray-50 read-only:text-gray-700 focus:outline-none focus:ring-2 ${theme.ring} transition-all`}
               />
             </div>
 
@@ -319,7 +357,7 @@ export const ClientMiPerfil = () => {
                 value={formData.tipoDocumento}
                 onChange={handleInputChange}
                 disabled={!isEditing}
-                className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm bg-white disabled:bg-gray-50 disabled:text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                className={`w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm bg-white disabled:bg-gray-50 disabled:text-gray-700 focus:outline-none focus:ring-2 ${theme.ring} transition-all`}
               >
                 <option value="">--</option>
                 {/* FIX: value usa dt.id (número) en vez de dt.value (texto) */}
@@ -339,7 +377,7 @@ export const ClientMiPerfil = () => {
                 value={formData.documento}
                 onChange={handleInputChange}
                 readOnly={!isEditing}
-                className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm read-only:bg-gray-50 read-only:text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                className={`w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm read-only:bg-gray-50 read-only:text-gray-700 focus:outline-none focus:ring-2 ${theme.ring} transition-all`}
               />
             </div>
 
@@ -351,7 +389,7 @@ export const ClientMiPerfil = () => {
                 value={formData.telefono}
                 onChange={handleInputChange}
                 readOnly={!isEditing}
-                className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm read-only:bg-gray-50 read-only:text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                className={`w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm read-only:bg-gray-50 read-only:text-gray-700 focus:outline-none focus:ring-2 ${theme.ring} transition-all`}
               />
             </div>
 
@@ -377,7 +415,7 @@ export const ClientMiPerfil = () => {
                 value={formData.direccion}
                 onChange={handleInputChange}
                 readOnly={!isEditing}
-                className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm read-only:bg-gray-50 read-only:text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+                className={`w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm read-only:bg-gray-50 read-only:text-gray-700 focus:outline-none focus:ring-2 ${theme.ring} transition-all`}
               />
             </div>
           </div>
@@ -387,14 +425,14 @@ export const ClientMiPerfil = () => {
       {/* Card 3: Seguridad */}
       <div className="bg-white rounded-xl shadow-md border border-gray-100 p-8">
         <h3 className="text-xl font-bold text-gray-900 mb-6">Seguridad</h3>
-        <div className="bg-emerald-50 border-2 border-emerald-200 rounded-lg p-5 flex gap-4 mb-6">
-          <Lock className="text-emerald-600 flex-shrink-0 mt-0.5" size={24} />
+        <div className={`${theme.secBoxBg} border-2 ${theme.secBoxBorder} rounded-lg p-5 flex gap-4 mb-6`}>
+          <Lock className={`${theme.secIcon} flex-shrink-0 mt-0.5`} size={24} />
           <div className="flex-1">
-            <p className="text-sm font-bold text-emerald-900">Recomendación de Seguridad</p>
-            <p className="text-sm text-emerald-700 mt-2">
+            <p className={`text-sm font-bold ${theme.secTitle}`}>Recomendación de Seguridad</p>
+            <p className={`text-sm ${theme.secText} mt-2`}>
               Se recomienda cambiar la contraseña regularmente para mantener tu cuenta segura.
             </p>
-            <p className="text-xs text-emerald-600 mt-3 font-semibold">
+            <p className={`text-xs ${theme.secDate} mt-3 font-semibold`}>
               Última actualización: {lastPasswordUpdate}
             </p>
           </div>
@@ -402,7 +440,7 @@ export const ClientMiPerfil = () => {
 
         <button
           onClick={() => setShowPasswordModal(true)}
-          className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-lg flex items-center gap-3 transition-all active:scale-95 shadow-md"
+          className={`px-8 py-3 ${theme.solidBtn} text-white font-bold text-sm rounded-lg flex items-center gap-3 transition-all active:scale-95 shadow-md`}
         >
           <Lock size={20} /> Cambiar Contraseña
         </button>

@@ -1,5 +1,6 @@
+import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useEffect } from "react";
-import { 
+import {
   Plus, Search, Eye, Edit, Trash2,
   Filter, Tag,
   CheckCircle,
@@ -25,7 +26,7 @@ export const CategoriesPage = () => {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [notification, setNotification] = useState(null);
-  const currentUser = JSON.parse(sessionStorage.getItem("syspharma_user") || "{}");
+  const { currentUser } = useCurrentUser();
   const userRole = (currentUser.rol || "").toLowerCase().trim();
   const userPerms = (currentUser.permisos || []).map((perm) => String(perm || "").toLowerCase().trim());
   const isAdmin = userRole === "administrador";

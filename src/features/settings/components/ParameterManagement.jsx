@@ -258,10 +258,6 @@ const ParameterManagement = ({ user }) => {
 
       {activeTabData && <ParameterTable type={activeTabData.type} label={activeTabData.label} />}
 
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-        <p className="text-blue-700 text-xs font-medium">ℹ️ Los cambios se guardan en la base de datos y se aplican inmediatamente en todos los formularios.</p>
-      </div>
-
       {/* Modal agregar / editar */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
