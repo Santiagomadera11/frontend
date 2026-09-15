@@ -169,7 +169,7 @@ export const UsersPage = () => {
         </div>
         {canCreateUser && (
           <button onClick={handleOpenCreate}
-            className="bg-emerald-400 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-lg font-bold shadow-sm text-xs flex items-center gap-1.5">
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg font-bold shadow-sm text-xs flex items-center gap-1.5">
             <Plus size={16} /> Nuevo
           </button>
         )}
@@ -197,7 +197,7 @@ export const UsersPage = () => {
             <div className="flex items-center justify-center h-48 text-gray-400 text-sm">Cargando usuarios...</div>
           ) : (
             <table className="w-full text-left border-collapse">
-              <thead className="bg-primary-700 text-white text-xs uppercase tracking-wider sticky top-0 z-10">
+              <thead className="bg-emerald-600 text-white text-xs uppercase tracking-wider sticky top-0 z-10">
                 <tr>
                   <th className="px-3 py-3 font-semibold">ID</th>
                   <th className="px-3 py-3 font-semibold">Usuario</th>

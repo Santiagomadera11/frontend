@@ -114,8 +114,8 @@ export const CloseShiftModal = ({
             <span className="font-bold text-gray-900">${fmtNum(balance.montoBase)}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600 flex items-center gap-1.5"><TrendingUp size={16} className="text-green-600" /> Ventas Totales</span>
-            <span className="font-bold text-green-600">+${fmtNum(balance.totalVentas)}</span>
+            <span className="text-sm text-gray-600 flex items-center gap-1.5"><TrendingUp size={16} className="text-emerald-600" /> Ventas Totales</span>
+            <span className="font-bold text-emerald-600">+${fmtNum(balance.totalVentas)}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600 flex items-center gap-1.5"><TrendingDown size={16} className="text-amber-600" /> Gastos Totales</span>
@@ -142,14 +142,14 @@ export const CloseShiftModal = ({
 
           {efectivoFisico && (
             <div className={`p-4 rounded-lg border-2 flex items-start gap-3 ${
-              diferenciaBuena ? "bg-green-50 border-green-200" : diferenciaNegativa ? "bg-red-50 border-red-200" : "bg-yellow-50 border-yellow-200"
+              diferenciaBuena ? "bg-emerald-50 border-emerald-200" : diferenciaNegativa ? "bg-red-50 border-red-200" : "bg-yellow-50 border-yellow-200"
             }`}>
-              <AlertCircle size={18} className={`flex-shrink-0 mt-0.5 ${diferenciaBuena ? "text-green-600" : diferenciaNegativa ? "text-red-600" : "text-yellow-600"}`} />
+              <AlertCircle size={18} className={`flex-shrink-0 mt-0.5 ${diferenciaBuena ? "text-emerald-600" : diferenciaNegativa ? "text-red-600" : "text-yellow-600"}`} />
               <div>
-                <p className={`text-xs font-bold ${diferenciaBuena ? "text-green-800" : diferenciaNegativa ? "text-red-800" : "text-yellow-800"}`}>
+                <p className={`text-xs font-bold ${diferenciaBuena ? "text-emerald-800" : diferenciaNegativa ? "text-red-800" : "text-yellow-800"}`}>
                   {diferenciaBuena ? "✓ Caja Cuadrada" : `Diferencia de ${diferenciaNegativa ? "falta" : "sobrante"}: $${fmtNum(Math.abs(diferencia))}`}
                 </p>
-                <p className={`text-[10px] ${diferenciaBuena ? "text-green-700" : diferenciaNegativa ? "text-red-700" : "text-yellow-700"}`}>
+                <p className={`text-[10px] ${diferenciaBuena ? "text-emerald-700" : diferenciaNegativa ? "text-red-700" : "text-yellow-700"}`}>
                   Esperado: ${fmtNum(balance.saldoEsperado)} | Físico: ${fmtNum(parseFloat(efectivoFisico || 0))}
                 </p>
               </div>

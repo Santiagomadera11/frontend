@@ -192,14 +192,14 @@ export const SalesPerformanceReportsPage = () => {
                 <TrendingUp className="text-blue-600" size={36} />
               </div>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 rounded-lg border border-emerald-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-green-700 font-semibold mb-1">📊 Meta Grupal</p>
-                  <p className="text-lg font-bold text-green-900">{metaGroupal.toFixed(1)}%</p>
-                  <p className="text-xs text-green-600 mt-2">{fmt(totalVentasGrupo)} / {fmt(META_VENTAS)}</p>
+                  <p className="text-xs text-emerald-700 font-semibold mb-1">📊 Meta Grupal</p>
+                  <p className="text-lg font-bold text-emerald-900">{metaGroupal.toFixed(1)}%</p>
+                  <p className="text-xs text-emerald-600 mt-2">{fmt(totalVentasGrupo)} / {fmt(META_VENTAS)}</p>
                 </div>
-                <DollarSign className="text-green-600" size={36} />
+                <DollarSign className="text-emerald-600" size={36} />
               </div>
             </div>
           </div>
@@ -239,7 +239,7 @@ export const SalesPerformanceReportsPage = () => {
                         <td className="py-3 px-4 text-center text-lg">{getMedal(i) || (i + 1)}</td>
                         <td className="py-3 px-4 text-sm font-semibold text-gray-700">{emp.userName}</td>
                         <td className="py-3 px-4 text-sm text-gray-600">{emp.totalTurnos}</td>
-                        <td className="py-3 px-4 text-sm font-bold text-green-600">{fmt(emp.totalVentas)}</td>
+                        <td className="py-3 px-4 text-sm font-bold text-emerald-600">{fmt(emp.totalVentas)}</td>
                         <td className="py-3 px-4 text-sm font-bold text-red-600">{fmt(emp.totalGastos)}</td>
                         <td className="py-3 px-4 text-sm text-gray-600">{fmt(emp.totalTurnos > 0 ? emp.totalVentas / emp.totalTurnos : 0)}</td>
                       </tr>
@@ -286,7 +286,7 @@ export const SalesPerformanceReportsPage = () => {
                         <p className="text-xs text-gray-500">{m.totalServicios} servicios</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-bold text-green-600">{fmt(m.totalIngresos)}</p>
+                        <p className="text-sm font-bold text-emerald-600">{fmt(m.totalIngresos)}</p>
                         <p className="text-xs text-gray-500">ingresos</p>
                       </div>
                     </div>
@@ -319,7 +319,7 @@ export const SalesPerformanceReportsPage = () => {
                         <td className="py-3 px-4 text-center font-bold">{getMedal(i) || (i + 1)}</td>
                         <td className="py-3 px-4 text-sm font-semibold text-gray-700">{m.nombreMedico}</td>
                         <td className="py-3 px-4 text-sm text-gray-600">{m.totalServicios}</td>
-                        <td className="py-3 px-4 text-sm font-bold text-green-600">{fmt(m.totalIngresos)}</td>
+                        <td className="py-3 px-4 text-sm font-bold text-emerald-600">{fmt(m.totalIngresos)}</td>
                         <td className="py-3 px-4 text-sm text-gray-600">{fmt(m.totalServicios > 0 ? m.totalIngresos / m.totalServicios : 0)}</td>
                       </tr>
                     ))

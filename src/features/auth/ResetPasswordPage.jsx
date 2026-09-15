@@ -52,11 +52,11 @@ const ResetPasswordPage = () => {
         />
         <button
           type="submit"
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded transition-all"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded transition-all"
         >
           Cambiar contraseña
         </button>
-        {message && <p className="mt-4 text-green-600 text-center">{message}</p>}
+        {message && <p className="mt-4 text-emerald-600 text-center">{message}</p>}
         {error && <p className="mt-4 text-red-600 text-center">{error}</p>}
       </form>
     </div>

@@ -9,7 +9,7 @@ const ProductDetailModal = ({ product, onClose }) => {
   const isEmployee = currentUser.rol === "Empleado";
   const headerBgColor = isEmployee
     ? "from-blue-50 to-blue-50"
-    : "from-green-50 to-emerald-50";
+    : "from-emerald-50 to-emerald-50";
   const badgeBgColor = isEmployee
     ? "bg-blue-100 text-blue-700"
     : "bg-emerald-100 text-emerald-700";
@@ -109,7 +109,7 @@ const ProductDetailModal = ({ product, onClose }) => {
                   <span
                     className={`inline-block px-2 py-1 text-xs font-bold rounded-full ${
                       isActive
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-emerald-100 text-emerald-700"
                         : "bg-red-100 text-red-700"
                     }`}
                   >

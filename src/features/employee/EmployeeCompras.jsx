@@ -75,7 +75,7 @@ export const EmployeeCompras = () => {
   const getStatusBadge = (estado) => {
     const baseClass = "px-2 py-0.5 rounded text-[10px] font-bold border";
     const lower = (estado || "").toLowerCase();
-    if (lower === "recibida") return <span className={`${baseClass} bg-green-50 text-green-700 border-green-200`}>Recibida</span>;
+    if (lower === "recibida") return <span className={`${baseClass} bg-emerald-50 text-emerald-700 border-emerald-200`}>Recibida</span>;
     if (lower === "pendiente") return <span className={`${baseClass} bg-blue-50 text-blue-700 border-blue-200`}>Pendiente</span>;
     if (lower === "en camino") return <span className={`${baseClass} bg-yellow-50 text-yellow-700 border-yellow-200`}>En Camino</span>;
     if (lower === "cancelada") return <span className={`${baseClass} bg-red-50 text-red-700 border-red-200`}>Cancelada</span>;

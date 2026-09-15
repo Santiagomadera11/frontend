@@ -101,7 +101,7 @@ export const EmployeeAppointmentsPage = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "Confirmada":
-        return "bg-green-100 text-green-700";
+        return "bg-emerald-100 text-emerald-700";
       case "Pendiente":
         return "bg-yellow-100 text-yellow-700";
       case "Cancelada":
@@ -377,7 +377,7 @@ export const EmployeeAppointmentsPage = () => {
               placeholder="Buscar por nombre, teléfono o email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-300"
+              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-300"
             />
           </div>
         </div>

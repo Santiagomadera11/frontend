@@ -87,7 +87,7 @@ export const DashboardEmpleado = () => {
 
   const getEstadoColor = (estado) => {
     const lower = (estado || "").toLowerCase();
-    if (lower === "completada") return "bg-green-50 text-green-700 border-green-100";
+    if (lower === "completada") return "bg-emerald-50 text-emerald-700 border-emerald-100";
     if (lower.includes("consulta")) return "bg-blue-50 text-blue-700 border-blue-100";
     return "bg-yellow-50 text-yellow-700 border-yellow-100";
   };
@@ -120,7 +120,7 @@ export const DashboardEmpleado = () => {
           {[
             { label: "Citas Hoy", value: citasHoy.length, sub: `${citasHoy.filter(c => (c.estadoNombre||"").toLowerCase()==="completada").length} atendidas`, icon: Calendar, bg: "bg-blue-50", color: "text-blue-600" },
             { label: "Por Confirmar", value: pendingConfirmations, sub: "Requieren llamada", icon: AlertCircle, bg: "bg-orange-50", color: "text-orange-600" },
-            { label: "Ventas Hoy", value: ventasHoy.length, sub: `$${ventasHoy.reduce((s,v)=>s+(v.total||0),0).toLocaleString("es-CO")}`, icon: ShoppingCart, bg: "bg-green-50", color: "text-green-600" },
+            { label: "Ventas Hoy", value: ventasHoy.length, sub: `$${ventasHoy.reduce((s,v)=>s+(v.total||0),0).toLocaleString("es-CO")}`, icon: ShoppingCart, bg: "bg-emerald-50", color: "text-emerald-600" },
             { label: "Stock Bajo", value: lowStockProducts.length, sub: "Productos por agotarse", icon: AlertCircle, bg: "bg-red-50", color: "text-red-600" },
           ].map(({ label, value, sub, bg, color }) => (
             <div key={label} className="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
@@ -156,10 +156,10 @@ export const DashboardEmpleado = () => {
                 <Stethoscope className="absolute -bottom-4 -right-4 text-white opacity-10" size={96} />
               </div>
             ) : (
-              <div className="bg-green-50 border border-green-100 rounded-xl p-4 text-center">
-                <CheckCircle className="mx-auto text-green-500 mb-2" size={32} />
-                <h3 className="text-green-800 font-bold">¡Todo al día!</h3>
-                <p className="text-green-600 text-sm">No hay más citas pendientes por hoy.</p>
+              <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center">
+                <CheckCircle className="mx-auto text-emerald-500 mb-2" size={32} />
+                <h3 className="text-emerald-800 font-bold">¡Todo al día!</h3>
+                <p className="text-emerald-600 text-sm">No hay más citas pendientes por hoy.</p>
               </div>
             )}
 

@@ -11,7 +11,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
     const lower = (estado || "").toLowerCase();
     if (lower === "pendiente") return "bg-yellow-100 text-yellow-700";
     if (lower === "en proceso") return "bg-blue-100 text-blue-700";
-    if (lower === "entregado") return "bg-green-100 text-green-700";
+    if (lower === "entregado") return "bg-emerald-100 text-emerald-700";
     if (lower === "cancelado") return "bg-red-100 text-red-700";
     return "bg-gray-100 text-gray-700";
   };
@@ -73,7 +73,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
 
         {/* Header */}
-        <div className="flex justify-between items-center px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-green-50 sticky top-0">
+        <div className="flex justify-between items-center px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-emerald-50 sticky top-0">
           <div>
             <h2 className="text-sm font-bold text-gray-800">Detalle del Pedido</h2>
             <p className="text-xs text-gray-500 mt-0.5">{numeroPedido}</p>

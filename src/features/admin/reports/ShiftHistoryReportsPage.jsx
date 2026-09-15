@@ -126,7 +126,7 @@ export const ShiftHistoryReportsPage = () => {
       <div className="grid grid-cols-4 gap-3">
         {[
           { label: "Turnos Cerrados", value: cerrados.length, icon: Calendar, color: "text-blue-600" },
-          { label: "Ingresos Totales", value: fmt(totalVentas), icon: TrendingUp, color: "text-green-600" },
+          { label: "Ingresos Totales", value: fmt(totalVentas), icon: TrendingUp, color: "text-emerald-600" },
           { label: "Gastos Totales", value: fmt(totalGastos), icon: TrendingDown, color: "text-red-600" },
           { label: "Balance Neto", value: fmt(totalVentas - totalGastos), icon: DollarSign, color: "text-indigo-600" },
         ].map(({ label, value, icon: IconComponent, color }) => (
@@ -171,23 +171,23 @@ export const ShiftHistoryReportsPage = () => {
                   const saldo = (t.montoBase || 0) + (t.totalVentas || 0) - (t.totalGastos || 0);
                   const activo = t.estado === "activo";
                   return (
-                    <tr key={t.id} className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${activo ? "bg-green-50 border-l-4 border-l-green-500" : ""}`}>
+                    <tr key={t.id} className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${activo ? "bg-emerald-50 border-l-4 border-l-emerald-500" : ""}`}>
                       <td className="py-3 px-4 text-xs font-mono text-gray-600">{idx + 1}</td>
                       <td className="py-3 px-4 text-xs font-semibold text-gray-700">{t.usuarioNombre}</td>
                       <td className="py-3 px-4 text-xs text-gray-600">{formatDate(t.fechaApertura)} {formatTime(t.fechaApertura)}</td>
                       <td className="py-3 px-4 text-xs">
                         {activo ? (
-                          <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> Abierto
+                          <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-xs font-semibold">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" /> Abierto
                           </span>
                         ) : formatTime(t.fechaCierre)}
                       </td>
                       <td className="py-3 px-4 text-xs font-semibold text-gray-700">{fmt(t.montoBase)}</td>
-                      <td className="py-3 px-4 text-xs font-semibold text-green-600">{fmt(t.totalVentas)}</td>
+                      <td className="py-3 px-4 text-xs font-semibold text-emerald-600">{fmt(t.totalVentas)}</td>
                       <td className="py-3 px-4 text-xs font-semibold text-red-600">{fmt(t.totalGastos)}</td>
                       <td className="py-3 px-4 text-xs font-bold text-indigo-600">{fmt(saldo)}</td>
                       <td className="py-3 px-4 text-xs">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold ${activo ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}>
+                        <span className={`px-2 py-1 rounded text-[10px] font-bold ${activo ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-700"}`}>
                           {activo ? "ACTIVO" : "CERRADO"}
                         </span>
                       </td>
@@ -225,10 +225,10 @@ export const ShiftHistoryReportsPage = () => {
             <div className="grid grid-cols-2 gap-3 text-sm mb-4">
               {[
                 { label: "Monto Base", value: fmt(selectedShift.montoBase), color: "text-gray-800" },
-                { label: "Total Ventas", value: fmt(selectedShift.totalVentas), color: "text-green-600" },
+                { label: "Total Ventas", value: fmt(selectedShift.totalVentas), color: "text-emerald-600" },
                 { label: "Total Gastos", value: fmt(selectedShift.totalGastos), color: "text-red-600" },
                 { label: "Saldo Esperado", value: fmt((selectedShift.montoBase || 0) + (selectedShift.totalVentas || 0) - (selectedShift.totalGastos || 0)), color: "text-indigo-600" },
-                { label: "Diferencia", value: fmt(selectedShift.diferencia), color: selectedShift.diferencia >= 0 ? "text-green-600" : "text-red-600" },
+                { label: "Diferencia", value: fmt(selectedShift.diferencia), color: selectedShift.diferencia >= 0 ? "text-emerald-600" : "text-red-600" },
                 { label: "Ventas", value: selectedShift.resumenVentas + " ventas", color: "text-blue-600" },
               ].map(({ label, value, color }) => (
                 <div key={label} className="bg-gray-50 p-3 rounded-lg">
