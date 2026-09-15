@@ -236,7 +236,7 @@ export const DashboardEmpleado = () => {
       </div>
 
       <OpenShiftModal isOpen={showOpenShiftModal} onShiftOpened={() => setShowOpenShiftModal(false)}
-        user={currentUser} canClose={currentUser.rol === "Administrador"}
+        user={currentUser} canClose={(currentUser?.rol || "").toLowerCase().trim() === "administrador"}
         onCancel={() => setShowOpenShiftModal(false)} />
     </>
   );

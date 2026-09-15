@@ -68,7 +68,8 @@ export const turnService = {
   // ── Validar si se puede operar ───────────────────────────────
   validateOperationAllowed: async (user) => {
     // Clientes y Administradores no necesitan turno
-    if (user?.rol === "Cliente" || user?.rol === "Administrador") {
+    const rol = String(user?.rol || "").toLowerCase().trim();
+    if (rol === "cliente" || rol === "administrador") {
       return { valid: true, message: "" };
     }
     // Los empleados sí necesitan turno activo

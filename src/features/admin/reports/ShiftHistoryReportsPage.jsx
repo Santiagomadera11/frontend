@@ -24,7 +24,7 @@ export const ShiftHistoryReportsPage = () => {
   const [forceCloseShift, setForceCloseShift] = useState(null);
 
   const currentUser = JSON.parse(sessionStorage.getItem("syspharma_user") || '{"rol":""}');
-  const isAdmin = currentUser?.rol === "Administrador";
+  const isAdmin = (currentUser?.rol || "").toLowerCase().trim() === "administrador";
 
   const loadTurnos = useCallback(async () => {
     try {
