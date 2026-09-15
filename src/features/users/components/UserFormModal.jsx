@@ -249,7 +249,7 @@ export const UserFormModal = ({ isOpen, onClose, onSave, userToEdit }) => {
             Cancelar
           </button>
           <button onClick={handleSubmit} disabled={loading}
-            className="flex-1 bg-emerald-400 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg shadow-sm text-xs disabled:opacity-50">
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg shadow-sm text-xs disabled:opacity-50">
             {loading ? "Guardando..." : userToEdit ? "Guardar" : "Crear"}
           </button>
         </div>

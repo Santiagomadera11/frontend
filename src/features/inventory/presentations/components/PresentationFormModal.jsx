@@ -29,9 +29,9 @@ const PresentationFormModal = ({ isOpen, onClose, initialData = null, mode = 'cr
         button: "bg-blue-600 hover:bg-blue-700",
       }
     : {
-        header: "bg-green-50 border-green-200",
+        header: "bg-emerald-50 border-emerald-200",
         text: "text-emerald-600",
-        hoverText: "hover:text-green-600",
+        hoverText: "hover:text-emerald-600",
         focus: "focus:border-emerald-500 focus:ring-emerald-500",
         button: "bg-emerald-600 hover:bg-emerald-700",
       };

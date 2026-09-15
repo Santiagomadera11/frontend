@@ -20,9 +20,9 @@ const AppointmentDetailModal = ({ isOpen, onClose, appointment, doctors = [] }) 
 
   const getStatusColor = (estadoRaw) => {
     const estado = (estadoRaw || "").toLowerCase();
-    if (estado.includes("confirmada") || estado.includes("confirmar")) return "bg-green-100 text-green-700";
+    if (estado.includes("confirmada") || estado.includes("confirmar")) return "bg-emerald-100 text-emerald-700";
     if (estado.includes("consulta")) return "bg-blue-100 text-blue-700";
-    if (estado.includes("completada")) return "bg-green-100 text-green-700";
+    if (estado.includes("completada")) return "bg-emerald-100 text-emerald-700";
     if (estado.includes("no asistio") || estado.includes("no asistió")) return "bg-red-100 text-red-700";
     if (estado.includes("cancelada")) return "bg-gray-100 text-gray-700";
     return "bg-yellow-100 text-yellow-700";
@@ -42,7 +42,7 @@ const AppointmentDetailModal = ({ isOpen, onClose, appointment, doctors = [] }) 
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-sm w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
         {/* Header Verde */}
-        <div className="bg-green-50 border-b border-green-200 px-6 py-4 flex items-center justify-between sticky top-0">
+        <div className="bg-emerald-50 border-b border-emerald-200 px-6 py-4 flex items-center justify-between sticky top-0">
           <h2 className="text-lg font-bold text-gray-800">Detalle de Cita</h2>
           <button
             onClick={onClose}

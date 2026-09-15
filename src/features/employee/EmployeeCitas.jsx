@@ -193,14 +193,14 @@ export const EmployeeCitas = () => {
 
         <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-green-50 text-green-600 rounded-2xl">
+            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-2xl">
               <CheckCircle size={22} />
             </div>
             <h3 className="text-sm font-black uppercase tracking-widest text-gray-500">
               Completadas
             </h3>
           </div>
-          <div className="text-4xl font-black text-green-600">
+          <div className="text-4xl font-black text-emerald-600">
             {completedAppointments}
           </div>
           <div className="text-xs text-gray-500 mt-1">

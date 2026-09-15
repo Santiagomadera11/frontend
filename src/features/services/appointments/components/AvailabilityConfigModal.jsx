@@ -191,7 +191,7 @@ const AvailabilityConfigModal = ({
                         onClick={() => toggleDayAvailability(dayKey)}
                         className={`px-3 py-1 rounded text-sm ${
                           doctorSchedule[dayKey]
-                            ? "bg-green-100 text-green-700 hover:bg-green-200"
+                            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                         }`}
                       >
@@ -346,7 +346,7 @@ const AvailabilityConfigModal = ({
                 <div className="flex items-end">
                   <button
                     onClick={handleAddUnavailableDay}
-                    className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                    className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors"
                   >
                     <Plus size={16} className="inline mr-2" />
                     Agregar

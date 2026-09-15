@@ -709,9 +709,9 @@ const NewProductPage = () => {
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden flex flex-col">
-            <div className={`px-6 py-4 border-b flex justify-between items-center ${confirmData.type === "success" ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
+            <div className={`px-6 py-4 border-b flex justify-between items-center ${confirmData.type === "success" ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
               <div className="flex items-center gap-3">
-                {confirmData.type === "success" ? <CheckCircle size={24} className="text-green-600" /> : <AlertCircle size={24} className="text-red-600" />}
+                {confirmData.type === "success" ? <CheckCircle size={24} className="text-emerald-600" /> : <AlertCircle size={24} className="text-red-600" />}
                 <h3 className="font-bold text-gray-900 text-lg">{confirmData.title}</h3>
               </div>
               <button onClick={() => setShowConfirmModal(false)} className="text-gray-500 hover:text-gray-700"><X size={20} /></button>
@@ -719,9 +719,9 @@ const NewProductPage = () => {
             <div className="p-6">
               <p className="text-gray-700 text-sm leading-relaxed">{confirmData.message}</p>
             </div>
-            <div className={`px-6 py-4 border-t ${confirmData.type === "success" ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
+            <div className={`px-6 py-4 border-t ${confirmData.type === "success" ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
               <button onClick={() => confirmData.onConfirm && confirmData.onConfirm()}
-                className={`w-full px-4 py-2 rounded font-semibold text-white text-sm ${confirmData.type === "success" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}`}>
+                className={`w-full px-4 py-2 rounded font-semibold text-white text-sm ${confirmData.type === "success" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"}`}>
                 Aceptar
               </button>
             </div>

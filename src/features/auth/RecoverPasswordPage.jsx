@@ -38,7 +38,7 @@ const RecoverPasswordPage = () => {
         >
           Enviar enlace de recuperación
         </button>
-        {message && <p className="mt-4 text-green-600 text-center">{message}</p>}
+        {message && <p className="mt-4 text-emerald-600 text-center">{message}</p>}
         {error && <p className="mt-4 text-red-600 text-center">{error}</p>}
       </form>
     </div>

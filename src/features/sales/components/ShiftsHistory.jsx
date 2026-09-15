@@ -53,7 +53,7 @@ export const ShiftsHistory = ({ isOpen, onClose }) => {
           {/* Tabla de Turnos */}
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-green-600 text-white uppercase sticky top-0 z-10">
+              <thead className="bg-emerald-600 text-white uppercase sticky top-0 z-10">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Turno ID</th>
                   <th className="px-4 py-3 font-semibold">Empleado</th>
@@ -105,7 +105,7 @@ export const ShiftsHistory = ({ isOpen, onClose }) => {
                         <td className="px-4 py-3 font-bold text-blue-600 text-right">
                           ${turn.montoBase.toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 font-bold text-green-600 text-right">
+                        <td className="px-4 py-3 font-bold text-emerald-600 text-right">
                           +${turn.totalVentas.toLocaleString()}
                         </td>
                         <td className="px-4 py-3 font-bold text-orange-600 text-right">
@@ -114,7 +114,7 @@ export const ShiftsHistory = ({ isOpen, onClose }) => {
                         <td
                           className={`px-4 py-3 font-bold text-right ${
                             turn.diferencia === 0
-                              ? "text-green-600"
+                              ? "text-emerald-600"
                               : turn.diferencia > 0
                                 ? "text-blue-600"
                                 : "text-red-600"
@@ -124,7 +124,7 @@ export const ShiftsHistory = ({ isOpen, onClose }) => {
                           {turn.diferencia.toLocaleString()}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-bold">
+                          <span className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold">
                             CERRADO
                           </span>
                         </td>
@@ -163,19 +163,19 @@ export const ShiftsHistory = ({ isOpen, onClose }) => {
                                   <h4 className="font-bold text-sm text-gray-800 mb-2 flex items-center gap-2">
                                     📊 Ventas Registradas
                                   </h4>
-                                  <div className="bg-white rounded p-3 border border-green-200 space-y-1 max-h-40 overflow-y-auto">
+                                  <div className="bg-white rounded p-3 border border-emerald-200 space-y-1 max-h-40 overflow-y-auto">
                                     {turn.userSalesCount &&
                                     turn.userSalesCount > 0 ? (
                                       <div>
                                         <p className="text-xs text-gray-600">
-                                          <span className="font-bold text-green-600">
+                                          <span className="font-bold text-emerald-600">
                                             {turn.userSalesCount}
                                           </span>{" "}
                                           transacciones
                                         </p>
                                         <p className="text-xs text-gray-600">
                                           Monto Total:{" "}
-                                          <span className="font-bold text-green-600">
+                                          <span className="font-bold text-emerald-600">
                                             ${turn.totalVentas.toLocaleString()}
                                           </span>
                                         </p>
@@ -251,7 +251,7 @@ export const ShiftsHistory = ({ isOpen, onClose }) => {
                                   </div>
                                   <div>
                                     <p className="text-gray-600">+ Ventas</p>
-                                    <p className="font-bold text-green-600">
+                                    <p className="font-bold text-emerald-600">
                                       ${turn.totalVentas.toLocaleString()}
                                     </p>
                                   </div>
@@ -266,7 +266,7 @@ export const ShiftsHistory = ({ isOpen, onClose }) => {
                                     <p
                                       className={`font-bold ${
                                         turn.diferencia === 0
-                                          ? "text-green-600"
+                                          ? "text-emerald-600"
                                           : turn.diferencia > 0
                                             ? "text-blue-600"
                                             : "text-red-600"
@@ -310,7 +310,7 @@ export const ShiftsHistory = ({ isOpen, onClose }) => {
                 </div>
                 <div>
                   <p className="text-gray-600 font-medium">Ventas Totales</p>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-2xl font-bold text-emerald-600">
                     $
                     {turnsToday
                       .reduce((sum, t) => sum + (t.totalVentas || 0), 0)
@@ -334,7 +334,7 @@ export const ShiftsHistory = ({ isOpen, onClose }) => {
                         (sum, t) => sum + (t.diferencia || 0),
                         0,
                       ) === 0
-                        ? "text-green-600"
+                        ? "text-emerald-600"
                         : turnsToday.reduce(
                               (sum, t) => sum + (t.diferencia || 0),
                               0,

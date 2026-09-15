@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
 
 const STYLES = {
-  success: { icon: CheckCircle, iconColor: "text-green-500", border: "border-green-200" },
+  success: { icon: CheckCircle, iconColor: "text-emerald-500", border: "border-emerald-200" },
   error: { icon: AlertCircle, iconColor: "text-red-500", border: "border-red-200" },
   warning: { icon: AlertTriangle, iconColor: "text-amber-500", border: "border-amber-200" },
   info: { icon: Info, iconColor: "text-blue-500", border: "border-blue-200" },

@@ -61,9 +61,9 @@ export const ProvidersPage = () => {
         border: "border-emerald-200",
         focus: "focus:border-emerald-400",
         spinner: "border-emerald-600",
-        successText: "text-green-800",
-        successIcon: "text-green-600",
-        successBg: "bg-green-50 border-green-200",
+        successText: "text-emerald-800",
+        successIcon: "text-emerald-600",
+        successBg: "bg-emerald-50 border-emerald-200",
       };
 
   const loadProviders = async () => {

@@ -12,11 +12,11 @@ const getAuthHeaders = () => ({
 const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", onSave }) => {
   const { currentUser } = useCurrentUser();
   const isEmployee = currentUser.rol === "Empleado";
-  const headerBg = isEmployee ? "bg-blue-50" : "bg-green-50";
-  const headerBorder = isEmployee ? "border-blue-200" : "border-green-200";
-  const btnBg = isEmployee ? "bg-blue-600 hover:bg-blue-700" : "bg-green-600 hover:bg-green-700";
+  const headerBg = isEmployee ? "bg-blue-50" : "bg-emerald-50";
+  const headerBorder = isEmployee ? "border-blue-200" : "border-emerald-200";
+  const btnBg = isEmployee ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-700";
   const focusBorder = isEmployee ? "focus:border-blue-500" : "focus:border-emerald-500";
-  const iconColor = isEmployee ? "text-blue-600" : "text-green-600";
+  const iconColor = isEmployee ? "text-blue-600" : "text-emerald-600";
 
   const emptyForm = {
     proveedorId: "", fechaEntrega: "", observaciones: "", notas: "", porcentajeIva: 19,
