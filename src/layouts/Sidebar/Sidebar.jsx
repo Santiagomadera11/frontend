@@ -1,6 +1,6 @@
+import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { authService } from "../../features/auth/authService";
 import {
   LayoutDashboard, Users, User, ShoppingCart, Package, Tags, Truck, Award, Beaker,
   DollarSign, ClipboardList, Stethoscope, Calendar, Settings,
@@ -26,9 +26,9 @@ const Sidebar = ({ onClose, onShowLogoutModal }) => {
     return () => window.removeEventListener("permissionsUpdated", handlePermissionsUpdate);
   }, []);
 
-  const user = authService.getCurrentUser();
-  const userRole = (user?.rol || "").toLowerCase().trim();
-  const userPerms = user?.permisos || [];
+  const { currentUser } = useCurrentUser();
+  const userRole = (currentUser?.rol || "").toLowerCase().trim();
+  const userPerms = currentUser?.permisos || [];
 
   const has = (...perms) => {
     if (userRole === "administrador") return true;

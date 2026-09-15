@@ -31,6 +31,11 @@ export const UserFormModal = ({ isOpen, onClose, onSave, userToEdit }) => {
     // Cargar tipos de documento desde backend con fallback a localStorage
     fetchDocumentTypes().then(types => setDocumentTypes(types));
 
+    // Cargar roles disponibles
+    userService.getRoles()
+      .then(roles => setRolesOptions(roles.filter(r => r.estado ?? true)))
+      .catch(() => setRolesOptions([]));
+
     const handleParamUpdate = () => setDocumentTypes(getDocumentTypes());
     window.addEventListener("syspharma_parameters_updated", handleParamUpdate);
 
