@@ -45,6 +45,13 @@ export const EmployeeServicesPage = () => {
   const isMountedRef = useRef(false);
   const isLoadingRef = useRef(false);
 
+  const isAdmin = (user.rol || "").toLowerCase().trim() === "administrador";
+  const hasPerm = (perm) =>
+    isAdmin || (user.permisos || []).map((p) => String(p || "").toLowerCase().trim()).includes(perm);
+  const canCreate = hasPerm("services.create");
+  const canEdit = hasPerm("services.edit");
+  const canDelete = hasPerm("services.delete");
+
   const loadServices = useCallback(async () => {
     if (isLoadingRef.current) return;
     isLoadingRef.current = true;
@@ -92,8 +99,9 @@ export const EmployeeServicesPage = () => {
 
   // --- ACCIONES ---
   const handleCreate = () => {
+    if (!canCreate) return;
     // Intercepción: Solo empleados deben chequear turno
-    if (user.rol !== "Administrador" && !turnService.hasActiveTurn()) {
+    if (!isAdmin && !turnService.hasActiveTurn()) {
       setShowOpenShiftModal(true);
       return;
     }
@@ -113,6 +121,7 @@ export const EmployeeServicesPage = () => {
   };
 
   const handleEdit = (service) => {
+    if (!canEdit) return;
     setEditingItem(service);
     setIsViewMode(false);
     setIsModalOpen(true);
@@ -125,6 +134,7 @@ export const EmployeeServicesPage = () => {
   };
 
   const handleDelete = async (id) => {
+    if (!canDelete) return;
     try {
       await apiClient.delete(`${SERVICES_ENDPOINT}/${id}`);
       setServices(services.filter((s) => s.id !== id));
@@ -208,27 +218,29 @@ export const EmployeeServicesPage = () => {
           <h1 className="text-lg font-bold text-gray-800">Servicios</h1>
           <p className="text-xs text-gray-500">Gestión de procedimientos</p>
         </div>
-        <div className="relative">
-          <button
-            onClick={handleCreate}
-            disabled={!hasActiveTurn}
-            onMouseEnter={() => !hasActiveTurn && setShowTurnTooltip(true)}
-            onMouseLeave={() => setShowTurnTooltip(false)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium shadow-sm transition-colors ${
-              hasActiveTurn
-                ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
-            }`}
-          >
-            <Plus size={16} /> Nuevo
-          </button>
-          {showTurnTooltip && !hasActiveTurn && (
-            <div className="absolute top-full mt-2 right-0 bg-gray-800 text-white text-xs rounded-md px-3 py-2 whitespace-nowrap shadow-lg z-50 flex items-center gap-1.5">
-              <AlertCircle size={14} />
-              Debes abrir caja para realizar esta operación
-            </div>
-          )}
-        </div>
+        {canCreate && (
+          <div className="relative">
+            <button
+              onClick={handleCreate}
+              disabled={!hasActiveTurn}
+              onMouseEnter={() => !hasActiveTurn && setShowTurnTooltip(true)}
+              onMouseLeave={() => setShowTurnTooltip(false)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium shadow-sm transition-colors ${
+                hasActiveTurn
+                  ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
+              }`}
+            >
+              <Plus size={16} /> Nuevo
+            </button>
+            {showTurnTooltip && !hasActiveTurn && (
+              <div className="absolute top-full mt-2 right-0 bg-gray-800 text-white text-xs rounded-md px-3 py-2 whitespace-nowrap shadow-lg z-50 flex items-center gap-1.5">
+                <AlertCircle size={14} />
+                Debes abrir caja para realizar esta operación
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* FILTROS */}
@@ -349,21 +361,25 @@ export const EmployeeServicesPage = () => {
                           <Eye size={14} />
                         </button>
                         {/* EDITAR */}
-                        <button
-                          onClick={() => handleEdit(srv)}
-                          className="p-1 rounded border border-blue-200 text-blue-600 hover:bg-blue-50"
-                          title="Editar"
-                        >
-                          <Edit size={14} />
-                        </button>
+                        {canEdit && (
+                          <button
+                            onClick={() => handleEdit(srv)}
+                            className="p-1 rounded border border-blue-200 text-blue-600 hover:bg-blue-50"
+                            title="Editar"
+                          >
+                            <Edit size={14} />
+                          </button>
+                        )}
                         {/* ELIMINAR */}
-                        <button
-                          onClick={() => handleDelete(srv.id)}
-                          className="p-1 rounded border border-red-200 text-red-600 hover:bg-red-50"
-                          title="Eliminar"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDelete(srv.id)}
+                            className="p-1 rounded border border-red-200 text-red-600 hover:bg-red-50"
+                            title="Eliminar"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -411,7 +427,7 @@ export const EmployeeServicesPage = () => {
         isOpen={showOpenShiftModal}
         onShiftOpened={handleShiftOpenedThenCreate}
         user={user}
-        canClose={user.rol === "Administrador"}
+        canClose={isAdmin}
         onCancel={() => setShowOpenShiftModal(false)}
       />
     </div>
