@@ -33,7 +33,7 @@ export const usePermissionsSync = () => {
           // Notifica a todos los componentes
           window.dispatchEvent(new Event("permissionsUpdated"));
         }
-      } catch (error) {
+      } catch {
         // Silencioso
       }
     };
@@ -45,5 +45,5 @@ export const usePermissionsSync = () => {
     intervalRef.current = setInterval(sync, POLL_INTERVAL);
 
     return () => clearInterval(intervalRef.current);
-  }, [currentUser?.id, currentUser?.rolId, refreshUser]);
+  }, [currentUser, refreshUser]);
 };

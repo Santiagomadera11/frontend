@@ -131,6 +131,8 @@ const NewProductPage = () => {
       window.removeEventListener("brands:changed", onChange);
       window.removeEventListener("presentations:changed", onChange);
     };
+    // Solo lee el estado de navegación inicial al montar; no debe re-ejecutar si location cambia
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleImageChange = async (e) => {
@@ -423,6 +425,16 @@ const NewProductPage = () => {
                   value={formData.presentacionId} onChange={(e) => setFormData({ ...formData, presentacionId: e.target.value })}>
                   <option value="">Seleccionar...</option>
                   {presentations.map(pres => <option key={pres.id} value={pres.id}>{pres.nombre}</option>)}
+                </select>
+              </div>
+
+              {/* Proveedor */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Proveedor</label>
+                <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-white"
+                  value={formData.proveedorId} onChange={(e) => setFormData({ ...formData, proveedorId: e.target.value })}>
+                  <option value="">Seleccionar...</option>
+                  {providers.map(prov => <option key={prov.id} value={prov.id}>{prov.nombre}</option>)}
                 </select>
               </div>
 

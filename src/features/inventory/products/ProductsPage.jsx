@@ -232,7 +232,7 @@ export const ProductsPage = () => {
   useEffect(() => {
     if (totalPages === 0) setCurrentPage(1);
     else if (currentPage > totalPages) setCurrentPage(totalPages);
-  }, [totalPages]);
+  }, [totalPages, currentPage]);
 
   return (
     <div className="h-full flex flex-col p-3 sm:p-6 font-sans text-gray-800 bg-white md:bg-transparent relative overflow-hidden">

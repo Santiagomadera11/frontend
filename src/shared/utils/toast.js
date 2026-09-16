@@ -7,6 +7,7 @@ export const toast = {
         }),
       );
     } catch {
+      // ignore if CustomEvent not supported
     }
   },
   error: (message, title) => {
@@ -28,6 +29,7 @@ export const toast = {
         }),
       );
     } catch {
+      // ignore if CustomEvent not supported
     }
   },
   // allow simple call like toast('msg')

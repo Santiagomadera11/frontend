@@ -14,7 +14,6 @@ export const SalesReport = () => {
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [groupBy, setGroupBy] = useState("day"); // day, product, payment
   const [notification, setNotification] = useState(null);
 
   useEffect(() => {
@@ -25,7 +24,7 @@ export const SalesReport = () => {
     try {
       const data = await salesService.getAll();
       setSales(Array.isArray(data) ? data : []);
-    } catch (err) {
+    } catch {
       setNotification({ message: "Error cargando ventas", type: "error" });
     } finally {
       setLoading(false);

@@ -9,6 +9,10 @@ const getAuthHeaders = () => ({
   headers: { Authorization: `Bearer ${sessionStorage.getItem("syspharma_token")}` },
 });
 
+const emptyForm = {
+  proveedorId: "", fechaEntrega: "", observaciones: "", notas: "", porcentajeIva: 19,
+};
+
 const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", onSave }) => {
   const { currentUser } = useCurrentUser();
   const isEmployee = currentUser.rol === "Empleado";
@@ -17,10 +21,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
   const btnBg = isEmployee ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-700";
   const focusBorder = isEmployee ? "focus:border-blue-500" : "focus:border-emerald-500";
   const iconColor = isEmployee ? "text-blue-600" : "text-emerald-600";
-
-  const emptyForm = {
-    proveedorId: "", fechaEntrega: "", observaciones: "", notas: "", porcentajeIva: 19,
-  };
 
   const [formData, setFormData] = useState(emptyForm);
   const [products, setProducts] = useState([]);
@@ -115,7 +115,10 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
     };
 
     loadPurchaseDetails();
-  }, [initialData?.id, isOpen, mode]); // solo depende del ID, no del objeto entero
+    // Solo depende del ID, no del objeto entero: evita reabrir el formulario si el padre
+    // re-renderiza pasando un initialData con la misma compra pero nueva referencia
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData?.id, isOpen, mode]);
 
   if (!isOpen) return null;
   const isView = mode === "view";

@@ -1,5 +1,5 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { ConfirmDialog } from "../../shared/ui/ConfirmDialog";
 import {
   Shield, Edit, Trash2, Settings, Users,
@@ -11,7 +11,6 @@ import {
 import { ToastNotification } from "../../shared/ui/ToastNotification";
 import { apiClient } from "../../shared/utils/apiClient";
 import { rolesService } from "./rolesService";
-import { permissionService } from "./permissionService";
 import { PERMISSIONS_CONFIG } from "./rolesConfig";
 import ParameterManagement from "./components/ParameterManagement";
 
@@ -165,7 +164,7 @@ export const SettingsPage = () => {
   const [roleActive, setRoleActive] = useState(true);
   const [selectedPerms, setSelectedPerms] = useState({});
 
-  const { currentUser } = useCurrentUser();
+  const { currentUser, refreshUser } = useCurrentUser();
   const user = currentUser || {};
   const isAdmin = (user.rol || "").toLowerCase().trim() === "administrador";
   const userPerms = (user.permisos || []).map((p) => String(p || "").toLowerCase().trim());
@@ -183,7 +182,9 @@ export const SettingsPage = () => {
       try {
         const res = await apiClient.get("/api/Configuracion/dias_alerta_vencimiento");
         setDiasAlerta(res.data?.valor);
-      } catch {}
+      } catch {
+        // ignora si no hay configuración guardada
+      }
     };
     cargarConfiguracion();
   }, []);
@@ -194,7 +195,7 @@ export const SettingsPage = () => {
       const response = await rolesService.getAll();
       setRoles(Array.isArray(response) ? response : (response?.data || []));
       setCurrentPage(1);
-    } catch (error) {
+    } catch {
       setRoles([]);
     } finally {
       setLoading(false);

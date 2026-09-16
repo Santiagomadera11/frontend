@@ -2,6 +2,32 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, Save, Upload, Loader2 } from "lucide-react";
 import { uploadService } from "../../../../shared/services/uploadService";
 
+const emptyForm = {
+  nombre: "",
+  descripcion: "", // <-- AGREGADO
+  marcaId: "",
+  tipoProducto: "Producto General",
+  categoriaId: "",
+  proveedorId: "",
+  precio: "",
+  porcentajeIva: 0,
+  stock: 0,
+  estado: true,
+  imagen: null,
+  composicion: "",
+  concentracion: "",
+  presentacionId: "",
+  viaAdministracion: "",
+  registroSanitario: "",
+  requiereFormula: false,
+  indicaciones: "",
+  posologia: "",
+  unidadesPorEnvase: "",
+  requiereRefrigeracion: false,
+  afectaConduccion: false,
+  fotosensible: false,
+};
+
 const ProductModal = ({
   isOpen,
   onClose,
@@ -12,31 +38,6 @@ const ProductModal = ({
   brands = [],
   presentations = [],
 }) => {
-  const emptyForm = {
-    nombre: "",
-    descripcion: "", // <-- AGREGADO
-    marcaId: "",
-    tipoProducto: "Producto General",
-    categoriaId: "",
-    proveedorId: "",
-    precio: "",
-    porcentajeIva: 0,
-    stock: 0,
-    estado: true,
-    imagen: null,
-    composicion: "",
-    concentracion: "",
-    presentacionId: "",
-    viaAdministracion: "",
-    registroSanitario: "",
-    requiereFormula: false,
-    indicaciones: "",
-    posologia: "",
-    unidadesPorEnvase: "",
-    requiereRefrigeracion: false,
-    afectaConduccion: false,
-    fotosensible: false,
-  };
 
   const [formData, setFormData] = useState(emptyForm);
   const [imagePreview, setImagePreview] = useState(null);
@@ -191,6 +192,14 @@ const ProductModal = ({
                 value={formData.presentacionId} onChange={(e) => setFormData(p => ({ ...p, presentacionId: e.target.value }))}>
                 <option value="">Seleccionar...</option>
                 {presentations.map(pres => <option key={pres.id} value={pres.id}>{pres.nombre}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Proveedor</label>
+              <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-emerald-500 bg-white"
+                value={formData.proveedorId} onChange={(e) => setFormData(p => ({ ...p, proveedorId: e.target.value }))}>
+                <option value="">Seleccionar...</option>
+                {providers.map(prov => <option key={prov.id} value={prov.id}>{prov.nombre}</option>)}
               </select>
             </div>
             <div>
