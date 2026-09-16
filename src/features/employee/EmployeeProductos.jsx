@@ -51,7 +51,7 @@ export const EmployeeProductos = () => {
 
   const StateBadge = ({ estado }) => (
     <span className={`inline-block px-3 py-1.5 rounded-full text-[10px] font-bold ${
-      estado ? "bg-blue-100 text-blue-700" : "bg-gray-200 text-gray-700"
+      estado ? "bg-employee-100 text-employee-700" : "bg-gray-200 text-gray-700"
     }`}>
       {estado ? "Activo" : "Inactivo"}
     </span>
@@ -80,7 +80,7 @@ export const EmployeeProductos = () => {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-3 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          className="px-3 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-employee-600"
         >
           <option value="todos">Todos</option>
           <option value="Activo">Activos</option>
@@ -91,7 +91,7 @@ export const EmployeeProductos = () => {
       <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col overflow-hidden">
         <div className="flex-1">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-blue-700 text-white sticky top-0 z-10">
+            <thead className="bg-employee-700 text-white sticky top-0 z-10">
               <tr>
                 <th className="py-3 px-4 text-[11px] font-semibold">ID</th>
                 <th className="py-3 px-4 text-[11px] font-semibold">Nombre</th>
@@ -105,11 +105,11 @@ export const EmployeeProductos = () => {
             <tbody className="divide-y divide-gray-100">
               {currentItems.length > 0 ? (
                 currentItems.map((prod, idx) => (
-                  <tr key={prod.id} className="hover:bg-blue-50 transition-colors">
+                  <tr key={prod.id} className="hover:bg-employee-50 transition-colors">
                     <td className="py-3 px-4 text-xs font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <Package size={14} className="text-blue-500" />
+                        <Package size={14} className="text-employee-500" />
                         <span className="text-xs font-semibold text-gray-900">{prod.nombre}</span>
                       </div>
                     </td>
@@ -119,7 +119,7 @@ export const EmployeeProductos = () => {
                     }`}>
                       {prod.stock}
                     </td>
-                    <td className="py-3 px-4 text-xs text-right font-semibold text-blue-600">
+                    <td className="py-3 px-4 text-xs text-right font-semibold text-employee-600">
                       $ {prod.precio}
                     </td>
                     <td className="py-3 px-4 text-center">
@@ -129,7 +129,7 @@ export const EmployeeProductos = () => {
                       <div className="flex justify-center">
                         <button
                           onClick={() => handleViewDetail(prod)}
-                          className="p-2 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors"
+                          className="p-2 rounded-lg border border-employee-200 text-employee-600 hover:bg-employee-50 transition-colors"
                           title="Ver detalle"
                         >
                           <Eye size={16} />

@@ -159,7 +159,7 @@ export const EmployeeAvailabilityConfigPage = () => {
               Seleccionar Profesional Médico
             </label>
             <select
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-employee-400"
               value={selectedDoctor?.id || ""}
               onChange={(e) => {
                 const d = doctors.find((x) => x.id === parseInt(e.target.value));
@@ -185,7 +185,7 @@ export const EmployeeAvailabilityConfigPage = () => {
                 <button
                   onClick={handleSaveSchedule}
                   disabled={saving}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center gap-1 disabled:opacity-60"
+                  className="px-3 py-1.5 bg-employee-600 hover:bg-employee-700 text-white rounded-lg text-sm font-medium flex items-center gap-1 disabled:opacity-60"
                 >
                   <Save size={15} />
                   {saving ? "Guardando..." : "Guardar Horario"}
@@ -203,7 +203,7 @@ export const EmployeeAvailabilityConfigPage = () => {
                         onClick={() => toggleDay(dia)}
                         className={`px-3 py-1 rounded text-sm font-medium ${
                           scheduleMap[dia]
-                            ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                            ? "bg-employee-100 text-employee-700 hover:bg-employee-200"
                             : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                         }`}
                       >
@@ -221,7 +221,7 @@ export const EmployeeAvailabilityConfigPage = () => {
                           <div className="flex gap-2 items-center">
                             <input
                               type="time"
-                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-employee-400"
                               value={scheduleMap[dia].mananaInicio}
                               onChange={(e) =>
                                 handleTimeChange(dia, "mananaInicio", e.target.value)
@@ -230,7 +230,7 @@ export const EmployeeAvailabilityConfigPage = () => {
                             <span className="text-gray-400 text-sm">a</span>
                             <input
                               type="time"
-                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-employee-400"
                               value={scheduleMap[dia].mananaFin}
                               onChange={(e) =>
                                 handleTimeChange(dia, "mananaFin", e.target.value)
@@ -246,7 +246,7 @@ export const EmployeeAvailabilityConfigPage = () => {
                           <div className="flex gap-2 items-center">
                             <input
                               type="time"
-                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-employee-400"
                               value={scheduleMap[dia].tardeInicio}
                               onChange={(e) =>
                                 handleTimeChange(dia, "tardeInicio", e.target.value)
@@ -255,7 +255,7 @@ export const EmployeeAvailabilityConfigPage = () => {
                             <span className="text-gray-400 text-sm">a</span>
                             <input
                               type="time"
-                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-employee-400"
                               value={scheduleMap[dia].tardeFin}
                               onChange={(e) =>
                                 handleTimeChange(dia, "tardeFin", e.target.value)
@@ -327,7 +327,7 @@ export const EmployeeAvailabilityConfigPage = () => {
                   </div>
                   <button
                     onClick={handleAddBloqueo}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-1"
+                    className="px-3 py-1.5 bg-employee-600 hover:bg-employee-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-1"
                   >
                     <Plus size={15} /> Agregar
                   </button>

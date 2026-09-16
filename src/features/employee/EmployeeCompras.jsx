@@ -76,7 +76,7 @@ export const EmployeeCompras = () => {
     const baseClass = "px-2 py-0.5 rounded text-[10px] font-bold border";
     const lower = (estado || "").toLowerCase();
     if (lower === "recibida") return <span className={`${baseClass} bg-emerald-50 text-emerald-700 border-emerald-200`}>Recibida</span>;
-    if (lower === "pendiente") return <span className={`${baseClass} bg-blue-50 text-blue-700 border-blue-200`}>Pendiente</span>;
+    if (lower === "pendiente") return <span className={`${baseClass} bg-employee-50 text-employee-700 border-employee-200`}>Pendiente</span>;
     if (lower === "en camino") return <span className={`${baseClass} bg-yellow-50 text-yellow-700 border-yellow-200`}>En Camino</span>;
     if (lower === "cancelada") return <span className={`${baseClass} bg-red-50 text-red-700 border-red-200`}>Cancelada</span>;
     return <span className={`${baseClass} bg-gray-50 text-gray-700 border-gray-200`}>{estado}</span>;
@@ -120,7 +120,7 @@ export const EmployeeCompras = () => {
           <p className="text-xs text-gray-500">Gestión de adquisiciones</p>
         </div>
         <button onClick={() => { setSelectedPurchase(null); setModalMode("create"); setIsModalOpen(true); }}
-          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm font-medium shadow-sm">
+          className="flex items-center gap-1.5 bg-employee-600 hover:bg-employee-700 text-white px-3 py-1.5 rounded-md text-sm font-medium shadow-sm">
           <Plus size={16} /> Nueva
         </button>
       </div>
@@ -129,11 +129,11 @@ export const EmployeeCompras = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input type="text" placeholder="Buscar compra..."
-            className="w-full pl-9 pr-3 py-1.5 rounded-md border border-gray-300 focus:outline-none focus:border-blue-400 text-sm bg-white"
+            className="w-full pl-9 pr-3 py-1.5 rounded-md border border-gray-300 focus:outline-none focus:border-employee-400 text-sm bg-white"
             value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }} />
         </div>
         <div className="relative w-36">
-          <select className="w-full pl-3 pr-8 py-1.5 rounded-md border border-gray-300 focus:outline-none focus:border-blue-400 text-sm bg-white appearance-none cursor-pointer"
+          <select className="w-full pl-3 pr-8 py-1.5 rounded-md border border-gray-300 focus:outline-none focus:border-employee-400 text-sm bg-white appearance-none cursor-pointer"
             value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setCurrentPage(1); }}>
             <option value="Todos">Todos</option>
             {estados.map(e => <option key={e.id} value={e.nombre}>{e.nombre}</option>)}
@@ -145,7 +145,7 @@ export const EmployeeCompras = () => {
       <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-blue-600 text-white sticky top-0 z-10">
+            <thead className="bg-employee-600 text-white sticky top-0 z-10">
               <tr>
                 {["#", "Proveedor", "Fecha", "Total", "Items", "Estado", "Acciones"].map(h => (
                   <th key={h} className="py-2 px-3 text-[10px] font-bold uppercase tracking-wider">{h}</th>
@@ -163,7 +163,7 @@ export const EmployeeCompras = () => {
                     <td className="py-1.5 px-3 text-xs font-medium text-gray-900">{compra.numeroCompra}</td>
                     <td className="py-1.5 px-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
+                        <div className="w-5 h-5 rounded bg-employee-50 flex items-center justify-center text-employee-600 flex-shrink-0">
                           <ShoppingBag size={12} />
                         </div>
                         <span className="text-xs font-bold text-gray-700 truncate max-w-[150px]">{compra.proveedorNombre}</span>
@@ -172,7 +172,7 @@ export const EmployeeCompras = () => {
                     <td className="py-1.5 px-3 text-xs text-gray-500">
                       {compra.fechaCompra ? new Date(compra.fechaCompra).toLocaleDateString("es-CO") : "-"}
                     </td>
-                    <td className="py-1.5 px-3 text-xs font-bold text-blue-600 text-right">
+                    <td className="py-1.5 px-3 text-xs font-bold text-employee-600 text-right">
                       ${compra.total?.toLocaleString()}
                     </td>
                     <td className="py-1.5 px-3 text-xs text-center text-gray-600 font-medium">
@@ -182,11 +182,11 @@ export const EmployeeCompras = () => {
                     <td className="py-1.5 px-3">
                       <div className="flex items-center justify-center gap-1">
                         <button onClick={() => { setSelectedPurchase(compra); setModalMode("view"); setIsModalOpen(true); }}
-                          className="p-1 rounded border border-blue-200 text-blue-600 hover:bg-blue-50" title="Ver">
+                          className="p-1 rounded border border-employee-200 text-employee-600 hover:bg-employee-50" title="Ver">
                           <Eye size={14} />
                         </button>
                         <button onClick={() => { setSelectedPurchase(compra); setModalMode("edit"); setIsModalOpen(true); }}
-                          className="p-1 rounded border border-blue-200 text-blue-600 hover:bg-blue-50" title="Editar">
+                          className="p-1 rounded border border-employee-200 text-employee-600 hover:bg-employee-50" title="Editar">
                           <Edit size={14} />
                         </button>
                         <button onClick={() => setShowDeleteConfirm(compra)}

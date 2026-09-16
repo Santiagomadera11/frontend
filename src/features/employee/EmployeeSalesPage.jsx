@@ -198,7 +198,7 @@ export const EmployeeSalesPage = () => {
     if (lower === "completada") return "bg-emerald-100 text-emerald-700";
     if (lower === "devolucion") return "bg-orange-100 text-orange-700";
     if (lower === "anulada") return "bg-red-100 text-red-700";
-    return "bg-blue-100 text-blue-700";
+    return "bg-employee-100 text-employee-700";
   };
 
   // ── Sin acceso a ventas
@@ -238,7 +238,7 @@ export const EmployeeSalesPage = () => {
           {canReturnSale && (
             <button
               onClick={handleReturn}
-              className="px-4 py-2 rounded-lg font-bold shadow-sm text-xs flex items-center gap-1.5 transition-all bg-blue-600 hover:bg-blue-700 text-white"
+              className="px-4 py-2 rounded-lg font-bold shadow-sm text-xs flex items-center gap-1.5 transition-all bg-employee-600 hover:bg-employee-700 text-white"
             >
               <RotateCcw size={16} /> Devoluciones
             </button>
@@ -268,11 +268,11 @@ export const EmployeeSalesPage = () => {
           </button>
 
           {/* Estado turno */}
-          <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
-            <Clock size={16} className="text-blue-600" />
+          <div className="flex items-center gap-2 bg-employee-50 px-4 py-2 rounded-lg border border-employee-200">
+            <Clock size={16} className="text-employee-600" />
             <div>
               <p className="text-xs text-gray-600">Estado Turno</p>
-              <p className="text-sm font-bold text-blue-600">
+              <p className="text-sm font-bold text-employee-600">
                 {turnoLoading ? "..." : currentTurn ? `✓ Activo #${currentTurn.id}` : "✗ Cerrado"}
               </p>
             </div>
@@ -282,7 +282,7 @@ export const EmployeeSalesPage = () => {
 
       {/* ── KPIs ── */}
       <div className="grid grid-cols-3 gap-3 flex-shrink-0">
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border border-cyan-200 shadow-sm">
+        <div className="bg-gradient-to-br from-employee-50 to-cyan-50 rounded-xl p-4 border border-cyan-200 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <ShoppingCart className="text-cyan-600" size={18} />
             <h3 className="text-sm font-bold text-gray-800">Ventas de hoy</h3>
@@ -291,12 +291,12 @@ export const EmployeeSalesPage = () => {
           <div className="text-xs text-gray-500 mt-1">{ventasHoy.length} ventas</div>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-200 shadow-sm">
+        <div className="bg-gradient-to-br from-employee-50 to-cyan-50 rounded-xl p-4 border border-employee-200 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <Receipt className="text-blue-600" size={18} />
+            <Receipt className="text-employee-600" size={18} />
             <h3 className="text-sm font-bold text-gray-800">Total registros</h3>
           </div>
-          <div className="text-2xl font-bold text-blue-600">{sales.length}</div>
+          <div className="text-2xl font-bold text-employee-600">{sales.length}</div>
           <div className="text-xs text-gray-500 mt-1">{ventasHoy.length} hoy</div>
         </div>
 
@@ -317,7 +317,7 @@ export const EmployeeSalesPage = () => {
           <input
             type="text"
             placeholder="Buscar cliente, número de venta o método de pago..."
-            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-300 text-xs bg-white"
+            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-employee-300 text-xs bg-white"
             value={searchTerm}
             onChange={e => { setSearchTerm(e.target.value); setCurrentPage(0); }}
           />
@@ -337,7 +337,7 @@ export const EmployeeSalesPage = () => {
         {canCreateSale && (
           <button
             onClick={handleNewSale}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm text-xs flex items-center gap-1.5 transition-all"
+            className="bg-employee-600 hover:bg-employee-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm text-xs flex items-center gap-1.5 transition-all"
           >
             <Plus size={16} /> Nueva venta
           </button>
@@ -348,7 +348,7 @@ export const EmployeeSalesPage = () => {
       <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between">
         <div className="overflow-auto flex-1">
           <table className="w-full text-left border-collapse text-xs">
-            <thead className="bg-blue-600 text-white uppercase sticky top-0 z-10">
+            <thead className="bg-employee-600 text-white uppercase sticky top-0 z-10">
               <tr>
                 {["#", "Fecha", "Cliente", "Productos", "Método", "Total", "Estado", "Ver"].map(h => (
                   <th key={h} className="px-3 py-3 font-semibold">{h}</th>
@@ -371,10 +371,10 @@ export const EmployeeSalesPage = () => {
                       </td>
                       <td className="px-3 py-2.5 font-medium">{sale.clienteNombre || "Consumidor Final"}</td>
                       <td className="px-3 py-2.5 text-center">
-                        <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-semibold">{totalProductos}</span>
+                        <span className="bg-employee-100 text-employee-700 px-2 py-0.5 rounded font-semibold">{totalProductos}</span>
                       </td>
                       <td className="px-3 py-2.5 text-gray-600">{sale.metodoPagoNombre || "-"}</td>
-                      <td className="px-3 py-2.5 font-bold text-blue-600 text-right">{fmt(sale.total)}</td>
+                      <td className="px-3 py-2.5 font-bold text-employee-600 text-right">{fmt(sale.total)}</td>
                       <td className="px-3 py-2.5 text-center">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${getEstadoBadge(sale.estadoNombre)}`}>
                           {sale.estadoNombre}
@@ -383,7 +383,7 @@ export const EmployeeSalesPage = () => {
                       <td className="px-3 py-2.5">
                         <button
                           onClick={() => { setSelectedSale(sale); setIsSaleDetailOpen(true); }}
-                          className="bg-blue-50 hover:bg-blue-100 text-blue-600 p-1.5 rounded-md border border-blue-200"
+                          className="bg-employee-50 hover:bg-employee-100 text-employee-600 p-1.5 rounded-md border border-employee-200"
                         >
                           <Eye size={14} />
                         </button>

@@ -6,6 +6,7 @@ import {
   ClipboardList, Calendar, Stethoscope, User, LogOut, X, Tags, Truck, Award, Beaker,
   BarChart3, TrendingUp, Settings, ChevronDown, ChevronRight,
 } from "lucide-react";
+import icono1 from "../../assets/icono1.png";
 
 const normalizePerm = (perm) => String(perm || "").toLowerCase().trim();
 
@@ -49,12 +50,16 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       }`}>
         <div className="h-14 flex items-center justify-between px-5 border-b border-gray-700 bg-[#152A47]">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-400 p-1 rounded-md shadow-lg shadow-blue-400/20">
-              <Stethoscope size={18} className="text-white" />
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="p-0.5 flex-shrink-0">
+              <img
+                src={icono1}
+                alt="SysPharma Logo"
+                className="w-7 h-7 object-contain rounded-full"
+              />
             </div>
-            <div>
-              <h1 className="text-base font-bold tracking-wide">SysPharma</h1>
+            <div className="hidden sm:block min-w-0">
+              <h1 className="text-base font-bold tracking-wide truncate">SysPharma</h1>
               <p className="text-[9px] text-gray-400 uppercase tracking-wider">Panel</p>
             </div>
           </div>
@@ -209,7 +214,7 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
 
 const MenuItem = ({ to, icon: Icon, label, active }) => (
   <Link to={to} className={`flex items-center px-3 py-2 rounded-md transition-all duration-200 group ${
-    active ? "bg-blue-600 text-white shadow-sm font-medium" : "text-gray-300 hover:bg-white/5 hover:text-white"
+    active ? "bg-employee-500 text-white shadow-sm" : "text-gray-300 hover:bg-white/5 hover:text-white"
   }`}>
     <Icon size={18} className={`mr-3 transition-colors ${active ? "text-white" : "text-gray-400 group-hover:text-white"}`} />
     <span className="text-xs font-medium">{label}</span>
@@ -218,7 +223,7 @@ const MenuItem = ({ to, icon: Icon, label, active }) => (
 
 const SubMenuItem = ({ to, label, icon: Icon, active }) => (
   <Link to={to} className={`flex items-center pl-10 pr-3 py-1.5 text-xs transition-colors rounded-md mb-0.5 ${
-    active ? "text-blue-400 font-bold bg-white/5" : "text-gray-400 hover:text-white hover:bg-white/5"
+    active ? "text-employee-400 font-bold bg-white/5" : "text-gray-400 hover:text-white hover:bg-white/5"
   }`}>
     {Icon && <Icon size={14} className="mr-2 opacity-70" />}
     {label}
@@ -236,7 +241,7 @@ const MenuGroup = ({ to, title, icon: Icon, isOpen, onToggle, children, active }
   return (
     <div className="mb-0.5">
       <div className={`flex items-center rounded-md transition-colors ${
-        active ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-white/5 hover:text-white"
+        active ? "bg-employee-500 text-white" : "text-gray-300 hover:bg-white/5 hover:text-white"
       }`}>
         {to ? (
           <Link to={to} className="flex-1 flex items-center px-3 py-2 cursor-pointer outline-none">{content}</Link>

@@ -227,7 +227,7 @@ export const EmployeeServicesPage = () => {
               onMouseLeave={() => setShowTurnTooltip(false)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium shadow-sm transition-colors ${
                 hasActiveTurn
-                  ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                  ? "bg-employee-600 hover:bg-employee-700 text-white cursor-pointer"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-60"
               }`}
             >
@@ -253,14 +253,14 @@ export const EmployeeServicesPage = () => {
           <input
             type="text"
             placeholder="Buscar servicio..."
-            className="w-full pl-9 pr-3 py-1.5 rounded-md border border-gray-300 text-sm focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-3 py-1.5 rounded-md border border-gray-300 text-sm focus:outline-none focus:border-employee-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="relative w-36">
           <select
-            className="w-full pl-3 pr-8 py-1.5 rounded-md border border-gray-300 text-sm bg-white appearance-none cursor-pointer focus:outline-none focus:border-blue-500"
+            className="w-full pl-3 pr-8 py-1.5 rounded-md border border-gray-300 text-sm bg-white appearance-none cursor-pointer focus:outline-none focus:border-employee-500"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -279,7 +279,7 @@ export const EmployeeServicesPage = () => {
       <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-blue-600 text-white sticky top-0 z-10">
+            <thead className="bg-employee-600 text-white sticky top-0 z-10">
               <tr>
                 <th className="py-2 px-3 text-[10px] font-bold uppercase">
                   ID
@@ -309,7 +309,7 @@ export const EmployeeServicesPage = () => {
                 <tr>
                   <td colSpan="7" className="py-8 text-center text-gray-500">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-employee-600"></div>
                       Cargando servicios...
                     </div>
                   </td>
@@ -330,7 +330,7 @@ export const EmployeeServicesPage = () => {
                     </td>
                     <td className="py-1.5 px-3">
                       <div className="flex items-center gap-2">
-                        <Stethoscope size={12} className="text-blue-600" />
+                        <Stethoscope size={12} className="text-employee-600" />
                         <span className="text-xs font-bold text-gray-700">
                           {srv.nombre}
                         </span>
@@ -339,7 +339,7 @@ export const EmployeeServicesPage = () => {
                     <td className="py-1.5 px-3 text-xs text-gray-600">
                       {srv.categoria}
                     </td>
-                    <td className="py-1.5 px-3 text-xs font-bold text-blue-600 text-right">
+                    <td className="py-1.5 px-3 text-xs font-bold text-employee-600 text-right">
                       $ {Number(srv.precio).toLocaleString()}
                     </td>
                     <td className="py-1.5 px-3 text-xs text-center text-gray-500">
@@ -355,7 +355,7 @@ export const EmployeeServicesPage = () => {
                         {/* VER DETALLE */}
                         <button
                           onClick={() => handleView(srv)}
-                          className="p-1 rounded border border-blue-200 text-blue-600 hover:bg-blue-50"
+                          className="p-1 rounded border border-employee-200 text-employee-600 hover:bg-employee-50"
                           title="Ver detalle"
                         >
                           <Eye size={14} />
@@ -364,7 +364,7 @@ export const EmployeeServicesPage = () => {
                         {canEdit && (
                           <button
                             onClick={() => handleEdit(srv)}
-                            className="p-1 rounded border border-blue-200 text-blue-600 hover:bg-blue-50"
+                            className="p-1 rounded border border-employee-200 text-employee-600 hover:bg-employee-50"
                             title="Editar"
                           >
                             <Edit size={14} />

@@ -164,7 +164,7 @@ export const EmployeeCitas = () => {
               onClick={() => setPeriodFilter(option.value)}
               className={`px-5 py-2.5 rounded-xl font-black text-sm transition-all flex items-center gap-2 ${
                 periodFilter === option.value
-                  ? "bg-blue-600 text-white shadow-md"
+                  ? "bg-employee-600 text-white shadow-md"
                   : "bg-transparent text-gray-600 hover:bg-gray-100"
               }`}
             >
@@ -179,7 +179,7 @@ export const EmployeeCitas = () => {
       <div className="grid grid-cols-3 gap-3 flex-shrink-0">
         <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-2xl">
+            <div className="p-2 bg-employee-50 text-employee-600 rounded-2xl">
               <CalendarIcon size={22} />
             </div>
             <h3 className="text-sm font-black uppercase tracking-widest text-gray-500">
@@ -279,12 +279,12 @@ export const EmployeeCitas = () => {
                       <span
                         className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border ${
                           apt.estado === "Completada"
-                            ? "bg-blue-50 text-blue-700 border-blue-100"
+                            ? "bg-employee-50 text-employee-700 border-employee-100"
                             : apt.estado === "Confirmar Asistencia"
                             ? "bg-amber-50 text-amber-700 border-amber-100"
                             : apt.estado === "Cancelada"
                             ? "bg-red-50 text-red-700 border-red-100"
-                            : "bg-blue-50 text-blue-700 border-blue-100"
+                            : "bg-employee-50 text-employee-700 border-employee-100"
                         }`}
                       >
                         {apt.estado}
@@ -295,7 +295,7 @@ export const EmployeeCitas = () => {
                         {/* Ver detalle */}
                         <button
                           onClick={() => handleViewDetail(apt)}
-                          className="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors"
+                          className="p-1.5 rounded-md text-employee-600 hover:bg-employee-50 transition-colors"
                           title="Ver detalle"
                         >
                           <Eye size={16} />
@@ -337,13 +337,13 @@ export const EmployeeCitas = () => {
       {isDetailModalOpen && selectedAppointment && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl flex flex-col">
-            <div className="px-6 py-4 flex items-center justify-between border-b border-blue-100 bg-blue-50">
-              <h2 className="text-lg font-semibold text-blue-900">
+            <div className="px-6 py-4 flex items-center justify-between border-b border-employee-100 bg-employee-50">
+              <h2 className="text-lg font-semibold text-employee-900">
                 Detalle de Cita
               </h2>
               <button
                 onClick={() => setIsDetailModalOpen(false)}
-                className="p-1 hover:bg-blue-100 rounded-lg text-blue-600"
+                className="p-1 hover:bg-employee-100 rounded-lg text-employee-600"
               >
                 ✕
               </button>
@@ -428,7 +428,7 @@ const StatusMenuButton = ({ appointment }) => {
         className={`p-1.5 rounded-md transition-all ${
           updating
             ? "text-gray-400 cursor-wait"
-            : "text-blue-600 hover:bg-blue-50"
+            : "text-employee-600 hover:bg-employee-50"
         }`}
         title="Cambiar estado"
       >
@@ -444,7 +444,7 @@ const StatusMenuButton = ({ appointment }) => {
               key={s}
               onClick={() => changeStatus(s)}
               className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
-                appointment.estado === s ? "font-black text-blue-600" : ""
+                appointment.estado === s ? "font-black text-employee-600" : ""
               }`}
             >
               {appointment.estado === s ? `✓ ${s}` : s}

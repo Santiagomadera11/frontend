@@ -21,9 +21,9 @@ const EmployeeServiceFormModal = ({
   isViewMode,
 }) => {
   // 🔵 VERSIÓN EMPLEADO - SIEMPRE AZUL
-  const headerBgColor = "bg-blue-600";
-  const buttonBgColor = "bg-blue-600 hover:bg-blue-700";
-  const focusBorderColor = "focus:border-blue-500";
+  const headerBgColor = "bg-employee-600";
+  const buttonBgColor = "bg-employee-600 hover:bg-employee-700";
+  const focusBorderColor = "focus:border-employee-500";
 
   const [formData, setFormData] = useState({
     id: "",

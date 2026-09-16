@@ -154,7 +154,7 @@ export const EmployeeDoctorsPage = () => {
       {/* Header */}
       <div className="flex items-start justify-between flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-blue-700">Gestión de Médicos</h1>
+          <h1 className="text-2xl font-bold text-employee-700">Gestión de Médicos</h1>
           <p className="text-gray-500 text-xs mt-0.5">Administra el registro completo de profesionales médicos</p>
         </div>
       </div>
@@ -164,18 +164,18 @@ export const EmployeeDoctorsPage = () => {
         <div className="flex-1 min-w-[250px] relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input type="text" placeholder="Buscar por nombre, especialidad o email..."
-            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-employee-500"
             value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(0); }} />
         </div>
         <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(0); }}
-          className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
+          className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-employee-500 bg-white">
           <option value="all">Todos</option>
           <option value="active">Activos</option>
           <option value="inactive">Inactivos</option>
         </select>
         {canCreate && (
           <button onClick={handleOpenCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2">
+            className="bg-employee-600 hover:bg-employee-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2">
             <Plus size={16} /> Nuevo Médico
           </button>
         )}
@@ -187,7 +187,7 @@ export const EmployeeDoctorsPage = () => {
           <div className="flex items-center justify-center h-48 text-gray-500">Cargando médicos...</div>
         ) : (
           <table className="w-full">
-            <thead className="bg-blue-600 text-white sticky top-0">
+            <thead className="bg-employee-600 text-white sticky top-0">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold">Nombre</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold">Especialidad</th>
@@ -213,17 +213,17 @@ export const EmployeeDoctorsPage = () => {
                     <td className="px-4 py-3 text-sm text-gray-600">{doctor.email}</td>
                     <td className="px-4 py-3 text-sm text-gray-600">{doctor.telefono}</td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${doctor.estado ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${doctor.estado ? "bg-employee-100 text-employee-700" : "bg-gray-100 text-gray-500"}`}>
                         {doctor.estado ? "Activo" : "Inactivo"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
-                        <button onClick={() => handleViewDetail(doctor)} className="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors" title="Ver detalle">
+                        <button onClick={() => handleViewDetail(doctor)} className="p-1.5 rounded-md text-employee-600 hover:bg-employee-50 transition-colors" title="Ver detalle">
                           <Eye size={16} />
                         </button>
                         {canChangeStatus && (
-                          <button onClick={() => handleToggleStatus(doctor)} className="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors" title="Cambiar estado">
+                          <button onClick={() => handleToggleStatus(doctor)} className="p-1.5 rounded-md text-employee-600 hover:bg-employee-50 transition-colors" title="Cambiar estado">
                             <CheckCircle size={16} />
                           </button>
                         )}
@@ -258,7 +258,7 @@ export const EmployeeDoctorsPage = () => {
               className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50"><ChevronLeft size={20} /></button>
             {Array.from({ length: totalPages }).map((_, i) => (
               <button key={i} onClick={() => setCurrentPage(i)}
-                className={`px-3 py-1 rounded text-sm font-medium ${currentPage === i ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
+                className={`px-3 py-1 rounded text-sm font-medium ${currentPage === i ? "bg-employee-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
                 {i + 1}
               </button>
             ))}
@@ -279,9 +279,9 @@ export const EmployeeDoctorsPage = () => {
       {isDetailModalOpen && selectedDoctor && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl flex flex-col">
-            <div className="px-6 py-4 flex items-center justify-between border-b border-blue-100 bg-blue-50">
-              <h2 className="text-lg font-semibold text-blue-900">{selectedDoctor.nombre}</h2>
-              <button onClick={() => setIsDetailModalOpen(false)} className="p-1 hover:bg-blue-100 rounded-lg text-blue-600"><X size={20} /></button>
+            <div className="px-6 py-4 flex items-center justify-between border-b border-employee-100 bg-employee-50">
+              <h2 className="text-lg font-semibold text-employee-900">{selectedDoctor.nombre}</h2>
+              <button onClick={() => setIsDetailModalOpen(false)} className="p-1 hover:bg-employee-100 rounded-lg text-employee-600"><X size={20} /></button>
             </div>
             <div className="p-6 space-y-4">
               {[
@@ -295,8 +295,8 @@ export const EmployeeDoctorsPage = () => {
                   <p className="text-sm text-gray-900 font-medium">{value}</p>
                 </div>
               ))}
-              <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                <p className="text-xs text-blue-700 font-medium">
+              <div className="p-3 bg-employee-50 border border-employee-100 rounded-lg">
+                <p className="text-xs text-employee-700 font-medium">
                   💡 El horario detallado se configura desde la pestaña <strong>Disponibilidad</strong>.
                 </p>
               </div>

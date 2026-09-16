@@ -7,7 +7,7 @@ export const EmployeeHeader = ({ onMenuClick }) => {
   const user = currentUser || { nombre: "Usuario", rol: "Empleado" };
 
   return (
-    <header className="h-14 bg-blue-600 border-b border-blue-700 flex items-center justify-between px-3 sm:px-5 shadow-md z-20 text-white flex-shrink-0">
+    <header className="h-14 bg-employee-600 border-b border-employee-700 flex items-center justify-between px-3 sm:px-5 shadow-md z-20 text-white flex-shrink-0">
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           onClick={onMenuClick}
@@ -24,15 +24,15 @@ export const EmployeeHeader = ({ onMenuClick }) => {
             <p className="text-xs font-bold text-white leading-none group-hover:opacity-90 truncate">
               {user.nombre}
             </p>
-            <p className="text-[10px] text-blue-100 font-medium uppercase mt-0.5">
+            <p className="text-[10px] text-employee-100 font-medium uppercase mt-0.5">
               {user.rol}
             </p>
           </div>
-          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white text-blue-600 rounded-full flex items-center justify-center font-bold border-2 border-blue-200 shadow-sm text-xs flex-shrink-0 overflow-hidden">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white text-employee-600 rounded-full flex items-center justify-center font-bold border-2 border-employee-200 shadow-sm text-xs flex-shrink-0 overflow-hidden">
             {user.avatar ? (
               <img src={user.avatar} alt={user.nombre} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-white text-blue-600 flex items-center justify-center font-bold">
+              <div className="w-full h-full bg-white text-employee-600 flex items-center justify-center font-bold">
                 {user.nombre?.charAt(0)}
               </div>
             )}
