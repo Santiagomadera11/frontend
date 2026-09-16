@@ -106,7 +106,7 @@ export const EmployeeAppointmentsPage = () => {
       case "Cancelada":
         return "bg-red-100 text-red-700";
       case "Completada":
-        return "bg-blue-100 text-blue-700";
+        return "bg-employee-100 text-employee-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
@@ -235,16 +235,16 @@ export const EmployeeAppointmentsPage = () => {
                 className={`
                   min-h-[60px] p-1 border rounded-lg cursor-pointer transition-colors
                   ${day.isCurrentMonth ? "bg-white" : "bg-gray-50 text-gray-400"}
-                  ${day.isToday ? "ring-2 ring-blue-500" : ""}
-                  ${day.isUnavailable ? "bg-red-50 cursor-not-allowed opacity-50" : "hover:bg-blue-50"}
-                  ${day.appointments.length > 0 ? "bg-blue-50 border-blue-200" : ""}
+                  ${day.isToday ? "ring-2 ring-employee-500" : ""}
+                  ${day.isUnavailable ? "bg-red-50 cursor-not-allowed opacity-50" : "hover:bg-employee-50"}
+                  ${day.appointments.length > 0 ? "bg-employee-50 border-employee-200" : ""}
                 `}
               >
                 <div className="text-xs font-medium mb-0.5">
                   {day.date?.getDate()}
                 </div>
                 {day.appointments.length > 0 && (
-                  <div className="text-xs text-blue-700 font-medium">
+                  <div className="text-xs text-employee-700 font-medium">
                     {day.appointments.length} cita
                     {day.appointments.length !== 1 ? "s" : ""}
                   </div>
@@ -379,7 +379,7 @@ export const EmployeeAppointmentsPage = () => {
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <table className="w-full">
-            <thead className="bg-blue-600 text-white">
+            <thead className="bg-employee-600 text-white">
               <tr>
                 <th className="px-4 py-2.5 text-left text-sm font-semibold">
                   Paciente
@@ -436,7 +436,7 @@ export const EmployeeAppointmentsPage = () => {
                           setSelectedAppointment(appointment);
                           setIsDetailModalOpen(true);
                         }}
-                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                        className="p-1 text-employee-600 hover:bg-employee-50 rounded"
                         title="Ver detalles"
                       >
                         <Eye size={16} />
@@ -447,7 +447,7 @@ export const EmployeeAppointmentsPage = () => {
                             setEditingAppointment(appointment);
                             setIsAppointmentModalOpen(true);
                           }}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          className="p-1 text-employee-600 hover:bg-employee-50 rounded"
                           title="Editar"
                         >
                           <Edit size={16} />
@@ -532,7 +532,7 @@ export const EmployeeAppointmentsPage = () => {
               onClick={() => setActiveTab("calendario")}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
                 activeTab === "calendario"
-                  ? "text-blue-600 border-blue-600"
+                  ? "text-employee-600 border-employee-600"
                   : "text-gray-600 border-transparent hover:text-gray-800"
               }`}
             >
@@ -545,7 +545,7 @@ export const EmployeeAppointmentsPage = () => {
               onClick={() => setActiveTab("citas")}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
                 activeTab === "citas"
-                  ? "text-blue-600 border-blue-600"
+                  ? "text-employee-600 border-employee-600"
                   : "text-gray-600 border-transparent hover:text-gray-800"
               }`}
             >
@@ -558,7 +558,7 @@ export const EmployeeAppointmentsPage = () => {
               onClick={() => setActiveTab("disponibilidad")}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
                 activeTab === "disponibilidad"
-                  ? "text-blue-600 border-blue-600"
+                  ? "text-employee-600 border-employee-600"
                   : "text-gray-600 border-transparent hover:text-gray-800"
               }`}
             >
@@ -571,7 +571,7 @@ export const EmployeeAppointmentsPage = () => {
               onClick={() => setActiveTab("medicos")}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
                 activeTab === "medicos"
-                  ? "text-blue-600 border-blue-600"
+                  ? "text-employee-600 border-employee-600"
                   : "text-gray-600 border-transparent hover:text-gray-800"
               }`}
             >
@@ -587,7 +587,7 @@ export const EmployeeAppointmentsPage = () => {
               setEditingAppointment(null);
               setIsAppointmentModalOpen(true);
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2 h-fit"
+            className="bg-employee-600 hover:bg-employee-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2 h-fit"
           >
             <Plus size={16} />
             Nueva Cita
