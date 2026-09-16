@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { authService } from "../../auth/authService";
 import { apiClient } from "../../../shared/utils/apiClient";
 import { X, Lock, AlertCircle, CheckCircle } from "lucide-react";
-import { userService } from "../../users/services/userService";
 
 /**
  * Modal para cambiar contraseña con validación en 2 pasos
@@ -41,7 +40,7 @@ export const ChangePasswordModal = ({ isOpen, onClose, onPasswordChanged }) => {
       // Pasar al paso 2
       setStep(2);
       setCurrentPassword("");
-    } catch (err) {
+    } catch {
       setError("Error al validar la contraseña actual");
     } finally {
       setLoading(false);

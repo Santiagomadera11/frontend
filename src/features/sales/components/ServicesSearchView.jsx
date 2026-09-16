@@ -7,7 +7,6 @@ const fmt = (v) =>
 
 export const ServicesSearchView = ({ onAddService, primary }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [appointments, setAppointments] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -54,11 +53,9 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
         }
       );
 
-      setAppointments(completedAndUnpaid);
       setFilteredAppointments(completedAndUnpaid);
     } catch (err) {
       console.warn(`Error buscando citas: ${err}`);
-      setAppointments([]);
       setFilteredAppointments([]);
     } finally {
       setLoading(false);

@@ -39,7 +39,6 @@ export const AppointmentsPage = () => {
   const hour12 = h % 12 || 12;
   return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
 };
-  const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
   const isMountedRef = useRef(false);
   const isLoadingRef = useRef(false);
@@ -67,7 +66,6 @@ export const AppointmentsPage = () => {
     isLoadingRef.current = true;
 
     try {
-      setLoading(true);
       const [citasRes, estadosRes, doctorsData] = await Promise.all([
         apiClient.get(API_URL, getAuthHeaders()),
         apiClient.get(`${API_URL}/estados`, getAuthHeaders()),
@@ -80,9 +78,6 @@ export const AppointmentsPage = () => {
     } catch (err) {
       console.error("Error cargando citas:", err);
     } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
-      }
       isLoadingRef.current = false;
     }
   }, []);
@@ -158,7 +153,7 @@ export const AppointmentsPage = () => {
       });
       setNotification({ message: "Estado actualizado correctamente", type: "success" });
       loadData();
-    } catch (err) {
+    } catch {
       setNotification({ message: "Error al actualizar", type: "error" });
     }
   };

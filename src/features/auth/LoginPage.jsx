@@ -271,7 +271,6 @@ const LoginPage = () => {
       await loginUser(data.user.id, data.token);
 
       const role = userSession.rol;
-      const userPerms = data.user?.permisos || [];
 
       const rutasPorRol = {
         administrador: "/admin/dashboard",

@@ -101,7 +101,7 @@ export const authService = {
       
       storage.set('syspharma_user', JSON.stringify(updatedUser));
       return updatedUser;
-    } catch (error) {
+    } catch {
       return false;
     }
   },
@@ -119,7 +119,7 @@ export const authService = {
         return null;
       }
       return JSON.parse(userStr);
-    } catch (error) {
+    } catch {
       return null;
     }
   },

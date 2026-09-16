@@ -72,6 +72,8 @@ export const AvailabilityConfigPage = () => {
     availabilityService
       .getDiasNoDisponibles(selectedDoctor.id)
       .then(setDiasNoDisponibles);
+    // Solo depende del id: evita refetch si selectedDoctor cambia de referencia sin cambiar de doctor
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDoctor?.id]);
 
   const toggleDay = (dia) => {

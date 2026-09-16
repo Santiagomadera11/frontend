@@ -32,8 +32,6 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
   const userRole = (user.rol || "").toLowerCase().trim();
   const userPerms = (user.permisos || []).map((perm) => String(perm || "").toLowerCase().trim());
   const canCreateReturn = userRole === "administrador" || userPerms.includes("sales.create") || userPerms.includes("sales.return");
-  const canViewReturns = userRole === "administrador" || userPerms.includes("sales.view") || userPerms.includes("sales.return");
-  const colorClass = userRole === "administrador" ? "emerald" : "blue";
 
   const filteredReturns = useMemo(() => {
     return devoluciones.filter((d) => {

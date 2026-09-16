@@ -50,7 +50,7 @@ function AppContent() {
         refreshUser();
       });
     }
-  }, []);
+  }, [refreshUser]);
 
   return (
     <div className="app-container">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   X,
   Save,
@@ -35,12 +35,6 @@ const getLocalToday = () => {
   return `${year}-${month}-${day}`;
 };
 
-const parseDateLocal = (isoDate) => {
-  if (!isoDate) return new Date();
-  const [year, month, day] = isoDate.split("-").map(Number);
-  return new Date(year, month - 1, day);
-};
-
 const formatDateDisplay = (isoDate) => {
   if (!isoDate) return "";
   const parts = isoDate.split("-");
@@ -55,7 +49,7 @@ const AppointmentFormModal = ({
   appointment,
   doctors,
 }) => {
-  const initialFormState = {
+  const initialFormState = useMemo(() => ({
     paciente: "",
     documento: "",
     telefono: "",
@@ -68,10 +62,11 @@ const AppointmentFormModal = ({
     precio: "",
     notas: "",
     userId: "",
-  };
+  }), []);
 
-  const currentUser = JSON.parse(
-    sessionStorage.getItem("syspharma_user") || "{}",
+  const currentUser = useMemo(
+    () => JSON.parse(sessionStorage.getItem("syspharma_user") || "{}"),
+    [],
   );
   const currentUserRole = (currentUser.rol || "Administrador").toLowerCase().trim();
   const isEmployee = currentUserRole === "empleado";
@@ -177,16 +172,7 @@ const AppointmentFormModal = ({
     loadServices();
     window.addEventListener("services:changed", loadServices);
     return () => window.removeEventListener("services:changed", loadServices);
-  }, [appointment, isOpen]);
-
-  const generateTimeSlots = () => {
-    const slots = [];
-    for (let i = 8; i < 18; i++) {
-      slots.push(`${i.toString().padStart(2, "0")}:00`);
-      slots.push(`${i.toString().padStart(2, "0")}:30`);
-    }
-    return slots;
-  };
+  }, [appointment, isOpen, currentUser, initialFormState]);
 
   useEffect(() => {
     if (!formData.doctorId) {

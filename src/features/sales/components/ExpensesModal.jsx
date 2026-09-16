@@ -1,5 +1,5 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { X, Trash2 } from "lucide-react";
 import { expensesService } from "../services/expensesService";
 import { ToastNotification } from "../../../shared/ui/ToastNotification";
@@ -12,13 +12,7 @@ export const ExpensesModal = ({ isOpen, onClose }) => {
   const [toast, setToast] = useState(null);
   const [expenseToDelete, setExpenseToDelete] = useState(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadExpenses();
-    }
-  }, [isOpen]);
-
-  const loadExpenses = async () => {
+  const loadExpenses = useCallback(async () => {
     if (!user.id) return;
     try {
       const todayExpenses = await expensesService.getTodayExpenses(user.id);
@@ -27,7 +21,13 @@ export const ExpensesModal = ({ isOpen, onClose }) => {
       console.error("Error cargando gastos:", error);
       setExpenses([]);
     }
-  };
+  }, [user.id]);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadExpenses();
+    }
+  }, [isOpen, loadExpenses]);
 
   const handleDeleteExpense = async (id) => {
     try {

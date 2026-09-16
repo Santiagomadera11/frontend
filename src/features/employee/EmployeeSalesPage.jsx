@@ -33,8 +33,6 @@ export const EmployeeSalesPage = () => {
   const canViewSales    = hasPerm("sales.view");
   const canCreateSale   = hasPerm("sales.create");
   const canReturnSale   = hasPerm("sales.return");
-  const canCancelSale   = hasPerm("sales.cancel");
-  const canInvoiceSale  = hasPerm("sales.invoice");
   const canExportSales  = hasPerm("sales.export");
 
   // ── Estado

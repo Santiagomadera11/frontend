@@ -53,7 +53,6 @@ export const EmployeeAppointmentsPage = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [statusMenuFor, setStatusMenuFor] = useState(null);
-  const [isDaySummaryModalOpen, setIsDaySummaryModalOpen] = useState(false);
   const isMountedRef = useRef(false);
   const isLoadingRef = useRef(false);
 
@@ -270,10 +269,7 @@ export const EmployeeAppointmentsPage = () => {
                   })}
                 </h3>
                 <button
-                  onClick={() => {
-                    setIsDaySummaryModalOpen(false);
-                    setSelectedDate(null);
-                  }}
+                  onClick={() => setSelectedDate(null)}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <X size={24} />
@@ -330,7 +326,6 @@ export const EmployeeAppointmentsPage = () => {
 
   const handleDateClick = (date) => {
     setSelectedDate(date);
-    setIsDaySummaryModalOpen(true);
   };
 
   const getAppointmentsForDate = (date) => {

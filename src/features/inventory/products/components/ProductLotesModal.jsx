@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { X, Layers, AlertCircle, Calendar, User, ShoppingBag, Loader2 } from "lucide-react";
 import { productService } from "../services/productService";
 import { ToastNotification } from "../../../../shared/ui/ToastNotification";
@@ -17,20 +17,10 @@ export const ProductLotesModal = ({ isOpen, onClose, product }) => {
 
   // Estilos y temas
   const headerBgColor = isEmployee ? "bg-blue-600" : "bg-emerald-600";
-  const textThemeColor = isEmployee ? "text-blue-600" : "text-emerald-600";
-  const borderThemeColor = isEmployee ? "border-blue-200" : "border-emerald-200";
   const hoverRowColor = isEmployee ? "hover:bg-blue-50/50" : "hover:bg-emerald-50/50";
   const activeRowColor = isEmployee ? "bg-blue-50/80 border-l-4 border-l-blue-600" : "bg-emerald-50/80 border-l-4 border-l-emerald-600";
 
-  useEffect(() => {
-    if (isOpen && product?.id) {
-      loadLotes();
-      setSelectedLote(null);
-      setConsumos([]);
-    }
-  }, [isOpen, product]);
-
-  const loadLotes = async () => {
+  const loadLotes = useCallback(async () => {
     setLoadingLotes(true);
     try {
       const data = await productService.getLotes(product.id);
@@ -44,7 +34,15 @@ export const ProductLotesModal = ({ isOpen, onClose, product }) => {
     } finally {
       setLoadingLotes(false);
     }
-  };
+  }, [product]);
+
+  useEffect(() => {
+    if (isOpen && product?.id) {
+      loadLotes();
+      setSelectedLote(null);
+      setConsumos([]);
+    }
+  }, [isOpen, product, loadLotes]);
 
   const loadConsumos = async (lote) => {
     setSelectedLote(lote);

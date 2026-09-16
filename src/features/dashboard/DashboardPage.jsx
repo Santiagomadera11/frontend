@@ -1,6 +1,5 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   DollarSign, ShoppingBag, Activity, TrendingUp,
   CreditCard, Package, AlertCircle, Calendar as CalendarIcon,
@@ -15,7 +14,6 @@ import { apiClient } from "../../shared/utils/apiClient";
 const ACCENT = "#10B981"; // primary-500 — verde de marca de SysPharma
 
 export const DashboardPage = () => {
-  const navigate = useNavigate();
   const { currentUser } = useCurrentUser();
   const user = currentUser || {};
 

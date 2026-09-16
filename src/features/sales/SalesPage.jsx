@@ -43,7 +43,6 @@ export const SalesPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sales, setSales] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
   const [currentPage, setCurrentPage] = useState(0);
@@ -92,7 +91,7 @@ export const SalesPage = () => {
       if (!isMountedRef.current) return;
       setSales(Array.isArray(data) ? data : []);
     } catch { if (isMountedRef.current) setSales([]); }
-    finally { if (isMountedRef.current) setLoading(false); isLoadingRef.current = false; }
+    finally { isLoadingRef.current = false; }
   }, []);
 
   const loadTodayExpenses = useCallback(async () => {

@@ -1,5 +1,5 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Plus, Search, Eye, Edit, Trash2,
   Filter, Beaker,
@@ -62,7 +62,7 @@ export const PresentationsPage = () => {
         successIcon: "text-emerald-600",
       };
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       let filterParam = "todos";
@@ -80,7 +80,7 @@ export const PresentationsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter]);
 
   useEffect(() => {
     loadData();
@@ -90,7 +90,7 @@ export const PresentationsPage = () => {
       window.removeEventListener("presentations:changed", loadData);
       window.removeEventListener("products:changed", loadData);
     };
-  }, [statusFilter]);
+  }, [loadData]);
 
   useEffect(() => {
     if (notification) {
