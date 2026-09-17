@@ -258,11 +258,11 @@ export const CreateOrderPage = () => {
 
       window.dispatchEvent(new Event("syspharma_products_updated"));
       window.dispatchEvent(new Event("sales:changed"));
-      setNotification({ message: "Transacción exitosa", type: "success" });
 
-      setTimeout(() => {
-        navigate(isEmployeePath ? "/employee/ventas" : "/admin/ventas");
-      }, 1500);
+      navigate(isEmployeePath ? "/employee/ventas" : "/admin/ventas", {
+        state: { notification: { message: "Transacción exitosa", type: "success" } },
+      });
+      return;
 
     } catch (err) {
       console.error("❌ Error API completo:", JSON.stringify(err.response?.data, null, 2));
@@ -411,7 +411,7 @@ export const CreateOrderPage = () => {
                 />
               </div>
 
-              <button onClick={() => setClientInfo({ documento: "222222222", nombre: "Consumidor Final", telefono: "-", correo: "-", metodoPagoId: paymentMethods[0]?.id?.toString() || "" })} className="w-full py-1.5 text-[9px] font-black text-blue-600 border border-blue-100 bg-blue-50 rounded-lg uppercase mt-0.5">Cargar Genérico</button>
+              <button onClick={() => setClientInfo({ documento: "222222222", nombre: "Consumidor Final", telefono: "", correo: "", metodoPagoId: paymentMethods[0]?.id?.toString() || "" })} className="w-full py-1.5 text-[9px] font-black text-blue-600 border border-blue-100 bg-blue-50 rounded-lg uppercase mt-0.5">Cargar Genérico</button>
             </div>
           </div>
 

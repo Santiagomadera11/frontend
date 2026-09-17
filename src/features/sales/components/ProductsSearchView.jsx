@@ -230,14 +230,17 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
                   className="w-full px-3 py-2 hover:bg-emerald-50 border-b border-gray-100 last:border-0 flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-left"
                 >
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: primaryLight }}>
-                    {product.imagen ? (
-                      <img src={product.imagen} alt={product.nombre} className="w-full h-full object-contain p-1" />
-                    ) : (
-                      <Package size={16} style={{ color: primary, opacity: 0.4 }} />
-                    )}
+                    <Package size={16} style={{ color: primary, opacity: 0.4 }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 truncate text-xs">{product.nombre}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-semibold text-gray-900 truncate text-xs">{product.nombre}</p>
+                      {product.marca && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: primaryLight, color: primary }}>
+                          {product.marca}
+                        </span>
+                      )}
+                    </div>
                     {(() => {
                       const parts = [product.concentracion, product.presentacion].filter(Boolean);
                       return parts.length > 0 ? (
@@ -277,16 +280,19 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
 
             <div className="flex gap-4 mb-4">
               <div className="w-24 h-24 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: primaryLight }}>
-                {selectedProduct.imagen ? (
-                  <img src={selectedProduct.imagen} alt={selectedProduct.nombre} className="w-full h-full object-contain p-1" />
-                ) : (
-                  <Package size={32} style={{ color: primary, opacity: 0.4 }} />
-                )}
+                <Package size={32} style={{ color: primary, opacity: 0.4 }} />
               </div>
               <div className="flex-1">
-                <p className="font-bold text-gray-900">{selectedProduct.nombre}</p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <p className="font-bold text-gray-900">{selectedProduct.nombre}</p>
+                  {selectedProduct.marca && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: primaryLight, color: primary }}>
+                      {selectedProduct.marca}
+                    </span>
+                  )}
+                </div>
                 {(() => {
-                  const parts = [selectedProduct.marca, selectedProduct.concentracion, selectedProduct.presentacion].filter(Boolean);
+                  const parts = [selectedProduct.concentracion, selectedProduct.presentacion].filter(Boolean);
                   return parts.length > 0 ? (
                     <p className="text-xs text-gray-500 font-medium mt-0.5">{parts.join(" · ")}</p>
                   ) : null;

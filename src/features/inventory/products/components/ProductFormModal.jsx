@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { X, Save, Upload, Loader2 } from "lucide-react";
-import { uploadService } from "../../../../shared/services/uploadService";
+import React, { useState, useEffect } from "react";
+import { X, Save } from "lucide-react";
 
 const emptyForm = {
   nombre: "",
@@ -8,12 +7,10 @@ const emptyForm = {
   marcaId: "",
   tipoProducto: "Producto General",
   categoriaId: "",
-  proveedorId: "",
   precio: "",
   porcentajeIva: 0,
   stock: 0,
   estado: true,
-  imagen: null,
   composicion: "",
   concentracion: "",
   presentacionId: "",
@@ -34,15 +31,11 @@ const ProductModal = ({
   onSave,
   initialData,
   categories = [],
-  providers = [],
   brands = [],
   presentations = [],
 }) => {
 
   const [formData, setFormData] = useState(emptyForm);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (initialData) {
@@ -50,48 +43,20 @@ const ProductModal = ({
         ...emptyForm,
         ...initialData,
         categoriaId: initialData.categoriaId ? String(initialData.categoriaId) : "",
-        proveedorId: initialData.proveedorId ? String(initialData.proveedorId) : "",
         marcaId: initialData.marcaId ? String(initialData.marcaId) : "",
         presentacionId: initialData.presentacionId ? String(initialData.presentacionId) : "",
       });
-      setImagePreview(initialData.imagen || null);
     } else {
       setFormData(emptyForm);
-      setImagePreview(null);
     }
   }, [initialData, isOpen]);
-
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert("La imagen es demasiado grande. El tamaño máximo permitido es 5MB.");
-      return;
-    }
-
-    setUploadingImage(true);
-    try {
-      const url = await uploadService.uploadImage(file, "productos");
-      setFormData(p => ({ ...p, imagen: url }));
-      setImagePreview(url);
-    } catch (err) {
-      alert(err.response?.data?.message || "No se pudo subir la imagen. Intenta nuevamente.");
-    } finally {
-      setUploadingImage(false);
-    }
-  };
 
   if (!isOpen) return null;
 
   const handleSubmit = () => {
-    if (uploadingImage) {
-      alert("Espera a que termine de subir la imagen.");
-      return;
-    }
     onSave({
       ...formData,
       categoriaId: formData.categoriaId ? Number(formData.categoriaId) : null,
-      proveedorId: formData.proveedorId ? Number(formData.proveedorId) : null,
       marcaId: formData.marcaId ? Number(formData.marcaId) : null,
       presentacionId: formData.presentacionId ? Number(formData.presentacionId) : null,
       precio: Number(formData.precio),
@@ -116,33 +81,6 @@ const ProductModal = ({
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-3 no-scrollbar">
-
-          {/* Imagen */}
-          <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2">Imagen del Producto</label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-emerald-500 transition bg-gray-50">
-              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" disabled={uploadingImage} />
-              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingImage} className="w-full flex flex-col items-center disabled:opacity-60">
-                {uploadingImage ? (
-                  <>
-                    <Loader2 size={22} className="text-emerald-500 animate-spin mb-2" />
-                    <p className="text-xs font-semibold text-gray-600">Subiendo imagen...</p>
-                  </>
-                ) : imagePreview ? (
-                  <>
-                    <img src={imagePreview} alt="Preview" className="max-h-32 max-w-full object-contain mb-2 rounded shadow-sm" />
-                    <p className="text-xs text-gray-500">Haz clic para cambiar imagen</p>
-                  </>
-                ) : (
-                  <>
-                    <Upload size={24} className="text-gray-400 mx-auto mb-2" />
-                    <p className="text-xs font-semibold text-gray-600">Sube una imagen</p>
-                    <p className="text-xs text-gray-500 mt-1">PNG, JPG hasta 5MB</p>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
 
           {/* Nombre */}
           <div>
@@ -192,14 +130,6 @@ const ProductModal = ({
                 value={formData.presentacionId} onChange={(e) => setFormData(p => ({ ...p, presentacionId: e.target.value }))}>
                 <option value="">Seleccionar...</option>
                 {presentations.map(pres => <option key={pres.id} value={pres.id}>{pres.nombre}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Proveedor</label>
-              <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-emerald-500 bg-white"
-                value={formData.proveedorId} onChange={(e) => setFormData(p => ({ ...p, proveedorId: e.target.value }))}>
-                <option value="">Seleccionar...</option>
-                {providers.map(prov => <option key={prov.id} value={prov.id}>{prov.nombre}</option>)}
               </select>
             </div>
             <div>

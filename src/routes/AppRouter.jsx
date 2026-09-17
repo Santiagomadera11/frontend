@@ -29,6 +29,7 @@ const ReturnsPage = React.lazy(() => import("../features/returns/pages/ReturnsPa
 const ProductsPage = React.lazy(() => import("../features/inventory/products/ProductsPage").then(m => ({ default: m.ProductsPage })));
 const NewProductPage = React.lazy(() => import("../features/inventory/products/NewProductPage"));
 const PurchasesPage = React.lazy(() => import("../features/inventory/purchases/PurchasesPage").then(m => ({ default: m.PurchasesPage })));
+const CreatePurchasePage = React.lazy(() => import("../features/inventory/purchases/CreatePurchasePage").then(m => ({ default: m.CreatePurchasePage })));
 const CategoriesPage = React.lazy(() => import("../features/inventory/categories/CategoriesPage").then(m => ({ default: m.CategoriesPage })));
 const BrandsPage = React.lazy(() => import("../features/inventory/brands/BrandsPage").then(m => ({ default: m.BrandsPage })));
 const PresentationsPage = React.lazy(() => import("../features/inventory/presentations/PresentationsPage").then(m => ({ default: m.PresentationsPage })));
@@ -91,6 +92,7 @@ const APPOINTMENT_ACCESS_PERMS = [
 ];
 
 const PRODUCT_FORM_PERMS = ["products.create", "products.edit"];
+const PURCHASE_FORM_PERMS = ["purchase.create", "purchase.edit"];
 
 export const AppRouter = () => {
   return (
@@ -128,6 +130,11 @@ export const AppRouter = () => {
           <Route path="compras" element={
             <ProtectedRoute requiredPerm="purchase.view">
               <PurchasesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="compras/nueva" element={
+            <ProtectedRoute requiredAnyPerm={PURCHASE_FORM_PERMS}>
+              <CreatePurchasePage />
             </ProtectedRoute>
           } />
 
@@ -270,6 +277,11 @@ export const AppRouter = () => {
           <Route path="compras" element={
             <ProtectedRoute requiredPerm="purchase.view">
               <PurchasesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="compras/nueva" element={
+            <ProtectedRoute requiredAnyPerm={PURCHASE_FORM_PERMS}>
+              <CreatePurchasePage />
             </ProtectedRoute>
           } />
           <Route path="ventas" element={

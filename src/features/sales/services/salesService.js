@@ -26,7 +26,7 @@ export const salesService = {
       clienteTelefono: saleData.telefono || saleData.clienteTelefono || null,
       metodoPagoId: saleData.metodoPagoId,
       estadoId: saleData.estadoId || 1,
-      porcentajeIva: saleData.porcentajeIva || 19, // ← CAMBIO: default 19% en lugar de 0
+      porcentajeIva: saleData.porcentajeIva ?? 19,
       subtotal: saleData.subtotal || 0,  // ← NUEVO
       iva: saleData.iva || 0,            // ← NUEVO
       total: saleData.total || 0,        // ← NUEVO

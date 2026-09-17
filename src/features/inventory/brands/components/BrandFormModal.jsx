@@ -27,6 +27,7 @@ const BrandFormModal = ({ isOpen, onClose, initialData = null, mode = 'create', 
         hoverText: "hover:text-blue-600",
         focus: "focus:border-blue-500 focus:ring-blue-500",
         button: "bg-blue-600 hover:bg-blue-700",
+        iconBg: "bg-blue-100",
       }
     : {
         header: "bg-emerald-50 border-emerald-200",
@@ -34,6 +35,7 @@ const BrandFormModal = ({ isOpen, onClose, initialData = null, mode = 'create', 
         hoverText: "hover:text-emerald-600",
         focus: "focus:border-emerald-500 focus:ring-emerald-500",
         button: "bg-emerald-600 hover:bg-emerald-700",
+        iconBg: "bg-emerald-100",
       };
 
   const handleSubmit = () => {
@@ -80,69 +82,88 @@ const BrandFormModal = ({ isOpen, onClose, initialData = null, mode = 'create', 
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-4">
-
-          {/* Nombre */}
-          <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Nombre de la Marca</label>
-            <div className="relative">
-              <Award className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-              <input
-                disabled={isView}
-                type="text"
-                className={`w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:outline-none ${accent.focus} focus:ring-1 ${errors.nombre ? 'border-red-500 ring-red-500' : 'border-gray-300'}`}
-                placeholder="Ej: Genfar"
-                value={formData.nombre}
-                onChange={(e) => {
-                  setFormData({...formData, nombre: e.target.value});
-                  if (errors.nombre) setErrors({...errors, nombre: null});
-                }}
-              />
+        {isView ? (
+          <div className="p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className={`p-2.5 rounded-lg ${accent.iconBg} ${accent.text} flex-shrink-0`}>
+                <Award size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="text-base font-semibold text-gray-900 truncate">{formData.nombre}</h4>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold mt-1.5 ${formData.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                  {formData.estado ? "Activo" : "Inactivo"}
+                </span>
+              </div>
             </div>
-            {errors.nombre && <p className="text-red-500 text-[10px] mt-1">{errors.nombre}</p>}
-          </div>
-
-          {/* Descripción */}
-          <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Descripción</label>
-            <div className="relative">
-              <FileText className="absolute left-3 top-3 text-gray-400" size={16} />
-              <textarea
-                disabled={isView}
-                className={`w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:outline-none ${accent.focus} h-24 resize-none ${errors.descripcion ? 'border-red-500 ring-red-500' : 'border-gray-300'}`}
-                placeholder="Descripción breve de la marca..."
-                value={formData.descripcion}
-                onChange={(e) => {
-                  setFormData({...formData, descripcion: e.target.value});
-                  if (errors.descripcion) setErrors({...errors, descripcion: null});
-                }}
-              />
-            </div>
-            {errors.descripcion && <p className="text-red-500 text-[10px] mt-1">{errors.descripcion}</p>}
-          </div>
-
-          {/* Estado */}
-          <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Estado</label>
-            <div className="relative">
-              <Activity className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-              <select
-                disabled={isView}
-                className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none ${accent.focus} bg-white appearance-none cursor-pointer`}
-                value={formData.estado ? 'true' : 'false'}
-                onChange={(e) => setFormData({...formData, estado: e.target.value === 'true'})}
-              >
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
-              </select>
+            <div className="p-3 rounded-lg border border-gray-100">
+              <label className="text-[10px] font-semibold text-gray-400 uppercase block mb-1">Descripción</label>
+              <p className="text-xs text-gray-700 whitespace-pre-line">{formData.descripcion || "Sin descripción disponible."}</p>
             </div>
           </div>
+        ) : (
+          <div className="p-6 space-y-4">
 
-        </div>
+            {/* Nombre */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Nombre de la Marca</label>
+              <div className="relative">
+                <Award className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <input
+                  type="text"
+                  className={`w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:outline-none ${accent.focus} focus:ring-1 ${errors.nombre ? 'border-red-500 ring-red-500' : 'border-gray-300'}`}
+                  placeholder="Ej: Genfar"
+                  value={formData.nombre}
+                  onChange={(e) => {
+                    setFormData({...formData, nombre: e.target.value});
+                    if (errors.nombre) setErrors({...errors, nombre: null});
+                  }}
+                />
+              </div>
+              {errors.nombre && <p className="text-red-500 text-[10px] mt-1">{errors.nombre}</p>}
+            </div>
+
+            {/* Descripción */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Descripción</label>
+              <div className="relative">
+                <FileText className="absolute left-3 top-3 text-gray-400" size={16} />
+                <textarea
+                  className={`w-full pl-9 pr-3 py-2 text-sm border rounded-md focus:outline-none ${accent.focus} h-24 resize-none ${errors.descripcion ? 'border-red-500 ring-red-500' : 'border-gray-300'}`}
+                  placeholder="Descripción breve de la marca..."
+                  value={formData.descripcion}
+                  onChange={(e) => {
+                    setFormData({...formData, descripcion: e.target.value});
+                    if (errors.descripcion) setErrors({...errors, descripcion: null});
+                  }}
+                />
+              </div>
+              {errors.descripcion && <p className="text-red-500 text-[10px] mt-1">{errors.descripcion}</p>}
+            </div>
+
+            {/* Estado */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Estado</label>
+              <div className="relative">
+                <Activity className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <select
+                  className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none ${accent.focus} bg-white appearance-none cursor-pointer`}
+                  value={formData.estado ? 'true' : 'false'}
+                  onChange={(e) => setFormData({...formData, estado: e.target.value === 'true'})}
+                >
+                  <option value="true">Activo</option>
+                  <option value="false">Inactivo</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+        )}
 
         {/* Footer */}
         <div className={`${accent.header} px-5 py-3 border-t flex justify-end gap-2`}>
-          {!isView && (
+          {isView ? (
+            <button onClick={onClose} className="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">Cerrar</button>
+          ) : (
             <button onClick={handleSubmit} className={`px-4 py-2 text-xs font-bold text-white ${accent.button} rounded-md flex items-center gap-1 shadow-sm transition-colors`}>
               <Save size={16} /> Guardar
             </button>

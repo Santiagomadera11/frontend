@@ -61,6 +61,11 @@ export const UnifiedCart = ({
                   {formaLabel && <span className="ml-1 font-bold text-gray-400">· {formaLabel}</span>}
                 </p>
                 <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                  {item.marca && (
+                    <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: primaryLight, color: primary }}>
+                      {item.marca}
+                    </span>
+                  )}
                   {item.numeroLote && (
                     <span className="text-[9px] font-bold text-blue-600 bg-blue-50 border border-blue-100 rounded px-1 py-0.5">
                       Lote: {item.numeroLote}

@@ -66,11 +66,13 @@ const ProviderFormModal = ({
         text: "text-blue-600",
         focus: "focus:border-blue-500",
         main: "bg-blue-600 hover:bg-blue-700",
+        iconBg: "bg-blue-100",
       }
     : {
         text: "text-emerald-600",
         focus: "focus:border-emerald-500",
         main: "bg-emerald-600 hover:bg-emerald-700",
+        iconBg: "bg-emerald-100",
       };
 
   const getTitle = () => {
@@ -144,6 +146,48 @@ const ProviderFormModal = ({
         </div>
 
         {/* Body */}
+        {isView ? (
+          <div className="p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className={`p-2.5 rounded-lg ${accent.iconBg} ${accent.text} flex-shrink-0`}>
+                <Building2 size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="text-base font-semibold text-gray-900 truncate">{formData.nombre}</h4>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {documentTypes.find(dt => String(dt.id) === String(formData.tipoDocumentoId))?.value || "Sin tipo de documento"}
+                  {formData.documento ? ` · ${formData.documento}` : ""}
+                </p>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold mt-1.5 ${formData.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                  {formData.estado ? "Activo" : "Inactivo"}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg border border-gray-100">
+                <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${accent.iconBg} ${accent.text}`}><User size={13} /></div>
+                <p className="text-[10px] text-gray-400">Contacto</p>
+                <p className="text-xs font-semibold text-gray-900 truncate">{formData.contacto || "Sin especificar"}</p>
+              </div>
+              <div className="p-3 rounded-lg border border-gray-100">
+                <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${accent.iconBg} ${accent.text}`}><Phone size={13} /></div>
+                <p className="text-[10px] text-gray-400">Teléfono</p>
+                <p className="text-xs font-semibold text-gray-900 truncate">{formData.telefono || "Sin especificar"}</p>
+              </div>
+              <div className="p-3 rounded-lg border border-gray-100 col-span-2">
+                <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${accent.iconBg} ${accent.text}`}><Mail size={13} /></div>
+                <p className="text-[10px] text-gray-400">Correo electrónico</p>
+                <p className="text-xs font-semibold text-gray-900 truncate">{formData.email || "Sin especificar"}</p>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-lg border border-gray-100">
+              <label className="text-[10px] font-semibold text-gray-400 uppercase mb-1 flex items-center gap-1"><MapPin size={12} /> Dirección</label>
+              <p className="text-xs text-gray-700 whitespace-pre-line">{formData.direccion || "Sin dirección registrada."}</p>
+            </div>
+          </div>
+        ) : (
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
 
           {/* Nombre */}
@@ -279,6 +323,7 @@ const ProviderFormModal = ({
             </div>
           </div>
         </div>
+        )}
 
         {/* Footer */}
         <div className="bg-gray-50 px-5 py-3 border-t border-gray-200 flex justify-between items-center">

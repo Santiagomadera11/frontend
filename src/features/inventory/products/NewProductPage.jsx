@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Save, DollarSign, Package, X, CheckCircle, AlertCircle, Barcode, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, DollarSign, Package, X, CheckCircle, AlertCircle, Barcode } from "lucide-react";
 import { productService } from "./services/productService";
 import { categoryService } from "../categories/services/categoryService";
-import { providerService } from "../providers/services/providerService";
 import { brandService } from "../brands/services/brandService";
 import { presentationService } from "../presentations/services/presentationService";
-import { uploadService } from "../../../shared/services/uploadService";
 
 const NewProductPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [categories, setCategories] = useState([]);
-  const [providers, setProviders] = useState([]);
   const [brands, setBrands] = useState([]);
   const [presentations, setPresentations] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -24,7 +21,6 @@ const NewProductPage = () => {
     marcaId: "",
     tipoProducto: "Producto General",
     categoriaId: "",
-    proveedorId: "",
     precio: "",
     porcentajeIva: 0,
     stock: 0,
@@ -35,14 +31,11 @@ const NewProductPage = () => {
     viaAdministracion: "",
     registroSanitario: "",
     requiereFormula: false,
-    imagen: null,
     formasVenta: {
       blister: { habilitado: false, precio: "", factorUnidades: "", precioAuto: true },
       caja: { habilitado: false, precio: "", factorUnidades: "", blisteresPorCaja: "", precioAuto: true },
     },
   });
-  const [imagePreview, setImagePreview] = useState(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmData, setConfirmData] = useState({
     type: "success",
@@ -50,16 +43,13 @@ const NewProductPage = () => {
     message: "",
     onConfirm: null,
   });
-  const fileRef = React.createRef();
 
   useEffect(() => {
     const loadData = async () => {
       const cats = await categoryService.getAll();
-      const provs = await providerService.getAll();
       const brds = await brandService.getAll();
       const press = await presentationService.getAll();
       setCategories(cats);
-      setProviders(provs);
       setBrands(brds);
       setPresentations(press);
     };
@@ -78,7 +68,6 @@ const NewProductPage = () => {
           presentacionId: product.presentacionId ? String(product.presentacionId) : "",
           tipoProducto: product.tipoProducto || "Producto General",
           categoriaId: product.categoriaId || "",
-          proveedorId: product.proveedorId || "",
           precio: product.precio || "",
           porcentajeIva: product.porcentajeIva ?? 0,
           stock: product.stock ?? 0,
@@ -89,7 +78,6 @@ const NewProductPage = () => {
           viaAdministracion: product.viaAdministracion || "",
           registroSanitario: product.registroSanitario || "",
           requiereFormula: product.requiereFormula || false,
-          imagen: product.imagen || null,
           formasVenta: (() => {
             const formas = Array.isArray(product.formasVenta) ? product.formasVenta : [];
             const blister = formas.find((f) => f.tipo === "Blister" && f.activo !== false);
@@ -104,7 +92,6 @@ const NewProductPage = () => {
             };
           })(),
         });
-        if (product.imagen) setImagePreview(product.imagen);
       } catch (error) {
         console.error("Error reading editing product:", error);
       }
@@ -112,48 +99,24 @@ const NewProductPage = () => {
 
     const onChange = async () => {
       const cats = await categoryService.getAll();
-      const provs = await providerService.getAll();
       const brds = await brandService.getAll();
       const press = await presentationService.getAll();
       setCategories(cats);
-      setProviders(provs);
       setBrands(brds);
       setPresentations(press);
     };
 
     window.addEventListener("categories:changed", onChange);
-    window.addEventListener("providers:changed", onChange);
     window.addEventListener("brands:changed", onChange);
     window.addEventListener("presentations:changed", onChange);
     return () => {
       window.removeEventListener("categories:changed", onChange);
-      window.removeEventListener("providers:changed", onChange);
       window.removeEventListener("brands:changed", onChange);
       window.removeEventListener("presentations:changed", onChange);
     };
     // Solo lee el estado de navegación inicial al montar; no debe re-ejecutar si location cambia
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleImageChange = async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      showError("Imagen Demasiado Grande", "La imagen es demasiado grande. El tamaño máximo permitido es 5MB.");
-      return;
-    }
-
-    setUploadingImage(true);
-    try {
-      const url = await uploadService.uploadImage(file, "productos");
-      setImagePreview(url);
-      setFormData((f) => ({ ...f, imagen: url }));
-    } catch (err) {
-      showError("Error al subir la imagen", err.response?.data?.message || "No se pudo subir la imagen. Intenta nuevamente.");
-    } finally {
-      setUploadingImage(false);
-    }
-  };
 
   // Auto-calcula el precio del blister/caja a partir del precio de la unidad,
   // y las unidades de la caja a partir de los blisteres que trae (si se indican).
@@ -220,7 +183,6 @@ const NewProductPage = () => {
   };
 
   const handleSave = async () => {
-    if (uploadingImage) return showError("Espera un momento", "La imagen todavía se está subiendo.");
     if (!formData.nombre.trim()) return showError("Campo Requerido", "Por favor ingresa el nombre del producto");
     if (!formData.categoriaId) return showError("Campo Requerido", "Por favor selecciona una categoría");
     if (!formData.precio || Number(formData.precio) <= 0) return showError("Precio Inválido", "Por favor ingresa un precio válido mayor a 0");
@@ -246,12 +208,10 @@ const NewProductPage = () => {
       marcaId: formData.marcaId ? Number(formData.marcaId) : null,
       presentacionId: formData.presentacionId ? Number(formData.presentacionId) : null,
       categoriaId: Number(formData.categoriaId),
-      proveedorId: formData.proveedorId ? Number(formData.proveedorId) : null,
       precio: Number(formData.precio),
       porcentajeIva: Number(formData.porcentajeIva) || 0,
       precioCompra: null,
       stock: Number(formData.stock) || 0,
-      imagen: formData.imagen || null,
       descripcion: formData.descripcion ? formData.descripcion.trim() : null, // <-- MODIFICADO (Antes null)
       sku: null,
       codigoBarras: formData.codigoBarras ? formData.codigoBarras.trim() : null,
@@ -298,15 +258,14 @@ const NewProductPage = () => {
           onConfirm: () => {
             setShowConfirmModal(false);
             setFormData({
-              nombre: "", descripcion: "", codigoBarras: "", marcaId: "", tipoProducto: "Producto General", categoriaId: "", proveedorId: "",
+              nombre: "", descripcion: "", codigoBarras: "", marcaId: "", tipoProducto: "Producto General", categoriaId: "",
               precio: "", porcentajeIva: 0, stock: "", estado: true, composicion: "", concentracion: "",
-              presentacionId: "", viaAdministracion: "", registroSanitario: "", requiereFormula: false, imagen: null,
+              presentacionId: "", viaAdministracion: "", registroSanitario: "", requiereFormula: false,
               formasVenta: {
                 blister: { habilitado: false, precio: "", factorUnidades: "", precioAuto: true },
                 caja: { habilitado: false, precio: "", factorUnidades: "", blisteresPorCaja: "", precioAuto: true },
               },
             });
-            setImagePreview(null);
             navigate("/admin/productos");
           },
         });
@@ -332,43 +291,11 @@ const NewProductPage = () => {
               <p className="text-xs text-gray-500">{isEditing ? `Editando: ${formData.nombre}` : "Crear un nuevo producto en el inventario"}</p>
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-2">
-            <button onClick={handleSave} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-md text-sm font-medium shadow-sm">
-              <Save size={14} /> Guardar
-            </button>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 bg-white border border-gray-100 rounded-lg p-6 shadow-sm">
             <div className="space-y-4">
-
-              {/* Imagen */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Imagen del Producto</label>
-                <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-emerald-500 transition bg-gray-50">
-                  <input ref={fileRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" disabled={uploadingImage} />
-                  <button type="button" onClick={() => fileRef.current?.click()} disabled={uploadingImage} className="w-full flex flex-col items-center disabled:opacity-60">
-                    {uploadingImage ? (
-                      <div className="flex flex-col items-center py-2">
-                        <Loader2 size={24} className="text-emerald-500 animate-spin mb-2" />
-                        <p className="text-xs font-semibold text-gray-600">Subiendo imagen...</p>
-                      </div>
-                    ) : imagePreview ? (
-                      <div className="flex flex-col items-center">
-                        <img src={imagePreview} alt="Preview" className="max-h-36 max-w-full object-contain mb-2 rounded" />
-                        <p className="text-xs text-gray-500">Haz clic para cambiar imagen</p>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <Package size={28} className="text-gray-400 mx-auto mb-2" />
-                        <p className="text-xs font-semibold text-gray-600">Sube una imagen</p>
-                        <p className="text-xs text-gray-500 mt-1">PNG, JPG hasta 5MB</p>
-                      </div>
-                    )}
-                  </button>
-                </div>
-              </div>
 
               {/* Nombre */}
               <div>
@@ -425,16 +352,6 @@ const NewProductPage = () => {
                   value={formData.presentacionId} onChange={(e) => setFormData({ ...formData, presentacionId: e.target.value })}>
                   <option value="">Seleccionar...</option>
                   {presentations.map(pres => <option key={pres.id} value={pres.id}>{pres.nombre}</option>)}
-                </select>
-              </div>
-
-              {/* Proveedor */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Proveedor</label>
-                <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-white"
-                  value={formData.proveedorId} onChange={(e) => setFormData({ ...formData, proveedorId: e.target.value })}>
-                  <option value="">Seleccionar...</option>
-                  {providers.map(prov => <option key={prov.id} value={prov.id}>{prov.nombre}</option>)}
                 </select>
               </div>
 

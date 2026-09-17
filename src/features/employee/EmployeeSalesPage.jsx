@@ -1,6 +1,6 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Plus, Eye, ChevronLeft, ChevronRight,
   ShoppingCart, DollarSign, Clock, TrendingDown, Receipt,
@@ -20,6 +20,7 @@ const fmt = (v) =>
 
 export const EmployeeSalesPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { currentUser } = useCurrentUser();
   const user = currentUser || {};
@@ -86,6 +87,16 @@ export const EmployeeSalesPage = () => {
       setTodayExpenses([]);
     }
   }, [user.id]);
+
+  useEffect(() => {
+    if (location.state?.notification) {
+      setToast(location.state.notification);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    // Solo se lee al montar: es el aviso de "venta registrada" que llega desde
+    // CreateOrderPage tras redirigir; no debe repetirse si el usuario vuelve.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     loadSales();
@@ -415,7 +426,7 @@ export const EmployeeSalesPage = () => {
       <CloseShiftModal isOpen={showCloseShiftModal} onShiftClosed={handleShiftClosed}
         onCancel={() => setShowCloseShiftModal(false)} user={user} />
       <SaleDetailModal isOpen={isSaleDetailOpen}
-        onClose={() => { setIsSaleDetailOpen(false); setSelectedSale(null); }} sale={selectedSale} />
+        onClose={() => { setIsSaleDetailOpen(false); setSelectedSale(null); }} sale={selectedSale} accentColor="blue" />
       <ExpenseFormModal
         isOpen={isExpenseModalOpen}
         onClose={() => setIsExpenseModalOpen(false)}

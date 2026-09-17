@@ -632,6 +632,7 @@ export const EmployeeAppointmentsPage = () => {
           }}
           appointment={selectedAppointment}
           doctors={doctors}
+          accentColor="blue"
           onMarkCompleted={() => {
             appointmentService.updateAppointment(selectedAppointment.id, {
               ...selectedAppointment,

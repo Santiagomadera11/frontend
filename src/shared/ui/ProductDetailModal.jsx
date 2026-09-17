@@ -63,40 +63,8 @@ const ProductDetailModal = ({ product, onClose }) => {
 
         {/* Content */}
         <div className="overflow-y-auto flex-1 p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Left: Imagen Thumbnail */}
-            <div className="md:col-span-1">
-              <div className="rounded-lg border border-gray-200 aspect-square flex items-center justify-center bg-white">
-                {product.imagen || product.image ? (
-                  <img
-                    src={product.imagen || product.image}
-                    alt={title}
-                    className="max-h-full w-auto object-contain mix-blend-multiply"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center text-gray-300 text-center">
-                    <svg
-                      className="w-12 h-12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M21 16V8a2 2 0 0 0-2-2h-3l-2-2H10L8 6H5a2 2 0 0 0-2 2v8"
-                        stroke="#CBD5E1"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span className="text-xs mt-2">Sin imagen</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right: Información en Grid */}
-            <div className="md:col-span-2 space-y-4">
+          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-4">
               {/* Título y Categoría */}
               <div>
                 <h3 className="text-xl font-bold text-gray-900">{title}</h3>
