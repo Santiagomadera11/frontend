@@ -27,15 +27,13 @@ const normalizeText = (str) => {
     .trim();
 };
 
-const KPICard = ({ icon: Icon, label, value, color }) => (
-  <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm flex items-center gap-3">
-    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color} bg-opacity-20`}>
-      <Icon size={16} className={color.replace("bg-", "text-")} />
+const KPICard = ({ icon: Icon, label, value, bg, text, accent }) => (
+  <div className={`group relative overflow-hidden p-4 rounded-xl border border-gray-100 bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 before:absolute before:inset-x-0 before:top-0 before:h-1 ${accent}`}>
+    <div className={`inline-flex p-2 rounded-lg mb-2 ${bg} ${text} group-hover:scale-110 transition-transform duration-200`}>
+      <Icon size={16} />
     </div>
-    <div>
-      <div className="text-lg font-black text-gray-900 leading-none">{value}</div>
-      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-tight mt-0.5">{label}</div>
-    </div>
+    <p className="text-xs text-gray-400">{label}</p>
+    <h3 className="text-xl font-semibold text-gray-900 mt-0.5">{value}</h3>
   </div>
 );
 
@@ -71,14 +69,14 @@ export const SalesPage = () => {
     const orig = (origen || "").toUpperCase();
     if (orig === "WEB") {
       return (
-        <span className="bg-purple-500 text-white px-2 py-0.5 rounded-full text-[9px] font-black uppercase flex items-center gap-1 w-fit">
-          <Globe size={10} /> WEB
+        <span className="bg-purple-50 text-purple-700 border border-purple-100 px-2 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 w-fit">
+          <Globe size={10} /> Web
         </span>
       );
     }
     return (
-      <span className="bg-blue-500 text-white px-2 py-0.5 rounded-full text-[9px] font-black uppercase flex items-center gap-1 w-fit">
-        <User size={10} /> CAJA
+      <span className="bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 w-fit">
+        <User size={10} /> Caja
       </span>
     );
   };
@@ -105,6 +103,16 @@ export const SalesPage = () => {
       if (isMountedRef.current) setTodayExpenses([]);
     }
   }, [user.id]);
+
+  useEffect(() => {
+    if (location.state?.notification) {
+      setToast(location.state.notification);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    // Solo se lee al montar: es el aviso de "venta registrada" que llega desde
+    // CreateOrderPage tras redirigir; no debe repetirse si el usuario vuelve.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -156,59 +164,56 @@ export const SalesPage = () => {
   const totalGastosHoy = todayExpenses.reduce((sum, g) => sum + (g.monto || g.Monto || 0), 0);
 
   return (
-    <div className="h-full flex flex-col gap-3 font-sans p-2 bg-[#f8fafc] overflow-hidden">
+    <div className="h-full flex flex-col gap-4 font-sans p-3 bg-[#f8fafc] overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between flex-shrink-0">
         <div>
-          <h1 className="text-lg font-black text-gray-900 uppercase tracking-tighter">Ventas</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Ventas</h1>
+          <p className="text-xs text-gray-400 mt-0.5">Historial y gestión de ventas</p>
         </div>
         <div className="flex gap-2">
           {canCreateSale && (
             <button onClick={() => navigate("/admin/ventas/nueva")}
-              className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-bold text-[11px] shadow-md transition-all active:scale-95 hover:bg-emerald-700">
-              <Plus size={14} /> NUEVA VENTA
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-500 text-white rounded-lg font-medium text-xs shadow-sm transition-colors hover:bg-primary-600">
+              <Plus size={14} /> Nueva Venta
             </button>
           )}
           {canAccessReturns ? (
             <button onClick={() => navigate(`/${userRole === "administrador" ? "admin" : "employee"}/ventas/devoluciones`)}
-              className={`flex items-center gap-2 px-3 py-1.5 text-white rounded-lg font-bold text-[11px] shadow-md transition-all active:scale-95 ${
-                userRole === "administrador" 
-                  ? "bg-emerald-600 hover:bg-emerald-700" 
-                  : "bg-blue-600 hover:bg-blue-700"
-              }`}>
-              <RotateCcw size={14} /> DEVOLUCIONES
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium text-xs hover:bg-gray-50 transition-colors">
+              <RotateCcw size={14} className="text-amber-500" /> Devoluciones
             </button>
           ) : (
             <button disabled
               title="No tienes permisos para ver devoluciones"
-              className="flex items-center gap-2 px-3 py-1.5 bg-gray-300 text-gray-500 rounded-lg font-bold text-[11px] shadow-md cursor-not-allowed opacity-60">
-              <RotateCcw size={14} /> DEVOLUCIONES
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-100 text-gray-300 rounded-lg font-medium text-xs cursor-not-allowed">
+              <RotateCcw size={14} /> Devoluciones
             </button>
           )}
           {canExportSales ? (
             <button onClick={() => navigate(`/${userRole === "administrador" ? "admin" : "employee"}/ventas/reporte`)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold text-[11px] shadow-md transition-all active:scale-95 hover:bg-blue-700">
-              <TrendingUp size={14} /> REPORTE
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium text-xs hover:bg-gray-50 transition-colors">
+              <TrendingUp size={14} className="text-blue-500" /> Reporte
             </button>
           ) : (
             <button disabled
               title="No tienes permisos para exportar"
-              className="flex items-center gap-2 px-3 py-1.5 bg-gray-300 text-gray-500 rounded-lg font-bold text-[11px] shadow-md cursor-not-allowed opacity-60">
-              <TrendingUp size={14} /> REPORTE
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-100 text-gray-300 rounded-lg font-medium text-xs cursor-not-allowed">
+              <TrendingUp size={14} /> Reporte
             </button>
           )}
           <button onClick={() => setIsExpenseModalOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white rounded-lg font-bold text-[11px] shadow-md transition-all active:scale-95 hover:bg-red-700">
-            <TrendingDown size={14} /> REGISTRAR GASTO
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium text-xs hover:bg-gray-50 transition-colors">
+            <TrendingDown size={14} className="text-red-500" /> Registrar Gasto
           </button>
         </div>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-3 gap-3 flex-shrink-0">
-        <KPICard icon={DollarSign} label="Ingresos" value={fmt(sales.filter(v => !["devolucion", "anulada"].includes(normalizeText(v.estadoNombre))).reduce((s, v) => s + (v.total || 0), 0) - totalGastosHoy)} color="bg-blue-500" />
-        <KPICard icon={Receipt} label="Ventas Hoy" value={sales.filter(s => new Date(s.fechaVenta).toDateString() === new Date().toDateString() && !["devolucion", "anulada"].includes(normalizeText(s.estadoNombre))).length} color="bg-emerald-500" />
-        <KPICard icon={TrendingDown} label="Gastos Hoy" value={fmt(totalGastosHoy)} color="bg-red-500" />
+        <KPICard icon={DollarSign} label="Ingresos" value={fmt(sales.filter(v => !["devolucion", "anulada"].includes(normalizeText(v.estadoNombre))).reduce((s, v) => s + (v.total || 0), 0) - totalGastosHoy)} bg="bg-primary-50" text="text-primary-600" accent="before:bg-primary-500" />
+        <KPICard icon={Receipt} label="Ventas Hoy" value={sales.filter(s => new Date(s.fechaVenta).toDateString() === new Date().toDateString() && !["devolucion", "anulada"].includes(normalizeText(s.estadoNombre))).length} bg="bg-blue-50" text="text-blue-600" accent="before:bg-blue-500" />
+        <KPICard icon={TrendingDown} label="Gastos Hoy" value={fmt(totalGastosHoy)} bg="bg-red-50" text="text-red-600" accent="before:bg-red-500" />
       </div>
 
       {/* Buscador y Filtro */}
@@ -216,11 +221,11 @@ export const SalesPage = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
           <input type="text" placeholder="Buscar venta..."
-            className="w-full pl-9 pr-3 py-1.5 border border-gray-100 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500 text-[11px] bg-white font-medium outline-none"
+            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-xs bg-white"
             value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(0); }} />
         </div>
         <select value={filterEstado} onChange={(e) => { setFilterEstado(e.target.value); setCurrentPage(0); }}
-          className="px-2 py-1.5 border border-gray-100 rounded-xl shadow-sm text-[11px] bg-white font-bold text-gray-600 outline-none">
+          className="px-3 py-2 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 bg-white outline-none focus:ring-1 focus:ring-primary-500">
           <option value="todos">Todos</option>
           <option value="completada">Completadas</option>
           <option value="devolucion">Devoluciones</option>
@@ -230,14 +235,14 @@ export const SalesPage = () => {
       </div>
 
       {/* Tabla Adaptativa */}
-      <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between">
+      <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between">
         {/* Contenedor del scroll de la tabla */}
         <div className="overflow-auto flex-1">
           <table className="w-full text-left">
-            <thead className="bg-gray-50 border-b border-gray-100 sticky top-0 z-10">
+            <thead className="bg-primary-600 text-white sticky top-0 z-10">
               <tr>
                 {["#", "Fecha", "Origen", "Cliente", "Items", "Pago", "Total", "Estado", ""].map(h => (
-                  <th key={h} className={`px-3 py-2 text-[9px] font-black text-gray-400 uppercase tracking-widest ${h === "" ? "text-right" : ""}`}>
+                  <th key={h} className={`px-3 py-2 text-[10px] font-semibold uppercase tracking-wider ${h === "" ? "text-right" : ""}`}>
                     {h}
                   </th>
                 ))}
@@ -252,35 +257,35 @@ export const SalesPage = () => {
                   (sale.servicios?.length || sale.Servicios?.length || 0);
                 return (
                   <tr key={sale.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-3 py-2 text-[10px] font-bold text-gray-400">{sale.numeroVenta?.split('-')[1] || sale.numeroVenta || sale.id}</td>
-                    <td className="px-3 py-2 text-[10px] text-gray-500">{new Date(sale.fechaVenta).toLocaleDateString()}</td>
+                    <td className="px-3 py-2 text-xs font-medium text-gray-500 whitespace-nowrap">{sale.numeroVenta || sale.id}</td>
+                    <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">{new Date(sale.fechaVenta).toLocaleDateString()}</td>
                     <td className="px-3 py-2">{getOriginBadge(sale.origen)}</td>
                     <td className="px-3 py-2">
-                      <span className="text-[10px] font-bold text-gray-700 truncate block max-w-[100px]">{sale.clienteNombre || "C. Final"}</span>
+                      <span className="text-xs font-medium text-gray-700 truncate block max-w-[120px]">{sale.clienteNombre || "C. Final"}</span>
                     </td>
-                    <td className="px-3 py-2 text-center">
-                      <span className="bg-blue-50 text-blue-700 text-[9px] font-black px-1.5 py-0.5 rounded border border-blue-100">
-                        {totalItems} ITEMS
+                    <td className="px-3 py-2 text-center whitespace-nowrap">
+                      <span className="bg-primary-50 text-primary-700 text-[10px] font-semibold px-1.5 py-0.5 rounded">
+                        {totalItems} items
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-[10px] text-gray-400 font-bold uppercase">{sale.metodoPagoNombre?.substring(0, 8)}</td>
-                    <td className="px-3 py-2 text-right text-[11px] font-black text-gray-900">{fmt(sale.total)}</td>
-                    <td className="px-3 py-2">
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${config.bg} ${config.text}`}>
+                    <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">{sale.metodoPagoNombre}</td>
+                    <td className="px-3 py-2 text-right text-xs font-semibold text-gray-900 whitespace-nowrap">{fmt(sale.total)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${config.bg} ${config.text}`}>
                         {config.label}
                       </span>
                     </td>
                     {/* Acciones */}
-                    <td className="px-3 py-2 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="px-3 py-2 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1">
                         <button onClick={() => { setSelectedSale(sale); setIsSaleDetailOpen(true); }}
                           className="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors"
                           title="Ver detalle">
                           <Eye size={16} />
                         </button>
-                        
-                        {userRole === "administrador" && 
-                         estadoNormalizado !== "anulada" && 
+
+                        {userRole === "administrador" &&
+                         estadoNormalizado !== "anulada" &&
                          estadoNormalizado !== "devolucion" && (
                           <button onClick={() => setConfirmAnular(sale)}
                             className="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors"
@@ -299,12 +304,12 @@ export const SalesPage = () => {
 
         {/* Paginación fijada en la parte inferior */}
         <div className="bg-gray-50/50 px-3 py-2 flex items-center justify-between border-t border-gray-100 flex-shrink-0">
-          <span className="text-[9px] font-bold text-gray-400 uppercase">Pág {currentPage + 1} de {totalPages || 1}</span>
+          <span className="text-[11px] font-medium text-gray-400">Página {currentPage + 1} de {totalPages || 1}</span>
           <div className="flex gap-1">
             <button onClick={() => setCurrentPage(p => Math.max(0, p - 1))} disabled={currentPage === 0}
-              className="p-1 bg-white border rounded shadow-sm disabled:opacity-30"><ChevronLeft size={14} /></button>
+              className="p-1 bg-white border border-gray-200 rounded-md shadow-sm disabled:opacity-30 hover:bg-gray-50 transition-colors"><ChevronLeft size={14} /></button>
             <button onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage >= totalPages - 1}
-              className="p-1 bg-white border rounded shadow-sm disabled:opacity-30"><ChevronRight size={14} /></button>
+              className="p-1 bg-white border border-gray-200 rounded-md shadow-sm disabled:opacity-30 hover:bg-gray-50 transition-colors"><ChevronRight size={14} /></button>
           </div>
         </div>
       </div>

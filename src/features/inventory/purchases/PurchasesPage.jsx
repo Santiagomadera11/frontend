@@ -1,5 +1,6 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Plus, Search, Eye, Edit, Trash2,
   Filter, ShoppingBag,
@@ -12,6 +13,9 @@ import { ConfirmDialog } from "../../../shared/ui/ConfirmDialog";
 import { Pagination } from "../../../shared/ui/Pagination";
 
 export const PurchasesPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isEmployeePath = location.pathname.startsWith("/employee");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,6 +57,17 @@ export const PurchasesPage = () => {
       setCompras(Array.isArray(data) ? data : []);
     } catch { if (isMountedRef.current) setCompras([]); }
     finally { if (isMountedRef.current) setLoading(false); isLoadingRef.current = false; }
+  }, []);
+
+  useEffect(() => {
+    if (location.state?.notification) {
+      setNotification(location.state.notification);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    // Solo se lee al montar: es el aviso de "compra creada/editada" que llega
+    // desde CreatePurchasePage tras redirigir; no debe repetirse si el usuario
+    // navega de vuelta a esta misma página después.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -174,7 +189,7 @@ export const PurchasesPage = () => {
           <p className="text-xs text-gray-500">Gestión de adquisiciones</p>
         </div>
         {canCreate && (
-          <button onClick={() => { setSelectedPurchase(null); setModalMode("create"); setIsModalOpen(true); }}
+          <button onClick={() => navigate(isEmployeePath ? "/employee/compras/nueva" : "/admin/compras/nueva")}
             className={`flex items-center gap-1.5 ${theme.main} ${theme.hover} text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm`}>
             <Plus size={16} /> Nueva
           </button>
@@ -251,12 +266,12 @@ export const PurchasesPage = () => {
                           </button>
                         )}
                         {canEdit && compra.estadoNombre?.toLowerCase() !== "recibida" && (
-                          <button onClick={() => { setSelectedPurchase(compra); setModalMode("edit"); setIsModalOpen(true); }}
+                          <button onClick={() => navigate(isEmployeePath ? "/employee/compras/nueva" : "/admin/compras/nueva", { state: { purchase: compra } })}
                             className="p-1.5 rounded-md text-yellow-600 hover:bg-yellow-50 transition-colors" title="Editar">
                             <Edit size={16} />
                           </button>
                         )}
-                        {canDelete && (
+                        {canDelete && compra.estadoNombre?.toLowerCase() !== "recibida" && (
                           <button onClick={() => setShowDeleteConfirm(compra)}
                             className="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
                             <Trash2 size={16} />

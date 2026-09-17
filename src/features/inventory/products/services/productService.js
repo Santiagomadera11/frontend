@@ -46,13 +46,11 @@ export const productService = {
       marcaId: product.marcaId ? Number(product.marcaId) : null,
       presentacionId: product.presentacionId ? Number(product.presentacionId) : null,
       categoriaId: product.categoriaId,
-      proveedorId: product.proveedorId || null,
       precio: product.precio,
       porcentajeIva: Number(product.porcentajeIva) || 0,
       precioCompra: product.precioCompra || null,
       stock: product.stock || 0,
       codigoBarras: product.codigoBarras || null,
-      imagen: product.imagen || null,
       esMedicamento: esMedicamento,
       medicamento: esMedicamento
         ? {
@@ -86,13 +84,11 @@ export const productService = {
       marcaId: product.marcaId ? Number(product.marcaId) : null,
       presentacionId: product.presentacionId ? Number(product.presentacionId) : null,
       categoriaId: product.categoriaId,
-      proveedorId: product.proveedorId || null,
       precio: product.precio,
       porcentajeIva: Number(product.porcentajeIva) || 0,
       precioCompra: product.precioCompra || null,
       stock: product.stock,
       codigoBarras: product.codigoBarras || null,
-      imagen: product.imagen || null,
       esMedicamento: esMedicamento,
       medicamento: esMedicamento
         ? {

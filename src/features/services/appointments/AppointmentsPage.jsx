@@ -442,7 +442,7 @@ export const AppointmentsPage = () => {
         <AppointmentFormModal isOpen={isAppointmentModalOpen} onClose={() => setIsAppointmentModalOpen(false)} onSave={() => loadData()} appointment={editingAppointment} doctors={doctors} />
       )}
       {isDetailModalOpen && selectedAppointment && (
-        <AppointmentDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} appointment={selectedAppointment} />
+        <AppointmentDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} appointment={selectedAppointment} accentColor={isEmployeePanel ? "blue" : "emerald"} />
       )}
 
       {/* Modal Eliminar Cita */}

@@ -24,7 +24,7 @@ export const StatusNotification = ({
   const { icon: Icon, iconColor, border } = STYLES[type] || STYLES.success;
 
   return (
-    <div className="fixed bottom-4 left-4 max-w-xs animate-in fade-in slide-in-from-bottom-2 duration-300 z-50">
+    <div className="fixed bottom-4 right-4 max-w-xs animate-in fade-in slide-in-from-bottom-2 duration-300 z-50">
       <div className={`bg-white rounded-lg shadow-lg p-4 flex items-start gap-3 border ${border}`}>
         <Icon size={18} className={`${iconColor} flex-shrink-0 mt-0.5`} />
         <p className="text-xs font-bold text-gray-800">{message}</p>

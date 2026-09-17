@@ -142,10 +142,14 @@ export const DashboardPage = () => {
 
       {/* KPIs de Desempeño */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Ventas Totales" value={fmt(filtered.ingresos)} icon={DollarSign} suffix={`${filtered.vF.length} ventas`} />
-        <StatCard title="Utilidad Bruta" value={fmt(filtered.utilidad)} icon={Wallet} suffix="Balance neto" />
-        <StatCard title="Citas del Rango" value={filtered.ciF.length} icon={CalendarIcon} suffix="Consultas" />
-        <StatCard title="Stock Crítico" value={data.productos.filter(p => p.stock <= 5).length} icon={AlertCircle} suffix="Alertas de stock" />
+        <StatCard title="Ventas Totales" value={fmt(filtered.ingresos)} icon={DollarSign} suffix={`${filtered.vF.length} ventas`}
+          bg="bg-primary-50" color="text-primary-600" accent="before:bg-primary-500" />
+        <StatCard title="Utilidad Bruta" value={fmt(filtered.utilidad)} icon={Wallet} suffix="Balance neto"
+          bg="bg-blue-50" color="text-blue-600" accent="before:bg-blue-500" />
+        <StatCard title="Citas del Rango" value={filtered.ciF.length} icon={CalendarIcon} suffix="Consultas"
+          bg="bg-violet-50" color="text-violet-600" accent="before:bg-violet-500" />
+        <StatCard title="Stock Crítico" value={data.productos.filter(p => p.stock <= 5).length} icon={AlertCircle} suffix="Alertas de stock"
+          bg="bg-red-50" color="text-red-600" accent="before:bg-red-500" />
       </div>
 
       {/* Gráficas Principales */}
@@ -213,12 +217,12 @@ export const DashboardPage = () => {
 };
 
 // Componentes Auxiliares
-const StatCard = ({ title, value, icon: Icon, suffix }) => {
+const StatCard = ({ title, value, icon: Icon, suffix, bg, color, accent }) => {
   return (
-    <div className="p-5 rounded-xl border border-gray-100 bg-white">
-      <div className="inline-flex p-2 rounded-lg mb-3 bg-primary-50 text-primary-600"><Icon size={18} /></div>
+    <div className={`group relative overflow-hidden p-5 rounded-xl border border-gray-100 bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 before:absolute before:inset-x-0 before:top-0 before:h-1 ${accent}`}>
+      <div className={`inline-flex p-2.5 rounded-lg mb-3 ${bg} ${color} group-hover:scale-110 transition-transform duration-200`}><Icon size={18} /></div>
       <p className="text-xs text-gray-400">{title}</p>
-      <h3 className="text-xl font-semibold text-gray-900 mt-0.5">{value}</h3>
+      <h3 className="text-2xl font-semibold text-gray-900 mt-0.5">{value}</h3>
       <p className="text-[11px] text-gray-400 mt-1">{suffix}</p>
     </div>
   );

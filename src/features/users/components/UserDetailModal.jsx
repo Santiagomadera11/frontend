@@ -1,17 +1,20 @@
 import React from "react";
 import { X, Phone, MapPin } from "lucide-react";
 
-const UserDetailModal = ({ isOpen, onClose, user }) => {
+const UserDetailModal = ({ isOpen, onClose, user, accentColor = "emerald" }) => {
   if (!isOpen || !user) return null;
 
   const display = user;
   const avatar = display.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(display.nombre || display.email || "user")}`;
+  const accent = accentColor === "blue"
+    ? { hero: "from-blue-50 to-blue-50", badge: "bg-blue-100 text-blue-700" }
+    : { hero: "from-emerald-50 to-emerald-50", badge: "bg-emerald-100 text-emerald-700" };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[95vh] overflow-y-auto">
         {/* Hero */}
-        <div className="relative bg-gradient-to-br from-emerald-50 to-emerald-50 pb-4 pt-4 px-6 text-center">
+        <div className={`relative bg-gradient-to-br ${accent.hero} pb-4 pt-4 px-6 text-center`}>
           <div className="absolute top-4 left-4">
             <span className={`px-3 py-1 rounded-full text-xs font-bold ${display.estado ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`}>
               {display.estado ? "Activo" : "Inactivo"}
@@ -61,7 +64,7 @@ const UserDetailModal = ({ isOpen, onClose, user }) => {
           <div>
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Rol del Sistema</p>
             <div className="h-[52px] flex items-center">
-              <span className="inline-block px-4 py-2 rounded-full text-sm font-bold bg-emerald-100 text-emerald-700">
+              <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${accent.badge}`}>
                 {display.rol || "No asignado"}
               </span>
             </div>
