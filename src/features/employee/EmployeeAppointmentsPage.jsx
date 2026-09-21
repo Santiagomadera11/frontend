@@ -1,5 +1,5 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   Calendar,
   List,
@@ -19,6 +19,7 @@ import {
   AlertCircle,
   X,
   Settings,
+  DollarSign,
 } from "lucide-react";
 import { appointmentService } from "../services/appointments/services/appointmentService";
 import { availabilityService } from "../services/appointments/services/availabilityService";
@@ -96,6 +97,17 @@ export const EmployeeAppointmentsPage = () => {
     if (activeTab === "calendario" && !canCalendar && canList) setActiveTab("citas");
     if (activeTab === "citas" && !canList && canCalendar) setActiveTab("calendario");
   }, [activeTab, canCalendar, canList]);
+
+  // Ingresos por citas de HOY: solo cuenta citas "Pagada" (cobradas de verdad vía una
+  // venta), nunca lo que se vendió en productos dentro de esa misma transacción de caja.
+  // Fecha LOCAL (no toISOString, que es UTC) para no correr "hoy" un día por el huso horario.
+  const ingresosCitasHoy = useMemo(() => {
+    const now = new Date();
+    const hoy = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    return appointments
+      .filter(a => (a.estadoNombre || "").toLowerCase() === "pagada" && (a.fecha || "").slice(0, 10) === hoy)
+      .reduce((s, a) => s + (Number(a.precio) || 0), 0);
+  }, [appointments]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -594,6 +606,24 @@ export const EmployeeAppointmentsPage = () => {
           </button>
         )}
       </div>
+
+      {/* Ingresos por citas de hoy — aparte de "Ventas" (caja): agendar una cita no suma
+          acá, solo cuando se cobra de verdad y queda "Pagada". */}
+      {(activeTab === "calendario" || activeTab === "citas") && (
+        <div className="px-6 pt-4">
+          <div className="bg-white p-4 rounded-xl border border-employee-200 shadow-sm flex items-center gap-3 max-w-xs">
+            <div className="bg-employee-50 text-employee-600 p-2.5 rounded-xl">
+              <DollarSign size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Ingresos por Citas Hoy</p>
+              <p className="text-xl font-black text-gray-900">
+                {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(ingresosCitasHoy)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Contenido de las tabs */}
       <div className="flex-1 overflow-auto">

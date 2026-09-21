@@ -291,7 +291,7 @@ export const DoctorsPage = () => {
 
       {/* Modal Formulario */}
       <DoctorFormModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setEditingDoctor(null); }}
-        onSave={handleSaveDoctor} doctor={editingDoctor} />
+        onSave={handleSaveDoctor} doctor={editingDoctor} accentColor={isEmployeePanel ? "blue" : "emerald"} />
 
       {/* Notificación */}
       {notification && <StatusNotification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}

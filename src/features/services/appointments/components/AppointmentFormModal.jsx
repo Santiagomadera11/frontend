@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   X,
   Save,
@@ -7,6 +7,7 @@ import {
   User,
   FileText,
   Phone,
+  Mail,
   CreditCard,
   Stethoscope,
   AlertCircle,
@@ -19,6 +20,7 @@ import CalendarPicker from "./CalendarPicker";
 import { turnService } from "../../../sales/services/turnService";
 import { availabilityService } from "../services/availabilityService";
 import { ToastNotification } from "../../../../shared/ui/ToastNotification";
+import { formValidations } from "../../../../shared/utils/formValidations";
 
 const getDateString = (date) => {
   const year = date.getFullYear();
@@ -40,6 +42,17 @@ const formatDateDisplay = (isoDate) => {
   const parts = isoDate.split("-");
   if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
   return isoDate;
+};
+
+// Los horarios llegan del backend en formato 24h ("19:00"); se muestran en 12h con
+// AM/PM ("7:00 PM") porque es lo que la gente lee normalmente acá, no el formato
+// "militar"/mundial. El valor guardado en formData.hora sigue siendo el de 24h.
+const formatHoraDisplay = (hora) => {
+  if (!hora) return "";
+  const [h, m] = hora.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 || 12;
+  return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
 };
 
 const AppointmentFormModal = ({
@@ -99,10 +112,47 @@ const AppointmentFormModal = ({
   const [diasBloqueados, setDiasBloqueados] = useState([]);
   const [horarioMedico, setHorarioMedico] = useState([]);
   const [servicesList, setServicesList] = useState([]);
+  const [serviciosError, setServiciosError] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCalendarPicker, setShowCalendarPicker] = useState(false);
   const [toast, setToast] = useState(null);
+
+  const loadServices = useCallback(async () => {
+    try {
+      const response = await apiClient.get("Servicio");
+      const raw = Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response)
+          ? response
+          : [];
+
+      const activeServices = raw.filter((s) => {
+        if (s.estado === undefined || s.estado === null) return true;
+        if (typeof s.estado === "boolean") return s.estado === true;
+        if (typeof s.estado === "number") return s.estado === 1;
+        return String(s.estado).toLowerCase() === "activo";
+      });
+
+      setServicesList(activeServices);
+      setServiciosError(false);
+
+      if (appointment && !appointment.servicioId && appointment.servicio) {
+        const matchedService = activeServices.find(
+          (s) =>
+            s.nombre.toLowerCase() ===
+            (appointment.servicio || "").toLowerCase(),
+        );
+        if (matchedService) {
+          setFormData((prev) => ({ ...prev, servicioId: matchedService.id }));
+        }
+      }
+    } catch (error) {
+      console.error("Error cargando servicios:", error);
+      setServicesList([]);
+      setServiciosError(true);
+    }
+  }, [appointment]);
 
   useEffect(() => {
     if (appointment) {
@@ -121,58 +171,23 @@ const AppointmentFormModal = ({
         userId: appointment.userId || "",
       });
     } else {
+      // Este formulario solo lo usa personal de mostrador (admin/empleado) registrando
+      // citas para pacientes que llegan o llaman, nunca el propio paciente logueado.
+      // Precargar nombre/documento/teléfono/email con los datos de la sesión actual
+      // (currentUser) los llenaba con los datos del EMPLEADO, no del paciente: quedaba
+      // en quien lo cargue notar el error y borrar todo a mano en cada cita nueva.
+      // userId sí debe ser el de la sesión: identifica quién registró la cita.
       setFormData({
         ...initialFormState,
-        paciente: currentUser.nombre || "",
-        documento:
-          currentUser.documento ||
-          currentUser.cedula ||
-          (currentUser.id ? String(currentUser.id) : ""),
-        telefono: currentUser.telefono || currentUser.phone || "",
-        email: currentUser.email || "",
         userId: currentUser.id || "",
       });
     }
     setErrors({});
 
-    const loadServices = async () => {
-      try {
-        const response = await apiClient.get("Servicio");
-        const raw = Array.isArray(response.data)
-          ? response.data
-          : Array.isArray(response)
-            ? response
-            : [];
-
-        const activeServices = raw.filter((s) => {
-          if (s.estado === undefined || s.estado === null) return true;
-          if (typeof s.estado === "boolean") return s.estado === true;
-          if (typeof s.estado === "number") return s.estado === 1;
-          return String(s.estado).toLowerCase() === "activo";
-        });
-
-        setServicesList(activeServices);
-
-        if (appointment && !appointment.servicioId && appointment.servicio) {
-          const matchedService = activeServices.find(
-            (s) =>
-              s.nombre.toLowerCase() ===
-              (appointment.servicio || "").toLowerCase(),
-          );
-          if (matchedService) {
-            setFormData((prev) => ({ ...prev, servicioId: matchedService.id }));
-          }
-        }
-      } catch (error) {
-        console.error("Error cargando servicios:", error);
-        setServicesList([]);
-      }
-    };
-
     loadServices();
     window.addEventListener("services:changed", loadServices);
     return () => window.removeEventListener("services:changed", loadServices);
-  }, [appointment, isOpen, currentUser, initialFormState]);
+  }, [appointment, isOpen, currentUser, initialFormState, loadServices]);
 
   useEffect(() => {
     if (!formData.doctorId) {
@@ -251,12 +266,24 @@ const AppointmentFormModal = ({
   const validateForm = () => {
     const newErrors = {};
     if (!formData.paciente.trim()) newErrors.paciente = "Nombre obligatorio";
-    if (!formData.documento.trim()) newErrors.documento = "Documento obligatorio";
+    if (!formData.documento.trim()) {
+      newErrors.documento = "Documento obligatorio";
+    } else {
+      const docError = formValidations.validateDocument(formData.documento);
+      if (docError) newErrors.documento = docError;
+    }
+    if (formData.telefono) {
+      const phoneError = formValidations.validatePhone(formData.telefono);
+      if (phoneError) newErrors.telefono = phoneError;
+    }
     if (!formData.doctorId) newErrors.doctorId = "Seleccione médico";
     if (!formData.fecha) newErrors.fecha = "Seleccione fecha";
     if (!formData.hora) newErrors.hora = "Seleccione hora";
     if (!formData.servicioId) newErrors.servicio = "Seleccione servicio";
     if (!formData.precio) newErrors.precio = "Precio requerido";
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Email inválido";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -330,7 +357,7 @@ const AppointmentFormModal = ({
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[75vh]">
+        <form id="appointment-form" onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[75vh]">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* COLUMNA IZQUIERDA */}
             <div className="md:col-span-5 space-y-5 md:border-r md:border-gray-100 md:pr-6">
@@ -385,11 +412,34 @@ const AppointmentFormModal = ({
                   <input
                     name="telefono"
                     type="tel"
-                    className={`w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none ${focusBorder} ${focusRing} focus:ring-2`}
+                    className={inputClass(errors.telefono)}
                     value={formData.telefono}
                     onChange={handleGenericInput}
                   />
                 </div>
+                {errors.telefono && (
+                  <p className="text-[10px] text-red-500 mt-1">{errors.telefono}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Email <span className="font-normal text-gray-400">(opcional)</span>
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <input
+                    name="email"
+                    type="email"
+                    className={inputClass(errors.email)}
+                    placeholder="paciente@email.com"
+                    value={formData.email}
+                    onChange={handleGenericInput}
+                  />
+                </div>
+                {errors.email && (
+                  <p className="text-[10px] text-red-500 mt-1">{errors.email}</p>
+                )}
               </div>
             </div>
 
@@ -508,7 +558,7 @@ const AppointmentFormModal = ({
                                 : `text-gray-700 ${slotHover}`
                             }`}
                           >
-                            {slot}
+                            {formatHoraDisplay(slot)}
                           </button>
                         ))}
                       </div>
@@ -540,6 +590,18 @@ const AppointmentFormModal = ({
                   </select>
                   {errors.servicio && (
                     <p className="text-[10px] text-red-500 mt-1">{errors.servicio}</p>
+                  )}
+                  {serviciosError && (
+                    <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
+                      <AlertCircle size={12} /> No se pudo cargar la lista de servicios.{" "}
+                      <button
+                        type="button"
+                        onClick={loadServices}
+                        className="underline font-medium hover:text-amber-700"
+                      >
+                        Reintentar
+                      </button>
+                    </p>
                   )}
                 </div>
 
@@ -584,13 +646,15 @@ const AppointmentFormModal = ({
         {/* Footer */}
         <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
           >
             Cancelar
           </button>
           <button
-            onClick={handleSubmit}
+            type="submit"
+            form="appointment-form"
             disabled={isSubmitting}
             className={`${btnSaveBg} px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors flex items-center gap-2`}
           >

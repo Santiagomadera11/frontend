@@ -303,7 +303,7 @@ export const PurchasesPage = () => {
       {isStatusModalOpen && purchaseToChangeStatus && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
-            <div className="bg-emerald-50 px-6 py-4 border-b border-emerald-200 flex justify-between items-center">
+            <div className={`${theme.light} px-6 py-4 border-b ${theme.border} flex justify-between items-center`}>
               <h3 className="font-bold text-gray-900 text-lg">Cambiar Estado</h3>
               <button onClick={() => setIsStatusModalOpen(false)} className="text-gray-500 hover:text-gray-700"><X size={20} /></button>
             </div>
@@ -312,14 +312,14 @@ export const PurchasesPage = () => {
                 <button key={e.id} onClick={() => confirmStatusChange(e.id)}
                   className={`w-full text-left px-4 py-2 rounded-lg text-sm border transition-all ${
                     purchaseToChangeStatus.estadoId === e.id
-                      ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-bold"
+                      ? `${theme.light} ${theme.border} ${theme.text} font-bold`
                       : "border-gray-200 hover:bg-gray-50"
                   }`}>
                   {e.nombre}
                 </button>
               ))}
             </div>
-            <div className="bg-emerald-50 border-t border-emerald-200 p-4">
+            <div className={`${theme.light} border-t ${theme.border} p-4`}>
               <button onClick={() => setIsStatusModalOpen(false)} className="w-full py-2 text-sm text-gray-500 hover:bg-gray-100 rounded-lg">Cancelar</button>
             </div>
           </div>
