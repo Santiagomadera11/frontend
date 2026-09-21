@@ -1,11 +1,12 @@
 import React from "react";
 import { X, Phone, MapPin } from "lucide-react";
+import { resolveAvatarUrl } from "../../../shared/utils/resolveAvatarUrl";
 
 const UserDetailModal = ({ isOpen, onClose, user, accentColor = "emerald" }) => {
   if (!isOpen || !user) return null;
 
   const display = user;
-  const avatar = display.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(display.nombre || display.email || "user")}`;
+  const avatar = resolveAvatarUrl(display.avatar, display.nombre || display.email);
   const accent = accentColor === "blue"
     ? { hero: "from-blue-50 to-blue-50", badge: "bg-blue-100 text-blue-700" }
     : { hero: "from-emerald-50 to-emerald-50", badge: "bg-emerald-100 text-emerald-700" };

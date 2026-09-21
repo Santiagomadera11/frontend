@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Calendar, TrendingUp, TrendingDown, DollarSign,
-  Eye, Download, ArrowUp, ArrowDown, Lock,
+  Eye, Download, ArrowUp, ArrowDown, Lock, History, Filter, X, FileText,
 } from "lucide-react";
 import { apiClient } from "../../../shared/utils/apiClient";
 import { CloseShiftModal } from "../../sales/components/CloseShiftModal";
@@ -25,6 +25,12 @@ export const ShiftHistoryReportsPage = () => {
 
   const currentUser = JSON.parse(sessionStorage.getItem("syspharma_user") || '{"rol":""}');
   const isAdmin = (currentUser?.rol || "").toLowerCase().trim() === "administrador";
+
+  // Esta misma página la usan ambos paneles (Admin → Reportes → Turnos y Empleado →
+  // Reportes → Turnos): verde en admin, azul en empleado, igual que el resto del sistema.
+  const theme = isAdmin
+    ? { icon: "bg-emerald-50 text-emerald-600", button: "bg-emerald-600 hover:bg-emerald-700", ring: "focus:ring-emerald-200 focus:border-emerald-400", thead: "bg-emerald-600", theadHover: "hover:bg-emerald-700", header: "bg-emerald-50 border-emerald-200", headerIcon: "text-emerald-600", hoverIcon: "hover:text-emerald-600" }
+    : { icon: "bg-blue-50 text-blue-600", button: "bg-blue-600 hover:bg-blue-700", ring: "focus:ring-blue-200 focus:border-blue-400", thead: "bg-blue-600", theadHover: "hover:bg-blue-700", header: "bg-blue-50 border-blue-200", headerIcon: "text-blue-600", hoverIcon: "hover:text-blue-600" };
 
   const loadTurnos = useCallback(async () => {
     try {
@@ -91,118 +97,125 @@ export const ShiftHistoryReportsPage = () => {
   const formatTime = (s) => s ? new Date(s).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }) : "—";
 
   return (
-    <div className="h-full flex flex-col gap-4 font-sans text-gray-800 p-4">
+    <div className="h-full flex flex-col gap-4 font-sans text-gray-800 p-4 bg-[#f8fafc]">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Histórico de Turnos</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Reportes de cajas con desglose de ingresos</p>
+        <div className="flex items-center gap-3">
+          <div className={`${theme.icon} p-2.5 rounded-xl`}>
+            <History size={20} />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Histórico de Turnos</h1>
+            <p className="text-xs text-gray-500 mt-0.5">Reportes de cajas con desglose de ingresos</p>
+          </div>
         </div>
-        <button onClick={handleDownloadCSV} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
-          <Download size={16} /> Descargar
+        <button onClick={handleDownloadCSV} className={`flex items-center gap-1.5 ${theme.button} text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm transition-colors`}>
+          <Download size={15} /> Descargar CSV
         </button>
       </div>
 
       {/* Filtros */}
-      <div className="flex gap-3 bg-white p-4 rounded-lg border border-gray-200">
-        <div className="flex-1">
-          <label className="block text-xs font-semibold text-gray-700 mb-1">Desde</label>
+      <div className="flex flex-col md:flex-row gap-3 items-end bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+        <div className="flex items-center gap-2 text-gray-400 pb-2 md:pb-0">
+          <Filter size={16} />
+          <span className="text-[10px] font-bold uppercase tracking-wide hidden md:inline">Filtrar por fecha</span>
+        </div>
+        <div className="flex-1 w-full">
+          <label className="block text-xs font-semibold text-gray-600 mb-1">Desde</label>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none" />
+            className={`w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 ${theme.ring}`} />
         </div>
-        <div className="flex-1">
-          <label className="block text-xs font-semibold text-gray-700 mb-1">Hasta</label>
+        <div className="flex-1 w-full">
+          <label className="block text-xs font-semibold text-gray-600 mb-1">Hasta</label>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none" />
+            className={`w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 ${theme.ring}`} />
         </div>
-        <div className="flex items-end">
-          <button onClick={() => { setStartDate(""); setEndDate(""); }}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md text-sm font-semibold">
-            Limpiar
-          </button>
-        </div>
+        <button onClick={() => { setStartDate(""); setEndDate(""); }}
+          className="px-3 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-600 rounded-lg text-xs font-medium transition-colors w-full md:w-auto">
+          Limpiar
+        </button>
       </div>
 
       {/* Resumen */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: "Turnos Cerrados", value: cerrados.length, icon: Calendar, color: "text-blue-600" },
-          { label: "Ingresos Totales", value: fmt(totalVentas), icon: TrendingUp, color: "text-emerald-600" },
-          { label: "Gastos Totales", value: fmt(totalGastos), icon: TrendingDown, color: "text-red-600" },
-          { label: "Balance Neto", value: fmt(totalVentas - totalGastos), icon: DollarSign, color: "text-indigo-600" },
-        ].map(({ label, value, icon: IconComponent, color }) => (
-          <div key={label} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-gray-500">{label}</p>
-                <p className={`text-lg font-bold ${color}`}>{value}</p>
-              </div>
-              <IconComponent className={color} size={28} />
+          { label: "Turnos Cerrados", value: cerrados.length, icon: Calendar, bg: "bg-blue-50", color: "text-blue-600", accent: "before:bg-blue-500" },
+          { label: "Ingresos Totales", value: fmt(totalVentas), icon: TrendingUp, bg: "bg-emerald-50", color: "text-emerald-600", accent: "before:bg-emerald-500" },
+          { label: "Gastos Totales", value: fmt(totalGastos), icon: TrendingDown, bg: "bg-red-50", color: "text-red-600", accent: "before:bg-red-500" },
+          { label: "Balance Neto", value: fmt(totalVentas - totalGastos), icon: DollarSign, bg: "bg-indigo-50", color: "text-indigo-600", accent: "before:bg-indigo-500" },
+        ].map(({ label, value, icon: IconComponent, bg, color, accent }) => (
+          <div key={label} className={`group relative overflow-hidden bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 before:absolute before:inset-x-0 before:top-0 before:h-1 ${accent}`}>
+            <div className={`inline-flex p-2.5 rounded-lg mb-2.5 ${bg} ${color} group-hover:scale-110 transition-transform duration-200`}>
+              <IconComponent size={18} />
             </div>
+            <p className="text-xs text-gray-400">{label}</p>
+            <h3 className="text-xl font-semibold text-gray-900 mt-0.5">{value}</h3>
           </div>
         ))}
       </div>
 
       {/* Tabla */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex-1 flex flex-col overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50 sticky top-0 z-10 border-b border-gray-200">
+            <thead className={`${theme.thead} text-white sticky top-0 z-10`}>
               <tr>
                 {["ID", "Usuario", "Fecha Apertura", "Cierre", "Monto Base", "Ventas", "Gastos", "Saldo", "Estado"].concat(isAdmin ? ["Acciones"] : []).map(h => (
                   h === "Fecha Apertura" ? (
-                    <th key={h} className="py-3 px-4 text-xs font-bold text-gray-700 uppercase cursor-pointer hover:bg-gray-100">
-                      <button onClick={() => setSortOrder(s => s === "desc" ? "asc" : "desc")} className="flex items-center gap-1 hover:text-blue-600">
-                        {h} {sortOrder === "desc" ? <ArrowDown size={12} /> : <ArrowUp size={12} />}
+                    <th key={h} className={`py-2.5 px-3 text-[10px] font-semibold uppercase tracking-wide cursor-pointer ${theme.theadHover} transition-colors`}>
+                      <button onClick={() => setSortOrder(s => s === "desc" ? "asc" : "desc")} className="flex items-center gap-1">
+                        {h} {sortOrder === "desc" ? <ArrowDown size={11} /> : <ArrowUp size={11} />}
                       </button>
                     </th>
                   ) : (
-                    <th key={h} className="py-3 px-4 text-xs font-bold text-gray-700 uppercase">{h}</th>
+                    <th key={h} className="py-2.5 px-3 text-[10px] font-semibold uppercase tracking-wide">{h}</th>
                   )
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={isAdmin ? 10 : 9} className="py-8 text-center text-gray-400">Cargando...</td></tr>
+                <tr><td colSpan={isAdmin ? 10 : 9} className="py-8 text-center text-gray-400 text-sm">Cargando...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={isAdmin ? 10 : 9} className="py-6 text-center text-gray-500 text-sm">No hay turnos en el período</td></tr>
+                <tr><td colSpan={isAdmin ? 10 : 9} className="py-8 text-center text-gray-400 text-sm">No hay turnos en el período</td></tr>
               ) : (
                 filtered.map((t, idx) => {
                   const saldo = (t.montoBase || 0) + (t.totalVentas || 0) - (t.totalGastos || 0);
                   const activo = t.estado === "activo";
                   return (
-                    <tr key={t.id} className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${activo ? "bg-emerald-50 border-l-4 border-l-emerald-500" : ""}`}>
-                      <td className="py-3 px-4 text-xs font-mono text-gray-600">{idx + 1}</td>
-                      <td className="py-3 px-4 text-xs font-semibold text-gray-700">{t.usuarioNombre}</td>
-                      <td className="py-3 px-4 text-xs text-gray-600">{formatDate(t.fechaApertura)} {formatTime(t.fechaApertura)}</td>
-                      <td className="py-3 px-4 text-xs">
+                    <tr key={t.id} className={`hover:bg-gray-50 transition-colors ${activo ? "bg-emerald-50/50 border-l-4 border-l-emerald-500" : ""}`}>
+                      <td className="py-2 px-3 text-xs font-mono text-gray-500">{idx + 1}</td>
+                      <td className="py-2 px-3 text-xs font-semibold text-gray-700">{t.usuarioNombre}</td>
+                      <td className="py-2 px-3 text-xs text-gray-600">{formatDate(t.fechaApertura)} {formatTime(t.fechaApertura)}</td>
+                      <td className="py-2 px-3 text-xs">
                         {activo ? (
-                          <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-xs font-semibold">
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" /> Abierto
+                          <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> Abierto
                           </span>
                         ) : formatTime(t.fechaCierre)}
                       </td>
-                      <td className="py-3 px-4 text-xs font-semibold text-gray-700">{fmt(t.montoBase)}</td>
-                      <td className="py-3 px-4 text-xs font-semibold text-emerald-600">{fmt(t.totalVentas)}</td>
-                      <td className="py-3 px-4 text-xs font-semibold text-red-600">{fmt(t.totalGastos)}</td>
-                      <td className="py-3 px-4 text-xs font-bold text-indigo-600">{fmt(saldo)}</td>
-                      <td className="py-3 px-4 text-xs">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold ${activo ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-700"}`}>
+                      <td className="py-2 px-3 text-xs font-semibold text-gray-700">{fmt(t.montoBase)}</td>
+                      <td className="py-2 px-3 text-xs font-semibold text-emerald-600">{fmt(t.totalVentas)}</td>
+                      <td className="py-2 px-3 text-xs font-semibold text-red-600">{fmt(t.totalGastos)}</td>
+                      <td className="py-2 px-3 text-xs font-bold text-indigo-600">{fmt(saldo)}</td>
+                      <td className="py-2 px-3 text-xs">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${activo ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"}`}>
                           {activo ? "ACTIVO" : "CERRADO"}
                         </span>
                       </td>
                       {isAdmin && (
-                        <td className="py-3 px-4 text-xs flex gap-2">
-                          <button onClick={() => setSelectedShift(t)}
-                            className="flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
-                            <Eye size={12} /> Ver
-                          </button>
-                          {activo && (
-                            <button onClick={() => setForceCloseShift(t)}
-                              className="flex items-center gap-1 bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded text-xs font-semibold">
-                              <Lock size={12} /> Cerrar
+                        <td className="py-2 px-3 text-xs">
+                          <div className="flex gap-1.5">
+                            <button onClick={() => setSelectedShift(t)}
+                              className="flex items-center gap-1 text-blue-600 hover:bg-blue-50 px-2 py-1 rounded-lg text-[11px] font-semibold transition-colors">
+                              <Eye size={12} /> Ver
                             </button>
-                          )}
+                            {activo && (
+                              <button onClick={() => setForceCloseShift(t)}
+                                className="flex items-center gap-1 text-red-600 hover:bg-red-50 px-2 py-1 rounded-lg text-[11px] font-semibold transition-colors">
+                                <Lock size={12} /> Cerrar
+                              </button>
+                            )}
+                          </div>
                         </td>
                       )}
                     </tr>
@@ -216,37 +229,50 @@ export const ShiftHistoryReportsPage = () => {
 
       {/* Modal detalle */}
       {selectedShift && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-800">Detalle — {selectedShift.usuarioNombre}</h2>
-              <button onClick={() => setSelectedShift(null)} className="text-gray-400 hover:text-gray-600 text-2xl">×</button>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedShift(null)}>
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className={`${theme.header} px-5 py-3 border-b flex justify-between items-center flex-shrink-0`}>
+              <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                <FileText size={16} className={theme.headerIcon} /> Detalle del turno — {selectedShift.usuarioNombre}
+              </h3>
+              <button onClick={() => setSelectedShift(null)} className={`text-gray-400 ${theme.hoverIcon} transition-colors`}>
+                <X size={18} />
+              </button>
             </div>
-            <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-              {[
-                { label: "Monto Base", value: fmt(selectedShift.montoBase), color: "text-gray-800" },
-                { label: "Total Ventas", value: fmt(selectedShift.totalVentas), color: "text-emerald-600" },
-                { label: "Total Gastos", value: fmt(selectedShift.totalGastos), color: "text-red-600" },
-                { label: "Saldo Esperado", value: fmt((selectedShift.montoBase || 0) + (selectedShift.totalVentas || 0) - (selectedShift.totalGastos || 0)), color: "text-indigo-600" },
-                { label: "Diferencia", value: fmt(selectedShift.diferencia), color: selectedShift.diferencia >= 0 ? "text-emerald-600" : "text-red-600" },
-                { label: "Ventas", value: selectedShift.resumenVentas + " ventas", color: "text-blue-600" },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-gray-500">{label}</p>
-                  <p className={`text-lg font-bold ${color}`}>{value}</p>
-                </div>
-              ))}
-            </div>
-            {selectedShift.notas && (
-              <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 mb-4">
-                <p className="text-xs font-bold text-amber-700">Notas:</p>
-                <p className="text-xs text-gray-700 mt-1">{selectedShift.notas}</p>
+
+            {/* Body */}
+            <div className="p-5 space-y-4 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "Monto Base", value: fmt(selectedShift.montoBase), color: "text-gray-800" },
+                  { label: "Total Ventas", value: fmt(selectedShift.totalVentas), color: "text-emerald-600" },
+                  { label: "Total Gastos", value: fmt(selectedShift.totalGastos), color: "text-red-600" },
+                  { label: "Saldo Esperado", value: fmt((selectedShift.montoBase || 0) + (selectedShift.totalVentas || 0) - (selectedShift.totalGastos || 0)), color: "text-indigo-600" },
+                  { label: "Diferencia", value: fmt(selectedShift.diferencia), color: selectedShift.diferencia >= 0 ? "text-emerald-600" : "text-red-600" },
+                  { label: "Ventas", value: selectedShift.resumenVentas + " ventas", color: "text-blue-600" },
+                ].map(({ label, value, color }) => (
+                  <div key={label} className="p-3 rounded-lg border border-gray-100">
+                    <p className="text-[10px] font-semibold uppercase text-gray-400 tracking-wide">{label}</p>
+                    <p className={`text-base font-bold mt-0.5 ${color}`}>{value}</p>
+                  </div>
+                ))}
               </div>
-            )}
-            <button onClick={() => setSelectedShift(null)}
-              className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-semibold">
-              Cerrar
-            </button>
+              {selectedShift.notas && (
+                <div className="p-3 rounded-lg border border-amber-200 bg-amber-50">
+                  <p className="text-[10px] font-semibold uppercase text-amber-700 tracking-wide">Notas</p>
+                  <p className="text-xs text-gray-700 mt-1 whitespace-pre-line">{selectedShift.notas}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className={`${theme.header} px-5 py-3 border-t flex justify-end flex-shrink-0`}>
+              <button onClick={() => setSelectedShift(null)}
+                className="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

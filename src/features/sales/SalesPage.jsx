@@ -3,7 +3,8 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from "react"
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Plus, DollarSign, Eye, ChevronLeft, ChevronRight,
-  ShoppingCart, TrendingUp, Receipt, Package, Globe, User, TrendingDown, RotateCcw, X
+  ShoppingCart, TrendingUp, Receipt, Package, Globe, User, TrendingDown, RotateCcw, X,
+  Calendar as CalendarIcon
 } from "lucide-react";
 import { salesService } from "./services/salesService";
 import { expensesService } from "./services/expensesService";
@@ -11,6 +12,7 @@ import { SaleDetailModal } from "./components/SaleDetailModal";
 import ExpenseFormModal from "../services/appointments/components/ExpenseFormModal";
 import { ToastNotification } from "/src/shared/ui/ToastNotification";
 import { ConfirmDialog } from "/src/shared/ui/ConfirmDialog";
+import { serviciosMontoDe, productosMontoDe } from "/src/shared/utils/ventaCalculations";
 
 const ESTADO_CONFIG = {
   completada: { label: "Completada", bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
@@ -65,8 +67,12 @@ export const SalesPage = () => {
 
   const fmt = (v) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v || 0);
 
-  const getOriginBadge = (origen) => {
-    const orig = (origen || "").toUpperCase();
+  // "Origen" ya no distingue de dónde vino el cobro (siempre decía "Caja"): ahora indica
+  // si la venta trae productos (Venta) o es puramente el cobro de una cita sin productos
+  // (Cita). Mixta (medicamento + cita en la misma venta) se trata como Venta, porque acá
+  // solo importa mostrar la parte de productos — la de la cita va al panel de Citas.
+  const getOriginBadge = (sale) => {
+    const orig = (sale.origen || "").toUpperCase();
     if (orig === "WEB") {
       return (
         <span className="bg-purple-50 text-purple-700 border border-purple-100 px-2 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 w-fit">
@@ -74,9 +80,18 @@ export const SalesPage = () => {
         </span>
       );
     }
+    const hasProductos = (sale.detalles?.length || 0) > 0;
+    const hasServicios = (sale.servicios?.length || 0) > 0;
+    if (!hasProductos && hasServicios) {
+      return (
+        <span className="bg-violet-50 text-violet-700 border border-violet-100 px-2 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 w-fit">
+          <CalendarIcon size={10} /> Cita
+        </span>
+      );
+    }
     return (
       <span className="bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 w-fit">
-        <User size={10} /> Caja
+        <User size={10} /> Venta
       </span>
     );
   };
@@ -163,6 +178,21 @@ export const SalesPage = () => {
 
   const totalGastosHoy = todayExpenses.reduce((sum, g) => sum + (g.monto || g.Monto || 0), 0);
 
+  // Ventas válidas (sin Devolución/Anulada) del día de hoy. "Ingresos" sumaba TODAS las
+  // ventas de la historia del sistema y le restaba solo los gastos de HOY: una mezcla que
+  // inflaba el ingreso mostrado. Ahora usa el mismo filtro de fecha que ya tenía "Ventas Hoy".
+  const ventasHoyValidas = useMemo(() => sales.filter(v =>
+    new Date(v.fechaVenta).toDateString() === new Date().toDateString() &&
+    !["devolucion", "anulada"].includes(normalizeText(v.estadoNombre))
+  ), [sales]);
+
+  // Plata de servicios/citas cobrados dentro de una venta (ej: medicamento + consulta en
+  // el mismo cobro): esa parte no es "venta del día" de mostrador, es ingreso de citas —
+  // se muestra aparte en el panel de Citas ("Ingresos por Citas Hoy"), no acá.
+  const ingresosHoyProductos = useMemo(() =>
+    ventasHoyValidas.reduce((s, v) => s + productosMontoDe(v), 0)
+  , [ventasHoyValidas]);
+
   return (
     <div className="h-full flex flex-col gap-4 font-sans p-3 bg-[#f8fafc] overflow-hidden">
       {/* Header */}
@@ -211,8 +241,8 @@ export const SalesPage = () => {
 
       {/* KPIs */}
       <div className="grid grid-cols-3 gap-3 flex-shrink-0">
-        <KPICard icon={DollarSign} label="Ingresos" value={fmt(sales.filter(v => !["devolucion", "anulada"].includes(normalizeText(v.estadoNombre))).reduce((s, v) => s + (v.total || 0), 0) - totalGastosHoy)} bg="bg-primary-50" text="text-primary-600" accent="before:bg-primary-500" />
-        <KPICard icon={Receipt} label="Ventas Hoy" value={sales.filter(s => new Date(s.fechaVenta).toDateString() === new Date().toDateString() && !["devolucion", "anulada"].includes(normalizeText(s.estadoNombre))).length} bg="bg-blue-50" text="text-blue-600" accent="before:bg-blue-500" />
+        <KPICard icon={DollarSign} label="Ingresos" value={fmt(ingresosHoyProductos - totalGastosHoy)} bg="bg-primary-50" text="text-primary-600" accent="before:bg-primary-500" />
+        <KPICard icon={Receipt} label="Ventas Hoy" value={ventasHoyValidas.length} bg="bg-blue-50" text="text-blue-600" accent="before:bg-blue-500" />
         <KPICard icon={TrendingDown} label="Gastos Hoy" value={fmt(totalGastosHoy)} bg="bg-red-50" text="text-red-600" accent="before:bg-red-500" />
       </div>
 
@@ -255,11 +285,13 @@ export const SalesPage = () => {
                 const totalItems =
                   (sale.detalles?.length || sale.Detalles?.length || 0) +
                   (sale.servicios?.length || sale.Servicios?.length || 0);
+                const serviciosMonto = serviciosMontoDe(sale);
+                const productosMonto = productosMontoDe(sale);
                 return (
                   <tr key={sale.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-3 py-2 text-xs font-medium text-gray-500 whitespace-nowrap">{sale.numeroVenta || sale.id}</td>
                     <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">{new Date(sale.fechaVenta).toLocaleDateString()}</td>
-                    <td className="px-3 py-2">{getOriginBadge(sale.origen)}</td>
+                    <td className="px-3 py-2">{getOriginBadge(sale)}</td>
                     <td className="px-3 py-2">
                       <span className="text-xs font-medium text-gray-700 truncate block max-w-[120px]">{sale.clienteNombre || "C. Final"}</span>
                     </td>
@@ -269,7 +301,12 @@ export const SalesPage = () => {
                       </span>
                     </td>
                     <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">{sale.metodoPagoNombre}</td>
-                    <td className="px-3 py-2 text-right text-xs font-semibold text-gray-900 whitespace-nowrap">{fmt(sale.total)}</td>
+                    <td className="px-3 py-2 text-right text-xs font-semibold text-gray-900 whitespace-nowrap">
+                      {fmt(productosMonto)}
+                      {serviciosMonto > 0 && (
+                        <div className="text-[9px] font-normal text-gray-400">+ {fmt(serviciosMonto)} cita</div>
+                      )}
+                    </td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${config.bg} ${config.text}`}>
                         {config.label}

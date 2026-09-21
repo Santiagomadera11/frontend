@@ -21,15 +21,23 @@ const emptyDay = () => ({
   tardeFin: "18:00",
 });
 
+// Horas por defecto al reactivar un turno (mañana o tarde) que estaba bloqueado.
+const HALF_DEFAULTS = {
+  manana: { inicio: "08:00", fin: "12:00" },
+  tarde: { inicio: "14:00", fin: "18:00" },
+};
+
 const apiToScheduleMap = (apiHorarios) => {
   const map = {};
   [0, 1, 2, 3, 4, 5, 6].forEach((d) => (map[d] = null));
   apiHorarios.forEach((h) => {
+    // El backend ya soporta un turno vacío ("" = sin mañana o sin tarde ese día): usar ??
+    // en vez de || para no pisar ese "" intencional con la hora por defecto al recargar.
     map[h.diaSemana] = {
-      mananaInicio: h.mananaInicio || "08:00",
-      mananaFin: h.mananaFin || "12:00",
-      tardeInicio: h.tardeInicio || "14:00",
-      tardeFin: h.tardeFin || "18:00",
+      mananaInicio: h.mananaInicio ?? "",
+      mananaFin: h.mananaFin ?? "",
+      tardeInicio: h.tardeInicio ?? "",
+      tardeFin: h.tardeFin ?? "",
     };
   });
   return map;
@@ -81,6 +89,27 @@ export const AvailabilityConfigPage = () => {
       ...prev,
       [dia]: prev[dia] ? null : emptyDay(),
     }));
+  };
+
+  // Prende/apaga solo la mañana o solo la tarde de un día, sin afectar el otro turno.
+  // Apagar un turno lo manda como "" al guardar, que el backend interpreta como
+  // "sin turno" (no genera horas disponibles para esa franja ese día).
+  const toggleHalf = (dia, mitad) => {
+    setScheduleMap((prev) => {
+      const day = prev[dia];
+      if (!day) return prev;
+      const inicioKey = `${mitad}Inicio`;
+      const finKey = `${mitad}Fin`;
+      const estaActivo = !!day[inicioKey];
+      return {
+        ...prev,
+        [dia]: {
+          ...day,
+          [inicioKey]: estaActivo ? "" : HALF_DEFAULTS[mitad].inicio,
+          [finKey]: estaActivo ? "" : HALF_DEFAULTS[mitad].fin,
+        },
+      };
+    });
   };
 
   const handleTimeChange = (dia, campo, valor) => {
@@ -215,13 +244,27 @@ export const AvailabilityConfigPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {/* Mañana */}
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Mañana
-                          </label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-xs font-medium text-gray-600">
+                              Mañana
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => toggleHalf(dia, "manana")}
+                              className={`px-2 py-0.5 rounded text-[11px] font-medium ${
+                                scheduleMap[dia].mananaInicio
+                                  ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                                  : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                              }`}
+                            >
+                              {scheduleMap[dia].mananaInicio ? "Activo" : "Sin turno"}
+                            </button>
+                          </div>
                           <div className="flex gap-2 items-center">
                             <input
                               type="time"
-                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                              disabled={!scheduleMap[dia].mananaInicio}
+                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400 disabled:bg-gray-100 disabled:text-gray-400"
                               value={scheduleMap[dia].mananaInicio}
                               onChange={(e) =>
                                 handleTimeChange(dia, "mananaInicio", e.target.value)
@@ -230,7 +273,8 @@ export const AvailabilityConfigPage = () => {
                             <span className="text-gray-400 text-sm">a</span>
                             <input
                               type="time"
-                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                              disabled={!scheduleMap[dia].mananaInicio}
+                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400 disabled:bg-gray-100 disabled:text-gray-400"
                               value={scheduleMap[dia].mananaFin}
                               onChange={(e) =>
                                 handleTimeChange(dia, "mananaFin", e.target.value)
@@ -240,13 +284,27 @@ export const AvailabilityConfigPage = () => {
                         </div>
                         {/* Tarde */}
                         <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Tarde
-                          </label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-xs font-medium text-gray-600">
+                              Tarde
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => toggleHalf(dia, "tarde")}
+                              className={`px-2 py-0.5 rounded text-[11px] font-medium ${
+                                scheduleMap[dia].tardeInicio
+                                  ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                                  : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                              }`}
+                            >
+                              {scheduleMap[dia].tardeInicio ? "Activo" : "Sin turno"}
+                            </button>
+                          </div>
                           <div className="flex gap-2 items-center">
                             <input
                               type="time"
-                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                              disabled={!scheduleMap[dia].tardeInicio}
+                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400 disabled:bg-gray-100 disabled:text-gray-400"
                               value={scheduleMap[dia].tardeInicio}
                               onChange={(e) =>
                                 handleTimeChange(dia, "tardeInicio", e.target.value)
@@ -255,7 +313,8 @@ export const AvailabilityConfigPage = () => {
                             <span className="text-gray-400 text-sm">a</span>
                             <input
                               type="time"
-                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                              disabled={!scheduleMap[dia].tardeInicio}
+                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400 disabled:bg-gray-100 disabled:text-gray-400"
                               value={scheduleMap[dia].tardeFin}
                               onChange={(e) =>
                                 handleTimeChange(dia, "tardeFin", e.target.value)

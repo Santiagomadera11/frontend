@@ -62,8 +62,11 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
     }
   };
 
-  const handleCantidadChange = (detalleId, value) => {
-    const numValue = Math.max(0, parseInt(value) || 0);
+  // Se limita a lo realmente vendido en esa línea (detalle.cantidad): antes se podía
+  // escribir cualquier número y el aviso de "cantidad inválida" solo aparecía después
+  // de tocar "Confirmar", con un error genérico del backend.
+  const handleCantidadChange = (detalleId, value, maxCantidad) => {
+    const numValue = Math.max(0, Math.min(parseInt(value) || 0, maxCantidad));
     setCantidades((prev) => ({
       ...prev,
       [detalleId]: numValue,
@@ -257,7 +260,7 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
                             min="0"
                             max={detalle.cantidad}
                             value={cantidades[detalle.id] || 0}
-                            onChange={(e) => handleCantidadChange(detalle.id, e.target.value)}
+                            onChange={(e) => handleCantidadChange(detalle.id, e.target.value, detalle.cantidad)}
                             className={`w-16 px-2 py-1 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 ${
                               userRole === "administrador" ? "focus:ring-emerald-500" : "focus:ring-blue-500"
                             } text-sm`}

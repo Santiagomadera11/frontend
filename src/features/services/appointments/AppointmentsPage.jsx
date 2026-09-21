@@ -134,6 +134,18 @@ export const AppointmentsPage = () => {
     return { ingresos, totalCitas: filteredAppointments.length };
   }, [filteredAppointments]);
 
+  // Ingresos por citas de HOY, independiente del filtro de rango de arriba (igual que
+  // "Ingresos"/"Ventas Hoy" en la pantalla de Ventas): la plata que se cobró hoy por
+  // citas, para que quede claro que es distinta de la venta de productos en caja.
+  // Fecha LOCAL (no toISOString, que es UTC): con UTC-5 podía marcar "hoy" como ayer.
+  const ingresosCitasHoy = useMemo(() => {
+    const now = new Date();
+    const hoy = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    return appointments
+      .filter(a => (a.estadoNombre || "").toLowerCase() === "pagada" && (a.fecha || "").slice(0, 10) === hoy)
+      .reduce((s, a) => s + (Number(a.precio) || 0), 0);
+  }, [appointments]);
+
   const getAppointmentsForDate = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -189,70 +201,70 @@ export const AppointmentsPage = () => {
 
   const renderList = () => (
     // --- MODIFICADO: Cambiado overflow-hidden a overflow-visible para que el modal flotante no se recorte ---
-    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-visible">
-      <div className="p-4 border-b border-gray-50 bg-gray-50/30">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-visible">
+      <div className="p-3 border-b border-gray-50 bg-gray-50/30">
         <input type="text" placeholder="Buscar paciente o servicio..."
-          className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+          className="w-full p-2 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium"
           value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
       </div>
       <table className="w-full text-left">
         <thead className="bg-gray-50 text-gray-400">
           <tr>
-            {/* --- MODIFICADO: Se agregaron clases rounded-tl-3xl y rounded-tr-3xl para conservar las esquinas redondeadas de la tabla sin recortar --- */}
-            <th className="p-4 text-[10px] font-black uppercase rounded-tl-3xl">Paciente</th>
-            <th className="p-4 text-[10px] font-black uppercase">Fecha / Hora</th>
-            <th className="p-4 text-[10px] font-black uppercase">Servicio</th>
-            <th className="p-4 text-[10px] font-black uppercase">Precio</th>
-            <th className="p-4 text-[10px] font-black uppercase">Estado</th>
-            <th className="p-4 text-center text-[10px] font-black uppercase rounded-tr-3xl">Acciones</th>
+            {/* --- MODIFICADO: Se agregaron clases rounded-tl-xl y rounded-tr-xl para conservar las esquinas redondeadas de la tabla sin recortar --- */}
+            <th className="p-2.5 text-[10px] font-bold uppercase rounded-tl-xl">Paciente</th>
+            <th className="p-2.5 text-[10px] font-bold uppercase">Fecha / Hora</th>
+            <th className="p-2.5 text-[10px] font-bold uppercase">Servicio</th>
+            <th className="p-2.5 text-[10px] font-bold uppercase">Precio</th>
+            <th className="p-2.5 text-[10px] font-bold uppercase">Estado</th>
+            <th className="p-2.5 text-center text-[10px] font-bold uppercase rounded-tr-xl">Acciones</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
           {filteredAppointments.length === 0 ? (
-            <tr><td colSpan="6" className="p-10 text-center text-gray-400 italic">No hay citas registradas en este periodo.</td></tr>
+            <tr><td colSpan="6" className="p-8 text-center text-gray-400 italic text-sm">No hay citas registradas en este periodo.</td></tr>
           ) : (
             filteredAppointments.map(apt => (
               <tr key={apt.id} className="hover:bg-gray-50 transition-colors">
-                <td className="p-4">
-                  <p className="font-bold text-sm text-gray-900">{apt.pacienteNombre}</p>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase">{apt.medicoNombre}</p>
+                <td className="p-2.5">
+                  <p className="font-semibold text-xs text-gray-900">{apt.pacienteNombre}</p>
+                  <p className="text-[10px] text-gray-400 font-medium uppercase">{apt.medicoNombre}</p>
                 </td>
-                <td className="p-4">
-                  <p className="text-sm font-bold text-gray-700">{apt.fecha ? apt.fecha.substring(0, 10) : ""}</p>
-                  <p className="text-[10px] text-gray-400 font-bold">{formatHora(apt.hora)}</p>
+                <td className="p-2.5">
+                  <p className="text-xs font-semibold text-gray-700">{apt.fecha ? apt.fecha.substring(0, 10) : ""}</p>
+                  <p className="text-[10px] text-gray-400 font-medium">{formatHora(apt.hora)}</p>
                 </td>
-                <td className="p-4 text-sm font-medium text-gray-600">{apt.servicioNombre}</td>
-                <td className="p-4 font-black text-blue-600">${Number(apt.precio || 0).toLocaleString()}</td>
-                
-                <td className="p-4">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border ${getStatusPillStyle(apt.estadoNombre)}`}>
+                <td className="p-2.5 text-xs font-medium text-gray-600">{apt.servicioNombre}</td>
+                <td className="p-2.5 text-xs font-bold text-blue-600">${Number(apt.precio || 0).toLocaleString()}</td>
+
+                <td className="p-2.5">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${getStatusPillStyle(apt.estadoNombre)}`}>
                     {apt.estadoNombre}
                   </span>
                 </td>
 
-                <td className="p-4">
-                  <div className="flex justify-center gap-1.5 items-center">
-                    <button 
-                      onClick={() => { setSelectedAppointment(apt); setIsDetailModalOpen(true); }} 
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                <td className="p-2.5">
+                  <div className="flex justify-center gap-1 items-center">
+                    <button
+                      onClick={() => { setSelectedAppointment(apt); setIsDetailModalOpen(true); }}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                       title="Ver detalle"
                     >
-                      <Eye size={16} />
+                      <Eye size={15} />
                     </button>
 
                     {/* Botón interactivo y popover de cambio de estado */}
                     <div className="relative">
-                      <button 
-                        onClick={() => setActiveStatusPopover(activeStatusPopover === apt.id ? null : apt.id)} 
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                      <button
+                        onClick={() => setActiveStatusPopover(activeStatusPopover === apt.id ? null : apt.id)}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                         title="Cambiar estado"
                       >
-                        <CheckCircle size={16} />
+                        <CheckCircle size={15} />
                       </button>
 
                       {activeStatusPopover === apt.id && (
-                        <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-100 rounded-2xl shadow-xl z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-150">
-                          <p className="text-[9px] font-black uppercase text-gray-400 px-3 pb-1.5 border-b border-gray-50 tracking-wider">Cambiar Estado</p>
+                        <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-100 rounded-xl shadow-xl z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                          <p className="text-[9px] font-bold uppercase text-gray-400 px-3 pb-1.5 border-b border-gray-50 tracking-wide">Cambiar Estado</p>
                           {/* "Pagada" no es seleccionable a mano: solo se marca automáticamente
                               al cobrar la cita a través de una venta real. */}
                           {estados.filter(est => est.nombre.toLowerCase() !== "pagada").map(est => (
@@ -262,7 +274,7 @@ export const AppointmentsPage = () => {
                                 handleStatusChange(apt.id, est.nombre);
                                 setActiveStatusPopover(null);
                               }}
-                              className={`w-full text-left px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-50 flex items-center gap-2 ${
+                              className={`w-full text-left px-3 py-2 text-xs font-semibold transition-colors hover:bg-gray-50 flex items-center gap-2 ${
                                 apt.estadoNombre === est.nombre ? "text-blue-600 bg-blue-50/30" : "text-gray-600"
                               }`}
                             >
@@ -278,19 +290,19 @@ export const AppointmentsPage = () => {
                       )}
                     </div>
 
-                    <button 
-                      onClick={() => { setEditingAppointment(apt); setIsAppointmentModalOpen(true); }} 
-                      className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-xl transition-all"
+                    <button
+                      onClick={() => { setEditingAppointment(apt); setIsAppointmentModalOpen(true); }}
+                      className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all"
                       title="Editar cita"
                     >
-                      <Edit size={16} />
+                      <Edit size={15} />
                     </button>
-                    <button 
-                      onClick={() => setShowDeleteConfirm(apt)} 
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                    <button
+                      onClick={() => setShowDeleteConfirm(apt)}
+                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-all"
                       title="Eliminar cita"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 </td>
@@ -325,26 +337,26 @@ export const AppointmentsPage = () => {
     }
 
     return (
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-black text-gray-800 capitalize">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold text-gray-800 capitalize">
             {currentDate.toLocaleDateString("es-ES", { month: "long", year: "numeric" })}
           </h2>
-          <div className="flex gap-2">
-            <button onClick={() => setCurrentDate(new Date(year, month - 1))} className="p-2 hover:bg-gray-100 rounded-xl"><ChevronLeft size={20} /></button>
-            <button onClick={() => setCurrentDate(new Date(year, month + 1))} className="p-2 hover:bg-gray-100 rounded-xl"><ChevronRight size={20} /></button>
+          <div className="flex gap-1">
+            <button onClick={() => setCurrentDate(new Date(year, month - 1))} className="p-1.5 hover:bg-gray-100 rounded-lg"><ChevronLeft size={16} /></button>
+            <button onClick={() => setCurrentDate(new Date(year, month + 1))} className="p-1.5 hover:bg-gray-100 rounded-lg"><ChevronRight size={16} /></button>
           </div>
         </div>
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-1">
           {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map(d => (
-            <div key={d} className="text-center text-[10px] font-black text-gray-400 uppercase pb-2">{d}</div>
+            <div key={d} className="text-center text-[9px] font-bold text-gray-400 uppercase pb-1">{d}</div>
           ))}
           {days.map((d, i) => (
             <div key={i} onClick={() => { setSelectedDate(d.date); setIsDaySummaryModalOpen(true); }}
-              className={`min-h-[100px] p-2 border rounded-2xl cursor-pointer transition-all ${d.isCurrentMonth ? "bg-white" : "bg-gray-50/50 text-gray-300 border-transparent"} ${d.isToday ? `ring-2 ${theme.ring}` : `hover:${theme.border}`}`}>
-              <span className="text-xs font-black">{d.date.getDate()}</span>
+              className={`min-h-[56px] p-1 border rounded-lg cursor-pointer transition-all ${d.isCurrentMonth ? "bg-white" : "bg-gray-50/50 text-gray-300 border-transparent"} ${d.isToday ? `ring-2 ${theme.ring}` : `hover:${theme.border}`}`}>
+              <span className="text-[10px] font-bold">{d.date.getDate()}</span>
               {d.appts.length > 0 && (
-                <div className={`mt-1 ${theme.badge} text-white text-[9px] font-black uppercase py-1 rounded-md text-center`}>{d.appts.length} Citas</div>
+                <div className={`mt-0.5 ${theme.badge} text-white text-[8px] font-bold uppercase py-0.5 rounded text-center`}>{d.appts.length} Citas</div>
               )}
             </div>
           ))}
@@ -354,22 +366,22 @@ export const AppointmentsPage = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 font-sans p-6 min-h-screen bg-[#f8fafc]">
+    <div className="flex flex-col gap-4 font-sans p-4 min-h-screen bg-[#f8fafc]">
 
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase">Gestión de Citas</h1>
-          <p className="text-sm text-gray-500 font-medium">Agenda y administración médica</p>
+          <h1 className="text-xl font-bold text-gray-900">Gestión de Citas</h1>
+          <p className="text-xs text-gray-500">Agenda y administración médica</p>
         </div>
         <button onClick={() => { setEditingAppointment(null); setIsAppointmentModalOpen(true); }}
-          className={`${theme.main} ${theme.hover} text-white px-6 py-3 rounded-2xl font-black shadow-lg flex items-center gap-2 text-xs uppercase transition-all`} style={{ boxShadow: `0 10px 15px -3px ${isEmployeePanel ? 'rgba(37, 99, 235, 0.1)' : 'rgba(5, 150, 105, 0.1)'}` }}>
-          <Plus size={18} /> Nueva Cita
+          className={`${theme.main} ${theme.hover} text-white px-3 py-1.5 rounded-lg font-medium shadow-sm flex items-center gap-1.5 text-xs transition-colors`}>
+          <Plus size={16} /> Nueva Cita
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 border-b border-gray-200 overflow-x-auto">
+      <div className="flex gap-4 border-b border-gray-200 overflow-x-auto">
         {[
           { id: "calendario", icon: CalendarIcon, label: "Calendario" },
           { id: "citas", icon: List, label: "Lista de Citas" },
@@ -379,8 +391,8 @@ export const AppointmentsPage = () => {
           if (tab.adminOnly && currentUserRole !== "administrador") return null;
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id ? isEmployeePanel ? "text-blue-600 border-blue-600" : "text-emerald-600 border-emerald-600" : "text-gray-400 border-transparent hover:text-gray-600"}`}>
-              <tab.icon size={16} /> {tab.label}
+              className={`pb-2 text-xs font-semibold uppercase tracking-wide border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${activeTab === tab.id ? isEmployeePanel ? "text-blue-600 border-blue-600" : "text-emerald-600 border-emerald-600" : "text-gray-400 border-transparent hover:text-gray-600"}`}>
+              <tab.icon size={14} /> {tab.label}
             </button>
           );
         })}
@@ -388,15 +400,15 @@ export const AppointmentsPage = () => {
 
       {/* Filtro por Rango */}
       {(activeTab === "calendario" || activeTab === "citas") && (
-        <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className={`${isEmployeePanel ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-600"} p-2.5 rounded-xl`}><Filter size={20} /></div>
-            <span className="font-black text-gray-800 text-[10px] uppercase">Rango de datos</span>
+        <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className={`${isEmployeePanel ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-600"} p-2 rounded-lg`}><Filter size={16} /></div>
+            <span className="font-bold text-gray-800 text-[10px] uppercase">Rango de datos</span>
           </div>
-          <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-2xl border">
-            <input type="date" value={range.start} onChange={(e) => setRange(p => ({ ...p, start: e.target.value }))} className="bg-transparent text-xs font-bold outline-none p-1" />
+          <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-lg border">
+            <input type="date" value={range.start} onChange={(e) => setRange(p => ({ ...p, start: e.target.value }))} className="bg-transparent text-xs font-medium outline-none p-1" />
             <div className="h-4 w-[1px] bg-gray-300"></div>
-            <input type="date" value={range.end} onChange={(e) => setRange(p => ({ ...p, end: e.target.value }))} className="bg-transparent text-xs font-bold outline-none p-1" />
+            <input type="date" value={range.end} onChange={(e) => setRange(p => ({ ...p, end: e.target.value }))} className="bg-transparent text-xs font-medium outline-none p-1" />
           </div>
         </div>
       )}
@@ -405,25 +417,36 @@ export const AppointmentsPage = () => {
           Solo cuenta citas en estado "Pagada" (cobradas de verdad), nunca mezclado con lo
           que se vendió en productos dentro de esa misma transacción de caja. */}
       {(activeTab === "calendario" || activeTab === "citas") && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className={`bg-white p-4 rounded-3xl border ${theme.border} shadow-sm flex items-center gap-3`}>
-            <div className={`${isEmployeePanel ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-600"} p-2.5 rounded-xl`}>
-              <DollarSign size={20} />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className={`bg-white p-3 rounded-xl border ${theme.border} shadow-sm flex items-center gap-2.5`}>
+            <div className={`${isEmployeePanel ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-600"} p-2 rounded-lg`}>
+              <DollarSign size={16} />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Ingresos por Citas (pagadas)</p>
-              <p className="text-xl font-black text-gray-900">
+              <p className="text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Ingresos por Citas Hoy</p>
+              <p className="text-base font-bold text-gray-900">
+                {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(ingresosCitasHoy)}
+              </p>
+            </div>
+          </div>
+          <div className={`bg-white p-3 rounded-xl border ${theme.border} shadow-sm flex items-center gap-2.5`}>
+            <div className={`${isEmployeePanel ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-600"} p-2 rounded-lg`}>
+              <DollarSign size={16} />
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Ingresos por Citas (rango)</p>
+              <p className="text-base font-bold text-gray-900">
                 {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(financialSummary.ingresos)}
               </p>
             </div>
           </div>
-          <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-3">
-            <div className="bg-gray-100 text-gray-600 p-2.5 rounded-xl">
-              <CalendarIcon size={20} />
+          <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex items-center gap-2.5">
+            <div className="bg-gray-100 text-gray-600 p-2 rounded-lg">
+              <CalendarIcon size={16} />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Citas en el rango</p>
-              <p className="text-xl font-black text-gray-900">{financialSummary.totalCitas}</p>
+              <p className="text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Citas en el rango</p>
+              <p className="text-base font-bold text-gray-900">{financialSummary.totalCitas}</p>
             </div>
           </div>
         </div>
