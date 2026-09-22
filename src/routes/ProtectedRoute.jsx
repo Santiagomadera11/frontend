@@ -34,34 +34,27 @@ const ProtectedRoute = ({ children, requiredRole, requiredPerm, requiredAnyPerm 
   const esRolDinamico = !esRolFijo;
   const tienePermisosAdmin = userPerms.some(p => PERMS_ADMIN.includes(p));
 
-  // Admin siempre pasa
   if (userRole === "administrador") {
     return children ? children : <Outlet />;
   }
 
-  // Verificar rol requerido
   if (requiredRole) {
     const req = requiredRole.toLowerCase().trim();
 
     if (req === "administrador") {
-      // Solo el admin fijo puede entrar al panel admin
       if (userRole !== "administrador") {
         return <Navigate to="/" replace />;
       }
     }
 
     if (req === "empleado") {
-      // Empleado fijo y roles dinámicos con permisos pueden entrar al panel empleado
-      if (userRole === "empleado" || esRolDinamico) {
-        // permitir
-      } else {
+      if (!(userRole === "empleado" || esRolDinamico)) {
         return <Navigate to="/" replace />;
       }
     }
 
   }
 
-  // Verificar permiso requerido
   if (requiredPerm) {
     const isAdmin = userRole === "administrador";
     const hasPermission = isAdmin || userPerms.includes(normalizePerm(requiredPerm));

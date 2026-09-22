@@ -4,7 +4,6 @@ const emitParameterUpdate = (parameterType) => {
   window.dispatchEvent(new CustomEvent("syspharma_parameters_updated", { detail: { parameterType } }));
 };
 
-// Fallbacks por si el backend no responde
 const DEFAULTS = {
   documentTypes: [
     { id: 1, value: "Cédula de Ciudadanía" },
@@ -30,7 +29,6 @@ const DEFAULTS = {
   ],
 };
 
-// ── Tipos de documento ────────────────────────────────────────
 export const fetchDocumentTypes = async () => {
   try {
     const res = await apiClient.get("TipoDocumento");
@@ -42,7 +40,6 @@ export const fetchDocumentTypes = async () => {
 
 export const getDocumentTypes = () => DEFAULTS.documentTypes;
 
-// ── Métodos de pago ───────────────────────────────────────────
 export const fetchPaymentMethods = async () => {
   try {
     const res = await apiClient.get("MetodoPago");
@@ -54,7 +51,6 @@ export const fetchPaymentMethods = async () => {
 
 export const getPaymentMethods = () => DEFAULTS.paymentMethods;
 
-// ── Categorías de servicio ────────────────────────────────────
 export const fetchServiceCategories = async () => {
   try {
     const res = await apiClient.get("CategoriaServicio");
@@ -66,7 +62,6 @@ export const fetchServiceCategories = async () => {
 
 export const getServiceCategories = () => DEFAULTS.serviceCategories;
 
-// ── CRUD TipoDocumento ────────────────────────────────────────
 export const createTipoDocumento = async (nombre) => {
   const res = await apiClient.post("TipoDocumento", { nombre });
   emitParameterUpdate("documentTypes");
@@ -84,7 +79,6 @@ export const deleteTipoDocumento = async (id) => {
   emitParameterUpdate("documentTypes");
 };
 
-// ── CRUD MetodoPago ───────────────────────────────────────────
 export const createMetodoPago = async (nombre) => {
   const res = await apiClient.post("MetodoPago", { nombre });
   emitParameterUpdate("paymentMethods");
@@ -102,7 +96,6 @@ export const deleteMetodoPago = async (id) => {
   emitParameterUpdate("paymentMethods");
 };
 
-// ── CRUD CategoriaServicio ────────────────────────────────────
 export const createCategoriaServicio = async (nombre) => {
   const res = await apiClient.post("CategoriaServicio", { nombre });
   emitParameterUpdate("serviceCategories");
@@ -120,7 +113,6 @@ export const deleteCategoriaServicio = async (id) => {
   emitParameterUpdate("serviceCategories");
 };
 
-// Compatibilidad con código anterior
 export const addParameter = () => {};
 export const updateParameter = () => {};
 export const deleteParameter = () => {};

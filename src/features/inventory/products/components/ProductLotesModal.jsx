@@ -13,11 +13,8 @@ export const ProductLotesModal = ({ isOpen, onClose, product }) => {
 
   const currentUser = JSON.parse(sessionStorage.getItem("syspharma_user") || "{}");
   const userRole = (currentUser.rol || "Administrador").toLowerCase().trim();
-  // Igual que en ProductsPage.jsx: cualquier rol que no sea Administrador ve el panel
-  // en azul, no solo el rol fijo "Empleado" — si no, un rol dinámico se quedaba en verde.
   const isEmployee = userRole !== "administrador";
 
-  // Estilos y temas
   const headerBgColor = isEmployee ? "bg-blue-600" : "bg-emerald-600";
   const hoverRowColor = isEmployee ? "hover:bg-blue-50/50" : "hover:bg-emerald-50/50";
   const activeRowColor = isEmployee ? "bg-blue-50/80 border-l-4 border-l-blue-600" : "bg-emerald-50/80 border-l-4 border-l-emerald-600";
@@ -82,7 +79,6 @@ export const ProductLotesModal = ({ isOpen, onClose, product }) => {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-[2rem] w-full max-w-5xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
         
-        {/* Header */}
         <div className={`px-6 py-4 flex items-center justify-between text-white ${headerBgColor}`}>
           <h2 className="text-lg font-black flex items-center gap-2">
             <Layers size={20} />
@@ -93,10 +89,8 @@ export const ProductLotesModal = ({ isOpen, onClose, product }) => {
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 p-6 overflow-hidden flex flex-col md:flex-row gap-6 min-h-0">
           
-          {/* Columna Lotes */}
           <div className="flex-1 flex flex-col min-w-0">
             <div className="mb-3">
               <h3 className="text-sm font-black text-gray-900">Listado de Lotes</h3>
@@ -149,7 +143,6 @@ export const ProductLotesModal = ({ isOpen, onClose, product }) => {
             </div>
           </div>
 
-          {/* Columna Ventas/Pedidos */}
           <div className="flex-1 flex flex-col min-w-0">
             <div className="mb-3">
               <h3 className="text-sm font-black text-gray-900">Historial de Ventas / Consumos</h3>
@@ -208,7 +201,6 @@ export const ProductLotesModal = ({ isOpen, onClose, product }) => {
 
         </div>
 
-        {/* Footer */}
         <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-100">
           <button
             onClick={onClose}

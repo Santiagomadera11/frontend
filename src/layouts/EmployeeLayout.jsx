@@ -12,19 +12,16 @@ const EmployeeLayout = () => {
   const [, setPermissionsVersion] = useState(0);
   const navigate = useNavigate();
 
-  // Listener para cambios de turno (propagar evento a componentes hijos)
   useEffect(() => {
     authService.recargarPermisos()
       .then(() => setPermissionsVersion((version) => version + 1))
       .catch(() => {});
 
     const handleTurnOpened = () => {
-      // Cuando se abre un turno, propagar a all listeners
       window.dispatchEvent(new CustomEvent("turn:changed"));
     };
 
     const handleTurnClosed = () => {
-      // Cuando se cierra un turno, propagar a all listeners
       window.dispatchEvent(new CustomEvent("turn:changed"));
     };
 
@@ -37,7 +34,6 @@ const EmployeeLayout = () => {
   }, []);
 
   const handleConfirmLogout = () => {
-    // Logout simple: solo elimina al usuario, el turno persiste en localStorage
     authService.logout();
     setShowConfirmLogout(false);
     navigate("/");
@@ -45,7 +41,6 @@ const EmployeeLayout = () => {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-gray-50 font-sans text-sm flex-col lg:flex-row">
-      {/* Overlay para móvil */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -53,7 +48,6 @@ const EmployeeLayout = () => {
         />
       )}
 
-      {/* Sidebar responsivo */}
       <div
         className={`
         fixed lg:static inset-y-0 left-0 z-50 w-60 h-screen
@@ -72,7 +66,6 @@ const EmployeeLayout = () => {
       <div className="flex flex-col flex-1 h-full w-full min-w-0">
         <EmployeeHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
 
-        {/* Alerta de productos vencidos / próximos a vencer */}
         <ExpiryAlertBanner />
 
         <main className="flex-1 overflow-hidden relative px-2 sm:px-4 py-2 sm:py-4">
@@ -82,7 +75,6 @@ const EmployeeLayout = () => {
         </main>
       </div>
 
-      {/* Modal de Logout - Renderizado a nivel de Layout */}
       {showConfirmLogout && (
         <ConfirmDialog
           open={showConfirmLogout}

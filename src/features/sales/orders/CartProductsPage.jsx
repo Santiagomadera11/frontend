@@ -18,7 +18,6 @@ export const CartProductsPage = () => {
     }
   };
 
-  // Sincronizar stock del carrito con inventario (async)
   const syncCartStock = useCallback(async (cartItems) => {
     let hasAdjustments = false;
     const syncedCart = await Promise.all(
@@ -36,7 +35,6 @@ export const CartProductsPage = () => {
             return { ...cartItem, stock: currentProduct.stock, cantidad: adjustedQuantity };
           }
         } catch {
-          // Si falla la llamada, devolver el item sin cambios
         }
         return cartItem;
       })
@@ -55,7 +53,6 @@ export const CartProductsPage = () => {
       syncCartStock(savedCart).then((synced) => setCart(synced));
     }
 
-    // Refrescar stock cada 5 segundos
     const interval = setInterval(() => {
       setCart((currentCart) => {
         if (currentCart.length === 0) return currentCart;

@@ -4,12 +4,9 @@ import { authService } from "../../auth/authService";
 import { apiClient } from "../../../shared/utils/apiClient";
 import { X, Lock, AlertCircle, CheckCircle } from "lucide-react";
 
-/**
- * Modal para cambiar contraseña con validación en 2 pasos
- */
 export const ChangePasswordModal = ({ isOpen, onClose, onPasswordChanged }) => {
   const { currentUser } = useCurrentUser();
-  const [step, setStep] = useState(1); // Paso 1: validar actual, Paso 2: nueva contraseña
+  const [step, setStep] = useState(1);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -37,7 +34,6 @@ export const ChangePasswordModal = ({ isOpen, onClose, onPasswordChanged }) => {
         return;
       }
 
-      // Pasar al paso 2
       setStep(2);
       setCurrentPassword("");
     } catch {
@@ -80,18 +76,15 @@ export const ChangePasswordModal = ({ isOpen, onClose, onPasswordChanged }) => {
         return;
       }
 
-      // Reset form
       setStep(1);
       setNewPassword("");
       setConfirmPassword("");
       setError("");
 
-      // Callback
       if (onPasswordChanged) {
         onPasswordChanged();
       }
 
-      // Cerrar modal después de 1 segundo
       setTimeout(() => {
         onClose();
       }, 1000);
@@ -113,11 +106,8 @@ export const ChangePasswordModal = ({ isOpen, onClose, onPasswordChanged }) => {
 
   return (
     <>
-      {/* Overlay */}
       <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-        {/* Modal */}
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-md w-full mx-4">
-          {/* Header */}
           <div className="px-6 py-5 border-b border-emerald-100 bg-emerald-50 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Lock className="text-emerald-700" size={20} />
@@ -140,9 +130,7 @@ export const ChangePasswordModal = ({ isOpen, onClose, onPasswordChanged }) => {
             </button>
           </div>
 
-          {/* Content */}
           <div className="p-6">
-            {/* Paso 1: Validar contraseña actual */}
             {step === 1 && (
               <form
                 onSubmit={handleValidateCurrentPassword}
@@ -196,7 +184,6 @@ export const ChangePasswordModal = ({ isOpen, onClose, onPasswordChanged }) => {
               </form>
             )}
 
-            {/* Paso 2: Nueva contraseña */}
             {step === 2 && (
               <form onSubmit={handleChangePassword} className="space-y-4">
                 <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex gap-2">

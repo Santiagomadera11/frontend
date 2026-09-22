@@ -50,7 +50,6 @@ export const SaleDetailModal = ({ isOpen, onClose, sale, accentColor = "emerald"
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
 
-        {/* Header */}
         <div className={`px-6 py-4 flex items-center justify-between border-b ${accent.header} flex-shrink-0`}>
           <h2 className={`text-lg font-semibold ${accent.text}`}>Detalle de Venta</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -59,7 +58,6 @@ export const SaleDetailModal = ({ isOpen, onClose, sale, accentColor = "emerald"
         </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar">
-          {/* Encabezado: número, cliente, estado */}
           <div className="px-6 pt-5 pb-4 border-b border-gray-100">
             <div className="flex items-start gap-3">
               <div className={`p-2.5 rounded-lg ${accent.iconBg} ${accent.text} flex-shrink-0`}>
@@ -78,7 +76,6 @@ export const SaleDetailModal = ({ isOpen, onClose, sale, accentColor = "emerald"
           </div>
 
           <div className="px-6 py-4 space-y-4">
-            {/* Stats */}
             <div className="grid grid-cols-3 gap-3">
               <div className="p-3 rounded-lg border border-gray-100">
                 <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${accent.iconBg} ${accent.text}`}><DollarSign size={13} /></div>
@@ -104,7 +101,6 @@ export const SaleDetailModal = ({ isOpen, onClose, sale, accentColor = "emerald"
               </div>
             )}
 
-            {/* Productos */}
             {productos.length > 0 && (
               <div>
                 <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
@@ -124,7 +120,6 @@ export const SaleDetailModal = ({ isOpen, onClose, sale, accentColor = "emerald"
               </div>
             )}
 
-            {/* Servicios */}
             {servicios.length > 0 && (
               <div>
                 <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
@@ -148,7 +143,6 @@ export const SaleDetailModal = ({ isOpen, onClose, sale, accentColor = "emerald"
               <p className="text-xs text-center text-gray-400 py-4 italic">No hay productos ni servicios registrados</p>
             )}
 
-            {/* Resumen */}
             <div className={`rounded-lg border ${accent.header} p-3 space-y-1.5`}>
               <div className="flex justify-between items-center">
                 <span className="text-[10px] text-gray-500">Subtotal</span>
@@ -166,7 +160,6 @@ export const SaleDetailModal = ({ isOpen, onClose, sale, accentColor = "emerald"
               </div>
             </div>
 
-            {/* Notas */}
             {sale.notas && (
               <div className="bg-amber-50 p-2.5 rounded-lg border border-amber-100">
                 <p className="text-[9px] font-semibold text-amber-600 uppercase mb-1">Notas</p>

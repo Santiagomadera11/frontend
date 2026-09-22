@@ -23,9 +23,6 @@ export const ReturnDetailModal = ({ isOpen, onClose, devolucion, onRefresh }) =>
   const user = currentUser || {};
   const userRole = (user.rol || "").toLowerCase().trim();
 
-  // El modal nunca se desmonta (ReturnList lo renderiza siempre, solo cambia isOpen), así
-  // que sin esto el toast de una gestión anterior (aprobar/rechazar) quedaba pegado y
-  // reaparecía al abrir el detalle de otra devolución.
   useEffect(() => {
     if (isOpen) setToast(null);
   }, [isOpen, devolucion?.id]);
@@ -82,7 +79,6 @@ export const ReturnDetailModal = ({ isOpen, onClose, devolucion, onRefresh }) =>
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
-          {/* Header */}
           <div className={`${estadoConfig.bg} border-b ${estadoConfig.border} px-6 py-4 flex items-center justify-between flex-shrink-0`}>
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-lg ${estadoConfig.bg} flex items-center justify-center`}>
@@ -103,9 +99,7 @@ export const ReturnDetailModal = ({ isOpen, onClose, devolucion, onRefresh }) =>
             </button>
           </div>
 
-          {/* Contenido */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {/* Info Principal */}
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <div className="text-xs text-gray-600 font-semibold uppercase mb-1">Cliente</div>
@@ -137,7 +131,6 @@ export const ReturnDetailModal = ({ isOpen, onClose, devolucion, onRefresh }) =>
               </div>
             </div>
 
-            {/* Motivo y Observaciones */}
             <div className="space-y-3">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
@@ -159,7 +152,6 @@ export const ReturnDetailModal = ({ isOpen, onClose, devolucion, onRefresh }) =>
               )}
             </div>
 
-            {/* Productos Devueltos */}
             <div>
               <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
                 <Package size={18} style={{
@@ -201,7 +193,6 @@ export const ReturnDetailModal = ({ isOpen, onClose, devolucion, onRefresh }) =>
             </div>
           </div>
 
-          {/* Footer */}
           <div className="border-t border-gray-100 px-6 py-4 bg-gray-50 flex gap-3 flex-shrink-0">
             {isPendiente ? (
               <>

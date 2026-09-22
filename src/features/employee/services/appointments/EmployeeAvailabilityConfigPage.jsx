@@ -21,7 +21,6 @@ const emptyDay = () => ({
   tardeFin: "18:00",
 });
 
-// Horas por defecto al reactivar un turno (mañana o tarde) que estaba bloqueado.
 const HALF_DEFAULTS = {
   manana: { inicio: "08:00", fin: "12:00" },
   tarde: { inicio: "14:00", fin: "18:00" },
@@ -31,8 +30,6 @@ const apiToScheduleMap = (apiHorarios) => {
   const map = {};
   [0, 1, 2, 3, 4, 5, 6].forEach((d) => (map[d] = null));
   apiHorarios.forEach((h) => {
-    // El backend ya soporta un turno vacío ("" = sin mañana o sin tarde ese día): usar ??
-    // en vez de || para no pisar ese "" intencional con la hora por defecto al recargar.
     map[h.diaSemana] = {
       mananaInicio: h.mananaInicio ?? "",
       mananaFin: h.mananaFin ?? "",
@@ -80,7 +77,6 @@ export const EmployeeAvailabilityConfigPage = () => {
     availabilityService
       .getDiasNoDisponibles(selectedDoctor.id)
       .then(setDiasNoDisponibles);
-    // Solo depende del id: evita refetch si selectedDoctor cambia de referencia sin cambiar de doctor
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDoctor?.id]);
 
@@ -91,9 +87,6 @@ export const EmployeeAvailabilityConfigPage = () => {
     }));
   };
 
-  // Prende/apaga solo la mañana o solo la tarde de un día, sin afectar el otro turno.
-  // Apagar un turno lo manda como "" al guardar, que el backend interpreta como
-  // "sin turno" (no genera horas disponibles para esa franja ese día).
   const toggleHalf = (dia, mitad) => {
     setScheduleMap((prev) => {
       const day = prev[dia];
@@ -182,7 +175,6 @@ export const EmployeeAvailabilityConfigPage = () => {
             Configuración de Disponibilidad
           </h2>
 
-          {/* Selector de médico */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Seleccionar Profesional Médico
@@ -204,7 +196,6 @@ export const EmployeeAvailabilityConfigPage = () => {
             </select>
           </div>
 
-          {/* Horario por día */}
           {selectedDoctor && (
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -242,7 +233,6 @@ export const EmployeeAvailabilityConfigPage = () => {
 
                     {scheduleMap[dia] && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {/* Mañana */}
                         <div>
                           <div className="flex items-center justify-between mb-1">
                             <label className="block text-xs font-medium text-gray-600">
@@ -282,7 +272,6 @@ export const EmployeeAvailabilityConfigPage = () => {
                             />
                           </div>
                         </div>
-                        {/* Tarde */}
                         <div>
                           <div className="flex items-center justify-between mb-1">
                             <label className="block text-xs font-medium text-gray-600">
@@ -330,7 +319,6 @@ export const EmployeeAvailabilityConfigPage = () => {
             </div>
           )}
 
-          {/* Bloqueos de fechas */}
           {selectedDoctor && (
             <div className="border-t pt-3">
               <h3 className="text-base font-semibold text-gray-800 mb-3">

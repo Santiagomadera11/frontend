@@ -37,14 +37,13 @@ class ErrorBoundary extends React.Component {
 import { UserProvider, useCurrentUser } from "./shared/context/UserContext";
 
 function AppContent() {
-  usePermissionsSync(); // 🔄 Sincronizar permisos cada 30 segundos
+  usePermissionsSync();
   const { refreshUser } = useCurrentUser();
 
   useEffect(() => {
     const userStr = sessionStorage.getItem("syspharma_user");
     const token = sessionStorage.getItem("syspharma_token");
 
-    // Recargar permisos para mantener la sesión sincronizada con la base de datos
     if (token && userStr) {
       authService.recargarPermisos().then(() => {
         refreshUser();

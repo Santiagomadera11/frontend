@@ -26,7 +26,6 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
 
   const itemsPerPage = 10;
 
-  // Validar permisos
   const { currentUser } = useCurrentUser();
   const user = currentUser || {};
   const userRole = (user.rol || "").toLowerCase().trim();
@@ -91,7 +90,6 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
 
   return (
     <>
-      {/* Buscador y Filtros */}
       <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm mb-4">
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
@@ -127,7 +125,6 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
             </button>
           </div>
 
-          {/* Filtro por estado */}
           <div className="flex gap-2 flex-wrap">
             <span className="text-xs font-medium text-gray-600 flex items-center">Estado:</span>
             {["todos", "1", "2", "3"].map((estado) => {
@@ -154,7 +151,6 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
         </div>
       </div>
 
-      {/* Tabla */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         {filteredReturns.length === 0 ? (
           <div className="p-8 text-center">
@@ -231,7 +227,6 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
               </table>
             </div>
 
-            {/* Paginación */}
             {totalPages > 1 && (
               <Pagination
                 currentPage={currentPage + 1}
@@ -245,7 +240,6 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
         )}
       </div>
 
-      {/* Modales */}
       <ReturnDetailModal
         isOpen={isDetailModalOpen}
         onClose={handleModalClose}

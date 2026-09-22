@@ -19,7 +19,6 @@ const DashboardLayout = () => {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-gray-50 font-sans text-sm flex-col lg:flex-row">
-      {/* 1. SIDEBAR: Visible en desktop, modal en Mobile */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -40,15 +39,11 @@ const DashboardLayout = () => {
         />
       </div>
 
-      {/* 2. CONTENIDO PRINCIPAL */}
       <div className="flex flex-col flex-1 h-full w-full min-w-0">
-        {/* Header: Le pasamos la función para ABRIR el menú */}
         <Header onMenuClick={() => setIsMobileMenuOpen(true)} />
 
-        {/* Alerta de productos vencidos / próximos a vencer */}
         <ExpiryAlertBanner />
 
-        {/* Área de trabajo */}
         <main className="flex-1 overflow-hidden relative px-2 sm:px-4 py-2 sm:py-4">
           <div className="h-full w-full bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 overflow-y-auto no-scrollbar p-3 sm:p-5">
             <Outlet />
@@ -56,7 +51,6 @@ const DashboardLayout = () => {
         </main>
       </div>
 
-      {/* Modal de Logout - Renderizado a nivel de Layout */}
       {showConfirmLogout && (
         <ConfirmDialog
           open={showConfirmLogout}

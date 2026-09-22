@@ -28,10 +28,8 @@ export const UserFormModal = ({ isOpen, onClose, onSave, userToEdit }) => {
     if (!isOpen) return;
 
 
-    // Cargar tipos de documento desde backend con fallback a localStorage
     fetchDocumentTypes().then(types => setDocumentTypes(types));
 
-    // Cargar roles disponibles
     userService.getRoles()
       .then(roles => setRolesOptions(roles.filter(r => r.estado ?? true)))
       .catch(() => setRolesOptions([]));
@@ -133,22 +131,18 @@ export const UserFormModal = ({ isOpen, onClose, onSave, userToEdit }) => {
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl flex flex-col max-h-[90vh]">
-        {/* Header */}
         <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 bg-gray-50 rounded-t-xl">
           <h2 className="text-sm font-bold text-gray-800">{userToEdit ? "Editar Usuario" : "Nuevo Usuario"}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-red-500 transition-colors"><X size={18} /></button>
         </div>
 
-        {/* Error general */}
         {generalError && (
           <div className="mx-4 mt-3 p-2 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700 text-xs">
             <AlertCircle size={14} /> {generalError}
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3">
-          {/* Tipo doc + Número */}
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-1">
               <label className={labelClass}>Tipo Doc *</label>
@@ -167,7 +161,6 @@ export const UserFormModal = ({ isOpen, onClose, onSave, userToEdit }) => {
             </div>
           </div>
 
-          {/* Nombres y Apellidos */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Nombres *</label>
@@ -183,7 +176,6 @@ export const UserFormModal = ({ isOpen, onClose, onSave, userToEdit }) => {
             </div>
           </div>
 
-          {/* Email y Teléfono */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Email *</label>
@@ -199,7 +191,6 @@ export const UserFormModal = ({ isOpen, onClose, onSave, userToEdit }) => {
             </div>
           </div>
 
-          {/* Rol y Estado */}
           <div className="grid grid-cols-2 gap-3 items-end">
             <div>
               <label className={labelClass}>Rol *</label>
@@ -219,7 +210,6 @@ export const UserFormModal = ({ isOpen, onClose, onSave, userToEdit }) => {
             </div>
           </div>
 
-          {/* Contraseñas */}
           <div className="grid grid-cols-2 gap-3 pt-1">
             <div>
               <label className={labelClass}>Contraseña {userToEdit && "(Opcional)"}</label>
@@ -242,7 +232,6 @@ export const UserFormModal = ({ isOpen, onClose, onSave, userToEdit }) => {
           </div>
         </form>
 
-        {/* Footer */}
         <div className="p-3 border-t border-gray-100 bg-gray-50 rounded-b-xl flex gap-3">
           <button type="button" onClick={onClose}
             className="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-2 rounded-lg hover:bg-gray-50 text-xs">

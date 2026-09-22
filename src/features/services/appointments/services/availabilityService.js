@@ -4,7 +4,6 @@ const BASE = "Disponibilidad";
 
 export const availabilityService = {
 
-  // --- HORARIO ---
   getHorario: async (medicoId) => {
     const res = await apiClient.get(`${BASE}/horario/${medicoId}`);
     return Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [];
@@ -14,8 +13,6 @@ export const availabilityService = {
     await apiClient.post(`${BASE}/horario`, { medicoId, horarios });
   },
 
-  // --- SLOTS ---
-  // Devuelve array de strings: ["08:00", "08:30", ...]
   getSlots: async (medicoId, fecha) => {
     try {
       const res = await apiClient.get(`${BASE}/slots/${medicoId}`, {
@@ -27,7 +24,6 @@ export const availabilityService = {
     }
   },
 
-  // --- DÍAS NO DISPONIBLES ---
   getDiasNoDisponibles: async (medicoId) => {
     const res = await apiClient.get(`${BASE}/dias-no-disponibles/${medicoId}`);
     return Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [];
@@ -47,8 +43,6 @@ export const availabilityService = {
     await apiClient.delete(`${BASE}/dias-no-disponibles/${id}`);
   },
 
-  // Verifica si una fecha cae en algún bloqueo del médico
-  // (útil para el CalendarPicker — se llama con los días ya cargados)
   esFechaBloqueada: (diasNoDisponibles, fecha) => {
     return diasNoDisponibles.some((d) => {
       return fecha >= d.fechaInicio && fecha <= d.fechaFin;

@@ -169,9 +169,6 @@ export const SettingsPage = () => {
   const isAdmin = (user.rol || "").toLowerCase().trim() === "administrador";
   const userPerms = (user.permisos || []).map((p) => String(p || "").toLowerCase().trim());
   const canManageRoles = isAdmin || userPerms.includes("system.roles");
-  // Esta página también la usa el panel de Empleado (Configuración → Parámetros), así
-  // que sus acentos de marca (botones, pestaña activa, foco, seleccionados) siguen el
-  // mismo esquema azul/verde que el resto del sistema.
   const isEmployeePanel = !isAdmin;
   const theme = isEmployeePanel
     ? { text: "text-blue-600", border: "border-blue-600", bg: "bg-blue-600", bgHover: "hover:bg-blue-700", shadow: "shadow-blue-100", focus: "focus:border-blue-500", light: "bg-blue-50", lightBorder: "border-blue-500", lightText: "text-blue-800" }
@@ -183,14 +180,12 @@ export const SettingsPage = () => {
     if (!canManageRoles && activeSection === "roles") setActiveSection("params");
   }, [canManageRoles, activeSection]);
 
-  // Cargar configuración de días de alerta
   React.useEffect(() => {
     const cargarConfiguracion = async () => {
       try {
         const res = await apiClient.get("/api/Configuracion/dias_alerta_vencimiento");
         setDiasAlerta(res.data?.valor);
       } catch {
-        // ignora si no hay configuración guardada
       }
     };
     cargarConfiguracion();
@@ -258,10 +253,6 @@ export const SettingsPage = () => {
 
   const guardarDiasAlerta = async () => {
     try {
-      // El backend espera el body como un string JSON ("30"), pero si le pasamos un
-      // string que ya parece un número, axios lo manda sin comillas (30) porque asume
-      // que ya viene serializado — el backend lo rechaza con 400. Se fuerza el
-      // JSON.stringify para que siempre viaje entre comillas.
       await apiClient.put("/api/Configuracion/dias_alerta_vencimiento", JSON.stringify(String(diasAlerta)));
       setToast({ message: "Configuración guardada", type: "success" });
     } catch {
@@ -315,7 +306,6 @@ export const SettingsPage = () => {
         type: "success",
       });
       
-      // 🔄 Refrescar contexto si el usuario logueado tiene este rol
       if (currentUser.rolId === payload.id || (currentUser.rol || "").toLowerCase() === payload.nombre?.toLowerCase()) {
         await refreshUser();
         window.dispatchEvent(new Event("permissionsUpdated"));
@@ -364,7 +354,6 @@ export const SettingsPage = () => {
         )}
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-4 border-b border-slate-100">
         {canManageRoles && (
           <button
@@ -390,7 +379,6 @@ export const SettingsPage = () => {
         </button>
       </div>
 
-      {/* ── SECCIÓN ROLES ── */}
       {activeSection === "roles" && canManageRoles && (
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col">
           <table className="w-full text-left">
@@ -521,10 +509,8 @@ export const SettingsPage = () => {
         </div>
       )}
 
-      {/* ── SECCIÓN PARÁMETROS ── */}
       {activeSection === "params" && (
         <div className="space-y-6">
-          {/* Alertas de Vencimiento */}
           <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
               <div className="text-2xl">⚠️</div>
@@ -554,12 +540,10 @@ export const SettingsPage = () => {
             </div>
           </div>
 
-          {/* Parámetros del Sistema */}
           <ParameterManagement user={user} />
         </div>
       )}
 
-      {/* ── Confirm Delete ── */}
       {deleteConfirm.show && (
         <ConfirmDialog
           open={deleteConfirm.show}
@@ -573,12 +557,10 @@ export const SettingsPage = () => {
         />
       )}
 
-      {/* ── MODAL CREAR / EDITAR ROL ── */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-2 sm:p-3">
           <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[95vh] flex flex-col overflow-hidden shadow-2xl">
 
-            {/* Header */}
             <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center shrink-0">
               <div>
                 <h2 className="text-lg font-black text-slate-800 uppercase tracking-tight">
@@ -612,7 +594,6 @@ export const SettingsPage = () => {
               </button>
             </div>
 
-            {/* Body */}
             <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-slate-50/30">
               {modalStep === "form" ? (
                 <div className="max-w-lg mx-auto space-y-4">
@@ -635,7 +616,6 @@ export const SettingsPage = () => {
                     />
                   </div>
                   
-                  {/* Estado Activo/Inactivo en el formulario */}
                   <div className="flex items-center justify-between px-1">
                     <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Estado del Rol</label>
                     <button
@@ -764,7 +744,6 @@ export const SettingsPage = () => {
               )}
             </div>
 
-            {/* Footer */}
             <div className="px-4 py-3 border-t border-slate-100 flex justify-between items-center bg-white shrink-0">
               {modalStep === "perms" && (
                 <button

@@ -16,7 +16,7 @@ const NewProductPage = () => {
   const [editingProductId, setEditingProductId] = useState(null);
   const [formData, setFormData] = useState({
     nombre: "",
-    descripcion: "", // <-- AGREGADO
+    descripcion: "",
     codigoBarras: "",
     marcaId: "",
     tipoProducto: "Producto General",
@@ -62,7 +62,7 @@ const NewProductPage = () => {
         setEditingProductId(product.id);
         setFormData({
           nombre: product.nombre || "",
-          descripcion: product.descripcion || "", // <-- AGREGADO
+          descripcion: product.descripcion || "",
           codigoBarras: product.codigoBarras || "",
           marcaId: product.marcaId ? String(product.marcaId) : "",
           presentacionId: product.presentacionId ? String(product.presentacionId) : "",
@@ -114,13 +114,9 @@ const NewProductPage = () => {
       window.removeEventListener("brands:changed", onChange);
       window.removeEventListener("presentations:changed", onChange);
     };
-    // Solo lee el estado de navegación inicial al montar; no debe re-ejecutar si location cambia
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-calcula el precio del blister/caja a partir del precio de la unidad,
-  // y las unidades de la caja a partir de los blisteres que trae (si se indican).
-  // No pisa un precio que el usuario haya editado a mano (precioAuto: false).
   useEffect(() => {
     const precioUnidad = Number(formData.precio);
     if (!precioUnidad || precioUnidad <= 0) return;
@@ -212,11 +208,10 @@ const NewProductPage = () => {
       porcentajeIva: Number(formData.porcentajeIva) || 0,
       precioCompra: null,
       stock: Number(formData.stock) || 0,
-      descripcion: formData.descripcion ? formData.descripcion.trim() : null, // <-- MODIFICADO (Antes null)
+      descripcion: formData.descripcion ? formData.descripcion.trim() : null,
       sku: null,
       codigoBarras: formData.codigoBarras ? formData.codigoBarras.trim() : null,
       
-      // Detalles del medicamento
       composicion: formData.composicion,
       concentracion: formData.concentracion,
       viaAdministracion: formData.viaAdministracion,
@@ -294,21 +289,18 @@ const NewProductPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {/* Columna izquierda: Información General */}
           <div className="bg-white border border-gray-100 rounded-lg p-6 shadow-sm">
             <h4 className="font-bold text-gray-800 text-sm mb-4 flex items-center gap-2">
               <Tag size={15} className="text-emerald-600" /> Información General
             </h4>
             <div className="space-y-4">
 
-              {/* Nombre */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Nombre</label>
                 <input type="text" className="w-full text-sm border border-gray-300 rounded px-3 py-2"
                   value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} />
               </div>
 
-              {/* Marca + Categoría */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Marca</label>
@@ -331,7 +323,6 @@ const NewProductPage = () => {
                 </div>
               </div>
 
-              {/* Tipo + Presentación */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Tipo de Producto</label>
@@ -351,7 +342,6 @@ const NewProductPage = () => {
                 </div>
               </div>
 
-              {/* Código de barras */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Código de Barras</label>
                 <div className="relative">
@@ -365,7 +355,6 @@ const NewProductPage = () => {
                 <p className="text-[10px] text-gray-400 mt-1">Con el cursor aquí, solo pasa el lector — el código queda listo para usarse en el punto de venta.</p>
               </div>
 
-              {/* Descripción */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Descripción</label>
                 <textarea className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-emerald-500" rows={3}
@@ -375,13 +364,11 @@ const NewProductPage = () => {
             </div>
           </div>
 
-          {/* Columna derecha: Precio, Stock y Formas de Venta */}
           <div className="bg-white border border-gray-100 rounded-lg p-6 shadow-sm">
             <h4 className="font-bold text-gray-800 text-sm mb-4 flex items-center gap-2">
               <DollarSign size={15} className="text-emerald-600" /> Precio y Stock
             </h4>
             <div className="space-y-4">
-              {/* Precio, IVA y Stock */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="relative">
                   <label className="block text-xs font-bold text-gray-700 mb-1">Precio ($)</label>
@@ -408,7 +395,6 @@ const NewProductPage = () => {
                 </div>
               </div>
 
-              {/* Formas de venta */}
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <h4 className="font-bold text-gray-800 text-sm mb-3">Formas de Venta</h4>
                 <div className="space-y-3">
@@ -589,7 +575,6 @@ const NewProductPage = () => {
           </div>
         </div>
 
-        {/* Información Técnica (Medicamento): a todo el ancho, debajo de las dos columnas */}
         {formData.tipoProducto === "Medicamento" && (
           <div className="bg-white border border-gray-100 rounded-lg p-6 shadow-sm mt-6">
             <h4 className="font-bold text-gray-800 text-sm mb-4 flex items-center gap-2">
@@ -635,7 +620,6 @@ const NewProductPage = () => {
           </div>
         )}
 
-        {/* Footer */}
         <div className="mt-6 bg-white border-t border-gray-100 p-4 sticky bottom-0 z-20">
           <div className="max-w-6xl mx-auto flex items-center justify-end">
             <button onClick={() => navigate(-1)} className="px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded mr-3">Cancelar</button>
@@ -646,7 +630,6 @@ const NewProductPage = () => {
         </div>
       </div>
 
-      {/* Modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden flex flex-col">

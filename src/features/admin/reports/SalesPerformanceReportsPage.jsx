@@ -37,10 +37,8 @@ export const SalesPerformanceReportsPage = () => {
   const [editingMeta, setEditingMeta] = useState(false);
   const [metaInput, setMetaInput] = useState("");
   const [savingMeta, setSavingMeta] = useState(false);
-  const [historialMedico, setHistorialMedico] = useState(null); // { medicoId, nombreMedico } | null
+  const [historialMedico, setHistorialMedico] = useState(null);
 
-  // Esta página también la usa el panel de Empleado (Reportes → Desempeño): verde en
-  // admin, azul en empleado, igual que el resto del sistema.
   const currentUser = JSON.parse(sessionStorage.getItem("syspharma_user") || '{"rol":""}');
   const isAdmin = (currentUser?.rol || "").toLowerCase().trim() === "administrador";
   const theme = isAdmin
@@ -57,15 +55,12 @@ export const SalesPerformanceReportsPage = () => {
       if (turnosRes.status === "fulfilled") setTurnos(turnosRes.value.data || []);
       if (citasRes.status === "fulfilled") setCitas(citasRes.value.data || []);
     } catch {
-      // Error loading data
     }
     finally { setLoading(false); }
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // Meta grupal editable: se guarda en la tabla de Configuraciones. Si aún no existe
-  // (primera vez), se queda con el valor por defecto en vez de romper la pantalla.
   useEffect(() => {
     const cargarMeta = async () => {
       try {
@@ -73,7 +68,6 @@ export const SalesPerformanceReportsPage = () => {
         const valor = parseFloat(res.data?.valor);
         if (!Number.isNaN(valor)) setMetaVentas(valor);
       } catch {
-        // sin configuración guardada aún: se usa el valor por defecto
       }
     };
     cargarMeta();
@@ -94,20 +88,15 @@ export const SalesPerformanceReportsPage = () => {
     if (Number.isNaN(valor) || valor <= 0) return;
     setSavingMeta(true);
     try {
-      // El backend espera el body como un string JSON ("5000000"), pero axios no le pone
-      // comillas a un número porque asume que ya viene serializado — el backend lo
-      // rechaza con 400. Se fuerza el JSON.stringify para que viaje entre comillas.
       await apiClient.put(`${API}/Configuracion/meta_ventas_grupal`, JSON.stringify(String(valor)), getAuthHeaders());
       setMetaVentas(valor);
       setEditingMeta(false);
     } catch {
-      // si falla el guardado se deja el modo edición abierto para reintentar
     } finally {
       setSavingMeta(false);
     }
   };
 
-  // Resumen por empleado desde turnos
   const employeesSummary = useMemo(() => {
     const map = new Map();
     turnos.filter(t => t.estado === "cerrado").forEach(t => {
@@ -128,8 +117,6 @@ export const SalesPerformanceReportsPage = () => {
     return Array.from(map.values()).sort((a, b) => b.totalVentas - a.totalVentas);
   }, [turnos]);
 
-  // Resumen por médico desde citas pagadas: "Completada" solo significa que se atendió,
-  // no que se cobró — usar eso como ingreso inflaba la cifra con consultas nunca pagadas.
   const medicosSummary = useMemo(() => {
     const map = new Map();
     citas.filter(c => (c.estadoNombre || "").toLowerCase() === "pagada").forEach(c => {
@@ -143,8 +130,6 @@ export const SalesPerformanceReportsPage = () => {
     return Array.from(map.values()).sort((a, b) => b.totalServicios - a.totalServicios);
   }, [citas]);
 
-  // Historial completo (todos los estados, no solo pagadas) del médico seleccionado,
-  // para que el admin pueda revisar paciente por paciente si sospecha una inconsistencia.
   const historialCitas = useMemo(() => {
     if (!historialMedico) return [];
     return citas
@@ -252,7 +237,6 @@ export const SalesPerformanceReportsPage = () => {
         </button>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-2 bg-white p-1.5 rounded-xl shadow-sm border border-gray-100">
         {[
           { id: "empleados", label: "Desempeño de Empleados" },
@@ -269,7 +253,6 @@ export const SalesPerformanceReportsPage = () => {
 
       {loading && <div className="text-center py-8 text-gray-400">Cargando datos...</div>}
 
-      {/* Tab Empleados */}
       {!loading && activeTab === "empleados" && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -406,7 +389,6 @@ export const SalesPerformanceReportsPage = () => {
         </>
       )}
 
-      {/* Tab Médicos */}
       {!loading && activeTab === "medicos" && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -502,7 +484,6 @@ export const SalesPerformanceReportsPage = () => {
         </>
       )}
 
-      {/* Historial de pacientes por médico */}
       {historialMedico && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">

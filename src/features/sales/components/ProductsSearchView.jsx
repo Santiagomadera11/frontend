@@ -28,7 +28,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
     loadProducts();
   }, [loadProducts]);
 
-  // Foco automático para poder escanear apenas se abre la pantalla de venta
   useEffect(() => {
     searchInputRef.current?.focus();
   }, []);
@@ -59,9 +58,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
     return activeLotes.find(l => l.id === Number(selectedLoteId));
   }, [selectedLoteId, activeLotes]);
 
-  // Formas de venta habilitadas del producto (Unidad/Blister/Caja). Si el
-  // producto no tiene más que "Unidad" (caso normal hoy), este array queda
-  // con 0 o 1 elementos y no se muestra selector alguno.
   const activeFormasVenta = useMemo(() => {
     if (!selectedProduct || !Array.isArray(selectedProduct.formasVenta)) return [];
     return selectedProduct.formasVenta.filter(f => f.activo !== false);
@@ -79,9 +75,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
   const precioActual = formaSeleccionada ? formaSeleccionada.precio : (selectedProduct?.precio ?? 0);
   const factorActual = formaSeleccionada ? (formaSeleccionada.factorUnidades || 1) : 1;
 
-  // Cantidad máxima vendible en la forma elegida: el stock siempre se guarda
-  // en unidades sueltas, así que si la forma tiene factor > 1 (ej. Blister
-  // x10) hay que convertir el stock disponible a "cantidad de esa forma".
   const maxCantidad = useMemo(() => {
     if (!selectedProduct) return 1;
     const stockUnidades = selectedLote ? selectedLote.cantidad : (selectedProduct.stock || 0);
@@ -140,10 +133,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
     searchInputRef.current?.focus();
   };
 
-  // Lector de código de barras: escribe el código y envía Enter automáticamente.
-  // Si el código coincide exacto con un producto, se agrega directo (1 unidad,
-  // lote más próximo a vencer) sin pasar por el modal, para que el flujo de
-  // venta sea "escanear y listo".
   const handleSearchKeyDown = (e) => {
     if (e.key !== "Enter") return;
     const term = searchTerm.trim();
@@ -168,9 +157,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
       : [];
     const lote = productLotes[0] || null;
 
-    // El escaneo siempre agrega "Unidad" (comportamiento actual preservado),
-    // pero igual hay que propagar el formaVentaId de esa forma para que el
-    // backend pueda resolver el factor/precio congelado correctamente.
     const unidadForma = Array.isArray(match.formasVenta)
       ? match.formasVenta.find(f => f.tipo === "Unidad")
       : null;
@@ -192,7 +178,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
 
   return (
     <div className="h-full flex flex-col gap-3">
-      {/* Búsqueda */}
       <div className="relative">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
@@ -217,7 +202,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
           <p className="text-[11px] text-red-600 font-semibold mt-1">{scanError}</p>
         )}
 
-        {/* Dropdown de Resultados */}
         {showDropdown && filteredProducts.length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-lg shadow-lg z-40 max-h-80 overflow-y-auto">
             {filteredProducts.map((product) => {
@@ -267,7 +251,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
         )}
       </div>
 
-      {/* Modal de Cantidad */}
       {showModal && selectedProduct && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
@@ -302,9 +285,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
               </div>
             </div>
 
-            {/* Selector de forma de venta: solo aparece si el producto tiene
-                más de una forma habilitada (ej. Unidad + Blister). Si solo
-                tiene "Unidad" (caso normal hoy), no se muestra nada. */}
             {activeFormasVenta.length > 1 && (
               <div className="mb-4">
                 <label className="text-sm font-semibold text-gray-600 block mb-2">Forma de venta</label>
@@ -338,7 +318,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
               </div>
             )}
 
-            {/* Lotes selector */}
             {activeLotes.length > 0 && (
               <div className="mb-4">
                 <label className="text-sm font-semibold text-gray-600 block mb-1">Seleccionar Lote (FEFO)</label>
@@ -418,7 +397,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
         </div>
       )}
 
-      {/* Estado vacío / hint — el carrito real vive en la columna central */}
       {!showDropdown && (
         <div className="flex-1 flex flex-col items-center justify-center text-gray-300 rounded-lg border-2 border-dashed border-gray-100">
           <Search size={28} className="mb-1.5 opacity-40" />

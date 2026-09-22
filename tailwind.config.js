@@ -1,4 +1,3 @@
-/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
@@ -24,40 +23,35 @@ export default {
         'safe-right': 'env(safe-area-inset-right)',
       },
       colors: {
-        // Tu nueva paleta "Verde Menta / SysPharma Moderno"
         primary: {
-          900: '#064E3B', // Texto muy oscuro
+          900: '#064E3B',
           800: '#065F46',
           700: '#047857',
           600: '#059669', 
-          500: '#10B981', // Verde Esmeralda Estándar
-          400: '#34D399', // <--- ESTE es el color brillante de tu imagen ("Inicio", botones)
+          500: '#10B981',
+          400: '#34D399',
           300: '#6EE7B7',
           200: '#A7F3D0', 
-          100: '#D1FAE5', // Fondos suaves
-          50:  '#ECFDF5', // Fondo de pantalla casi blanco
+          100: '#D1FAE5',
+          50:  '#ECFDF5',
         },
-        // Color específico para el Sidebar (Gris Azulado Oscuro de la imagen)
         sidebar: {
-          bg: '#2C3E50',     // Fondo del menú lateral
-          hover: '#34495E',  // Color al pasar el mouse por un item
-          active: '#1ABC9C', // El verde cuando un item está seleccionado
-          text: '#ECF0F1'    // Texto blanco/gris claro
+          bg: '#2C3E50',
+          hover: '#34495E',
+          active: '#1ABC9C',
+          text: '#ECF0F1'
         },
-        // Paleta "Azul Corporativo" — identidad visual del panel de Empleado.
-        // Misma estructura que `primary` (900 oscuro → 50 fondo) para mantener
-        // la misma disciplina tipográfica/de contraste entre ambos paneles.
         employee: {
-          900: '#122A54', // Texto muy oscuro
+          900: '#122A54',
           800: '#1B3B75',
           700: '#24509C',
-          600: '#2F66C2', // Header / acciones principales
-          500: '#3B7DDE', // Estándar (equivalente a primary-500)
-          400: '#5B9BF5', // Acento brillante (activos, botones destacados)
+          600: '#2F66C2',
+          500: '#3B7DDE',
+          400: '#5B9BF5',
           300: '#93C5FD',
           200: '#BFDBFE',
-          100: '#DCEAFE', // Fondos suaves
-          50:  '#EFF5FF', // Fondo casi blanco
+          100: '#DCEAFE',
+          50:  '#EFF5FF',
         },
       }
     },

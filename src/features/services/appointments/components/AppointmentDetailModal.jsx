@@ -45,7 +45,6 @@ const AppointmentDetailModal = ({ isOpen, onClose, appointment, doctors = [], ac
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-hidden shadow-xl flex flex-col">
-        {/* Header */}
         <div className={`${accent.header} border-b px-6 py-4 flex items-center justify-between flex-shrink-0`}>
           <h2 className={`text-lg font-semibold ${accent.text}`}>Detalle de Cita</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -54,7 +53,6 @@ const AppointmentDetailModal = ({ isOpen, onClose, appointment, doctors = [], ac
         </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar">
-          {/* Encabezado: paciente + estado */}
           <div className="px-6 pt-5 pb-4 border-b border-gray-100">
             <div className="flex items-start gap-3">
               <div className={`p-2.5 rounded-lg ${accent.iconBg} ${accent.text} flex-shrink-0`}>
@@ -72,7 +70,6 @@ const AppointmentDetailModal = ({ isOpen, onClose, appointment, doctors = [], ac
           </div>
 
           <div className="px-6 py-4 space-y-4">
-            {/* Stats */}
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 rounded-lg border border-gray-100">
                 <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${accent.iconBg} ${accent.text}`}><Calendar size={13} /></div>
@@ -95,7 +92,6 @@ const AppointmentDetailModal = ({ isOpen, onClose, appointment, doctors = [], ac
               )}
             </div>
 
-            {/* Información de la cita */}
             <div className={`rounded-lg border ${accent.header} p-3`}>
               <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${accent.text}`}>
                 <Stethoscope size={13} /> Información de la Cita
@@ -114,7 +110,6 @@ const AppointmentDetailModal = ({ isOpen, onClose, appointment, doctors = [], ac
               </div>
             </div>
 
-            {/* Notas */}
             {appointment.notas && (
               <div className="p-3 rounded-lg border border-gray-100">
                 <label className="text-[10px] font-semibold text-gray-400 uppercase mb-1 flex items-center gap-1"><FileText size={12} /> Notas</label>
