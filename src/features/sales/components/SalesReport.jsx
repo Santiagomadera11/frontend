@@ -1,4 +1,3 @@
-// src/features/sales/components/SalesReport.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -41,10 +40,6 @@ export const SalesReport = () => {
     });
   }, [sales, startDate, endDate]);
 
-  // Las ventas anuladas (estadoId 3) siguen en la lista para que se vean en la tabla,
-  // pero no deben contar como ingreso real: antes se sumaban igual que cualquier venta
-  // válida, inflando Total/Subtotal/IVA/Transacciones/Items con dinero que en realidad
-  // se revirtió.
   const validSales = useMemo(() => filteredSales.filter(s => s.estadoId !== 3), [filteredSales]);
 
   const stats = useMemo(() => {
@@ -80,7 +75,6 @@ export const SalesReport = () => {
 
   return (
     <div className="h-full flex flex-col gap-4 font-sans p-4 bg-[#f8fafc]">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-lg">
@@ -96,7 +90,6 @@ export const SalesReport = () => {
         </button>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-5 gap-3">
         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
@@ -135,7 +128,6 @@ export const SalesReport = () => {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex gap-3 items-center bg-white p-3 rounded-xl border border-gray-100">
         <Calendar size={16} className="text-gray-400" />
         <div className="flex gap-2 items-center">
@@ -166,7 +158,6 @@ export const SalesReport = () => {
         )}
       </div>
 
-      {/* Table */}
       <div className="flex-1 bg-white rounded-xl border border-gray-100 overflow-hidden flex flex-col">
         <div className="overflow-auto flex-1">
           <table className="w-full text-left">

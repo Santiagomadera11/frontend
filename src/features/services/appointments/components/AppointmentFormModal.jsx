@@ -44,9 +44,6 @@ const formatDateDisplay = (isoDate) => {
   return isoDate;
 };
 
-// Los horarios llegan del backend en formato 24h ("19:00"); se muestran en 12h con
-// AM/PM ("7:00 PM") porque es lo que la gente lee normalmente acá, no el formato
-// "militar"/mundial. El valor guardado en formData.hora sigue siendo el de 24h.
 const formatHoraDisplay = (hora) => {
   if (!hora) return "";
   const [h, m] = hora.split(":").map(Number);
@@ -82,18 +79,14 @@ const AppointmentFormModal = ({
     [],
   );
   const currentUserRole = (currentUser.rol || "Administrador").toLowerCase().trim();
-  // Cualquier rol que no sea Administrador ve el panel azul, no solo el rol fijo
-  // "Empleado" — si no, un rol dinámico/personalizado se quedaba en verde.
   const isEmployee = currentUserRole !== "administrador";
 
-  // ── Theme tokens (Emerald para clientes, Azul para empleados) ──
   const headerBgColor   = isEmployee ? "bg-blue-600" : "bg-emerald-600";
   const focusBorder     = isEmployee ? "focus:border-blue-400" : "focus:border-emerald-400";
   const focusRing       = isEmployee ? "focus:ring-blue-200" : "focus:ring-emerald-200";
   const slotSelected    = isEmployee ? "bg-blue-600" : "bg-emerald-600";
   const slotHover       = isEmployee ? "hover:bg-blue-50" : "hover:bg-emerald-50";
   const btnSaveBg       = isEmployee ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-700";
-  // ─────────────────────────────────────────────────────────────────────
 
   const inputClass = (hasError) =>
     `w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 ${
@@ -173,12 +166,6 @@ const AppointmentFormModal = ({
         userId: appointment.userId || "",
       });
     } else {
-      // Este formulario solo lo usa personal de mostrador (admin/empleado) registrando
-      // citas para pacientes que llegan o llaman, nunca el propio paciente logueado.
-      // Precargar nombre/documento/teléfono/email con los datos de la sesión actual
-      // (currentUser) los llenaba con los datos del EMPLEADO, no del paciente: quedaba
-      // en quien lo cargue notar el error y borrar todo a mano en cada cita nueva.
-      // userId sí debe ser el de la sesión: identifica quién registró la cita.
       setFormData({
         ...initialFormState,
         userId: currentUser.id || "",
@@ -344,7 +331,6 @@ const AppointmentFormModal = ({
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
-        {/* Header */}
         <div className={`${headerBgColor} px-6 py-4 flex justify-between items-center`}>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <Calendar size={20} />
@@ -358,10 +344,8 @@ const AppointmentFormModal = ({
           </button>
         </div>
 
-        {/* Body */}
         <form id="appointment-form" onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[75vh]">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            {/* COLUMNA IZQUIERDA */}
             <div className="md:col-span-5 space-y-5 md:border-r md:border-gray-100 md:pr-6">
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5 border-b pb-2 mb-3">
                 <User size={14} /> Información Paciente
@@ -445,7 +429,6 @@ const AppointmentFormModal = ({
               </div>
             </div>
 
-            {/* COLUMNA DERECHA */}
             <div className="md:col-span-7 space-y-5">
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5 border-b pb-2 mb-3">
                 <Stethoscope size={14} /> Detalle Atención
@@ -645,7 +628,6 @@ const AppointmentFormModal = ({
           </div>
         </form>
 
-        {/* Footer */}
         <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
           <button
             type="button"

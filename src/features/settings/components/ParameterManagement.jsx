@@ -18,8 +18,6 @@ const ParameterManagement = ({ user }) => {
   const isAdmin = user?.rol?.toLowerCase() === "administrador";
   const userPerms = (user?.permisos || []).map((perm) => String(perm || "").toLowerCase().trim());
   const hasPerm = (perm) => isAdmin || userPerms.includes(perm);
-  // Empleados con permisos de configuración también entran aquí, así que sigue el mismo
-  // esquema azul/verde del resto del sistema en vez de quedarse fijo en verde.
   const theme = !isAdmin
     ? { text: "text-blue-600", border: "border-blue-600", bg: "bg-blue-600", bgHover: "hover:bg-blue-700", focus: "focus:border-blue-500" }
     : { text: "text-emerald-600", border: "border-emerald-600", bg: "bg-emerald-600", bgHover: "hover:bg-emerald-700", focus: "focus:border-emerald-500" };
@@ -247,7 +245,6 @@ const ParameterManagement = ({ user }) => {
 
   return (
     <div className="space-y-6">
-      {/* Sub-tabs */}
       <div className="flex gap-2 border-b border-slate-100">
         {TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -263,7 +260,6 @@ const ParameterManagement = ({ user }) => {
 
       {activeTabData && <ParameterTable type={activeTabData.type} label={activeTabData.label} />}
 
-      {/* Modal agregar / editar */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden">

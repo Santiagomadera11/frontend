@@ -36,8 +36,6 @@ const getStockStyle = (stock) => {
   return "text-gray-900";
 };
 
-// Avatar circular con inicial del producto: reemplaza el icono genérico repetido en
-// cada fila y ayuda a que la mirada distinga una fila de otra en listas largas.
 const ProductAvatar = ({ nombre, theme }) => (
   <div className={`w-7 h-7 rounded-full ${theme.lightBg} ${theme.text} flex items-center justify-center text-[11px] font-bold flex-shrink-0`}>
     {(nombre || "?").trim().charAt(0).toUpperCase()}
@@ -60,8 +58,6 @@ const KPICard = ({ icon: Icon, label, value, bg, text, accent, onClick, active }
   </button>
 );
 
-// Agrupa las acciones secundarias (Lotes, Estado, Eliminar) en un menú compacto
-// para que la columna de Acciones no empuje el resto de la tabla fuera de vista.
 const RowActionsMenu = ({ canToggleStatus, canDelete, isInactive, onLotes, onToggleEstado, onDelete }) => {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
@@ -320,7 +316,6 @@ export const ProductsPage = () => {
   return (
     <div className="h-full flex flex-col p-3 sm:p-6 font-sans text-gray-800 bg-white md:bg-transparent relative overflow-hidden">
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3 flex-shrink-0">
         <div>
           <h1 className="text-lg sm:text-xl font-bold">Productos</h1>
@@ -336,7 +331,6 @@ export const ProductsPage = () => {
         )}
       </div>
 
-      {/* KPIs: también funcionan como filtros rápidos de la tabla de abajo */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 flex-shrink-0">
         <KPICard icon={Boxes} label="Total" value={totalProductos} bg={theme.lightBg} text={theme.text} accent={`before:${theme.main}`}
           active={filterStatus === "todos"} onClick={() => setFilterStatus("todos")} />
@@ -348,7 +342,6 @@ export const ProductsPage = () => {
           active={filterStatus === "bajo"} onClick={() => setFilterStatus("bajo")} />
       </div>
 
-      {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4 flex-shrink-0">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -383,14 +376,12 @@ export const ProductsPage = () => {
         </select>
       </div>
 
-      {/* Loading */}
       {loading && (
         <div className="flex justify-center py-8">
           <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${theme.spinner}`} />
         </div>
       )}
 
-      {/* TABLA DESKTOP */}
       {!loading && (
         <div className="hidden sm:flex flex-1 bg-white rounded-lg shadow-sm border border-gray-200 flex-col overflow-hidden min-h-0">
           <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
@@ -476,7 +467,6 @@ export const ProductsPage = () => {
             </table>
           </div>
 
-          {/* Paginación Desktop */}
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -488,7 +478,6 @@ export const ProductsPage = () => {
         </div>
       )}
 
-      {/* TARJETAS MÓVIL */}
       {!loading && (
         <div className="sm:hidden flex-1 flex flex-col gap-3 overflow-y-auto no-scrollbar">
           {currentItems.length > 0 ? currentItems.map((prod) => (
@@ -541,7 +530,6 @@ export const ProductsPage = () => {
               <p className="text-gray-400 text-sm">No hay productos que coincidan</p>
             </div>
           )}
-          {/* Paginación Móvil */}
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -562,7 +550,6 @@ export const ProductsPage = () => {
 
       {notification && <StatusNotification message={notification.message} type={notification.type} duration={notification.duration} onClose={() => setNotification(null)} />}
 
-      {/* Modal Detalle */}
       {detailProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
@@ -572,7 +559,6 @@ export const ProductsPage = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto no-scrollbar">
-              {/* Encabezado: nombre, meta y badges */}
               <div className="px-6 pt-5 pb-4 border-b border-gray-100">
                 <div className="flex items-start gap-3">
                   <div className={`p-2.5 rounded-lg ${theme.lightBg} ${theme.text} flex-shrink-0`}>
@@ -607,7 +593,6 @@ export const ProductsPage = () => {
               </div>
 
               <div className="px-6 py-4 space-y-4">
-                {/* Stats */}
                 <div className="grid grid-cols-3 gap-3">
                   <div className="p-3 rounded-lg border border-gray-100">
                     <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${theme.lightBg} ${theme.text}`}><Tag size={13} /></div>
@@ -633,13 +618,11 @@ export const ProductsPage = () => {
                   </div>
                 </div>
 
-                {/* Descripción */}
                 <div className="p-3 rounded-lg border border-gray-100">
                   <label className="text-[10px] font-semibold text-gray-400 uppercase block mb-1">Descripción</label>
                   <p className="text-xs text-gray-700 whitespace-pre-line">{detailProduct.descripcion || "Sin descripción disponible."}</p>
                 </div>
 
-                {/* Información del medicamento */}
                 {detailProduct.tipoProducto === "Medicamento" && (
                   <div className={`rounded-lg border ${theme.border} ${theme.lightBg} p-3`}>
                     <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${theme.text}`}>Información del Medicamento</h4>
@@ -661,7 +644,6 @@ export const ProductsPage = () => {
         </div>
       )}
 
-      {/* Modal Eliminar */}
       <ConfirmDialog
         open={!!showDeleteConfirm}
         title="Eliminar Producto"
@@ -672,7 +654,6 @@ export const ProductsPage = () => {
         onConfirm={() => handleDelete(showDeleteConfirm)}
       />
 
-      {/* Modal Estado */}
       <ConfirmDialog
         open={isStatusConfirmOpen && !!productToToggle}
         title={productToToggle?.estado ? "Desactivar Producto" : "Activar Producto"}

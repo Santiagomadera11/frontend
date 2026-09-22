@@ -46,7 +46,6 @@ export const IntegratedCart = ({
 
   return (
     <div className="w-full bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-fit">
-      {/* Header */}
       <div className="px-3 py-2 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
@@ -61,7 +60,6 @@ export const IntegratedCart = ({
         </div>
       </div>
 
-      {/* Vacío */}
       {!hasItems && (
         <div className="flex flex-col items-center justify-center py-6 text-gray-400">
           <ShoppingCart size={26} className="opacity-20 mb-1.5" />
@@ -70,16 +68,13 @@ export const IntegratedCart = ({
         </div>
       )}
 
-      {/* Footer SIEMPRE VISIBLE */}
       {hasItems && (
         <div className="border-t border-gray-100 p-2.5 space-y-1.5 bg-gradient-to-b from-white to-gray-50 flex-shrink-0">
-          {/* Subtotal */}
           <div className="flex justify-between text-xs text-gray-600">
             <span>Subtotal:</span>
             <span className="font-semibold">{fmt(subtotal)}</span>
           </div>
 
-          {/* IVA */}
           {porcentajeIva > 0 && (
             <div className="flex justify-between text-xs text-gray-600">
               <span>IVA ({porcentajeIva}%):</span>
@@ -87,7 +82,6 @@ export const IntegratedCart = ({
             </div>
           )}
 
-          {/* Total destacado */}
           <div
             className="flex justify-between text-xs font-black px-2.5 py-2 rounded-lg mt-1.5"
             style={{
@@ -99,7 +93,6 @@ export const IntegratedCart = ({
             <span>{fmt(totalGeneral)}</span>
           </div>
 
-          {/* Campos adicionales contextuales */}
           {isEfectivo && (
             <div className="mt-2 space-y-1.5 border-t border-gray-100 pt-2">
               <div className="flex flex-col gap-0.5">
@@ -149,7 +142,6 @@ export const IntegratedCart = ({
             </div>
           )}
 
-          {/* Botón Finalizar */}
           <button
             onClick={onConfirm}
             disabled={finishDisabled}

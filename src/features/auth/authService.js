@@ -2,10 +2,8 @@ import { apiClient } from '../../shared/utils/apiClient';
 
 const API_URL = '/api/Auth';
 
-// Permisos en memoria (no storage)
 let _permisos = [];
 
-// Helper — usa sessionStorage con fallback a memoria
 const storage = {
   set: (key, value) => {
     try { sessionStorage.setItem(key, value); } catch (e) {
@@ -32,7 +30,6 @@ export const authService = {
   try {
     const response = await apiClient.post(`${API_URL}/login`, { email, password });
     const data = response.data;
-    // Los permisos vienen dentro de data.user, no en data directamente
     _permisos = Array.isArray(data.user?.permisos) ? data.user.permisos : [];
     return data;
   } catch (error) {
@@ -61,12 +58,10 @@ export const authService = {
     }
   },
 
-  // NUEVO MÉTODO: Envía los datos modificados al controlador Auth de ASP.NET Core
   updateProfile: async (userId, data) => {
     try {
       const token = storage.get('syspharma_token');
       
-      // Enviamos el PUT mapeando el ID del usuario en la URL
       const response = await apiClient.put(`${API_URL}/${userId}`, {
         id: userId,
         nombre: `${data.nombres.trim()} ${data.apellidos.trim()}`.trim(),
@@ -87,7 +82,6 @@ export const authService = {
     }
   },
 
-  // NUEVO MÉTODO: Actualiza el objeto dentro de sessionStorage sin perder propiedades viejas
   updateUserInSession: (updatedFields) => {
     try {
       const userStr = storage.get('syspharma_user');

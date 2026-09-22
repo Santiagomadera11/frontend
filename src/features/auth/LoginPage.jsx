@@ -7,7 +7,7 @@ import { sendRecoveryEmail } from "./passwordRecoveryService";
 import { apiClient } from "../../shared/utils/apiClient";
 import { ToastNotification } from "../../shared/ui/ToastNotification";
 import loginImage from "../../assets/login.jpg";
-import icono1 from "../../assets/icono1.png"; // ← NUEVO: import del logo
+import icono1 from "../../assets/icono1.png";
 
 const PERMS_ADMIN = [
   "dashboard.view",
@@ -292,18 +292,15 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex w-full overflow-hidden font-sans">
-      {/* Panel izquierdo - SOLO ESTA SECCIÓN CAMBIÓ */}
       <div className="hidden lg:flex lg:w-[70%] bg-primary-900 relative items-center justify-center">
         <img
           src={loginImage}
           alt="Farmacia Syspharma"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        {/* Overlay oscuro para mejor legibilidad */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
 
         <div className="relative z-10 text-center px-20">
-          {/* Logo reemplazado por icono1.png */}
           <div className="inline-flex p-2 mb-8">
             <img
               src={icono1}
@@ -312,7 +309,6 @@ const LoginPage = () => {
             />
           </div>
 
-          {/* Texto con mejor contraste y sombras */}
           <h2 className="text-6xl font-bold text-white mb-6 tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
             SysPharma
           </h2>
@@ -322,7 +318,6 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* Panel derecho - SIN CAMBIOS */}
       <div className="w-full lg:w-[30%] flex items-center justify-center bg-white px-6 md:px-10 shadow-2xl z-20 relative">
         <div className="w-full">
           <div className="text-center mb-8 mt-8">

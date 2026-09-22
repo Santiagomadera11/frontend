@@ -33,7 +33,6 @@ export const CloseShiftModal = ({
       });
       setNotas("Cerrado por el Administrador");
     } else {
-      // Cargar balance desde backend
       turnService.calculateExpectedBalance().then(b => setBalance(b)).catch(() => {});
       setNotas("");
     }
@@ -83,7 +82,6 @@ export const CloseShiftModal = ({
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl shadow-2xl p-4 max-w-md w-full mx-2 border border-gray-200 max-h-[80vh] overflow-auto no-scrollbar">
 
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className={`${isAdminForcedClose ? "bg-orange-100" : "bg-red-100"} p-3 rounded-lg`}>
@@ -100,14 +98,12 @@ export const CloseShiftModal = ({
           </button>
         </div>
 
-        {/* Info usuario */}
         <div className={`${isAdminForcedClose ? "bg-orange-50 border-orange-200" : "bg-gray-50"} p-4 rounded-lg mb-6 border border-gray-100`}>
           <p className="text-xs text-gray-600 font-medium mb-1">{isAdminForcedClose ? "Cerrando caja de" : "Usuario"}</p>
           <p className="text-sm font-bold text-gray-800">{userData?.userName || user?.nombre || "Usuario"}</p>
           <p className="text-xs text-gray-500">Hora: {new Date().toLocaleTimeString()}</p>
         </div>
 
-        {/* Resumen */}
         <div className="space-y-3 mb-6 pb-6 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600 flex items-center gap-1.5"><DollarSign size={16} className="text-blue-600" /> Monto Base</span>
@@ -127,7 +123,6 @@ export const CloseShiftModal = ({
           </div>
         </div>
 
-        {/* Formulario */}
         <form onSubmit={handleCloseTurn} className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Efectivo Físico en Caja</label>

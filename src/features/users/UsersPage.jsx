@@ -73,7 +73,7 @@ export const UsersPage = () => {
           : (defaultColors[r.nombre] || palette[i % palette.length]);
       });
       setRoleColorMap(colorMap);
-    } catch { /* silencioso */ }
+    } catch { }
   };
 
   const handleOpenCreate = () => { setEditingUser(null); setIsModalOpen(true); };

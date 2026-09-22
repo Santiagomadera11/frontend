@@ -11,7 +11,7 @@ import { apiClient } from "../../shared/utils/apiClient";
 import { turnService } from "../sales/services/turnService";
 import { OpenShiftModal } from "../sales/components/OpenShiftModal";
 
-const EMPLOYEE_ACCENT = "#3B7DDE"; // employee-500 — azul de marca del panel de empleado
+const EMPLOYEE_ACCENT = "#3B7DDE";
 
 const API = "/api";
 const getAuthHeaders = () => ({
@@ -66,7 +66,6 @@ export const DashboardEmpleado = () => {
     });
   }, [currentUser?.id]);
 
-  // Citas de hoy
   const todayStr = new Date().toISOString().split("T")[0];
   const citasHoy = useMemo(() =>
     citas.filter(c => c.fecha === todayStr && (c.estadoNombre || "").toLowerCase() !== "cancelada")
@@ -81,22 +80,14 @@ export const DashboardEmpleado = () => {
   const nextAppointment = citasHoy.find(c =>
     parseToMinutes(c.hora) >= nowMinutes && (c.estadoNombre || "").toLowerCase() !== "completada");
 
-  // Stock bajo: la lista completa alimenta el conteo de la tarjeta y el modal;
-  // el panel lateral solo muestra un adelanto de 4 por espacio.
   const lowStockAll = useMemo(() =>
     productos.filter(p => Number(p.stock) < LOW_STOCK_THRESHOLD).sort((a, b) => a.stock - b.stock), [productos]);
   const lowStockProducts = useMemo(() => lowStockAll.slice(0, 4), [lowStockAll]);
 
-  // Ventas de hoy (excluye anuladas: si no, el monto y el conteo quedan inflados con
-  // dinero que en realidad se revirtió)
   const ventasHoy = useMemo(() =>
     ventas.filter(v => v.estadoId !== 3 && v.fechaVenta && new Date(v.fechaVenta).toISOString().split("T")[0] === todayStr),
     [ventas, todayStr]);
 
-  // Tendencia de ventas de los últimos 7 días (hoy incluido), para que el empleado vea
-  // de un vistazo si el día va mejor o peor que el resto de la semana. Usa el mismo
-  // criterio de fecha que "Ventas Hoy" arriba, para que el último punto coincida con esa
-  // tarjeta.
   const ventasTrend = useMemo(() => {
     const dias = [];
     for (let i = 6; i >= 0; i--) {
@@ -121,7 +112,6 @@ export const DashboardEmpleado = () => {
   return (
     <>
       <div className="p-6 bg-[#f8fafc] min-h-screen font-sans space-y-5">
-        {/* Header */}
         <div className="bg-white rounded-xl p-6 border border-gray-100 border-l-4 border-l-employee-500 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
           <div>
             <h1 className="text-xl font-semibold text-gray-900">
@@ -141,8 +131,6 @@ export const DashboardEmpleado = () => {
           </div>
         </div>
 
-        {/* KPIs: cada una es clicable y lleva a ver el detalle de lo que muestra,
-            igual que hace el Dashboard del administrador con su tarjeta de Stock. */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: "Citas Hoy", value: citasHoy.length, sub: `${citasHoy.filter(c => (c.estadoNombre||"").toLowerCase()==="completada").length} atendidas`, icon: Calendar, bg: "bg-employee-50", color: "text-employee-600", accent: "before:bg-employee-500", onClick: () => navigate("/employee/citas") },
@@ -160,7 +148,6 @@ export const DashboardEmpleado = () => {
           ))}
         </div>
 
-        {/* Tendencia de ventas */}
         <div className="bg-white rounded-xl border border-gray-100 p-5">
           <div className="flex items-center gap-2.5 mb-4">
             <div className="p-1.5 rounded-md bg-employee-50 text-employee-600"><TrendingUp size={14} /></div>
@@ -195,7 +182,6 @@ export const DashboardEmpleado = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2 space-y-5">
-            {/* Próxima cita */}
             {nextAppointment ? (
               <div className="bg-gradient-to-r from-employee-600 to-employee-500 rounded-xl p-5 text-white shadow-sm relative overflow-hidden">
                 <div className="relative z-10 flex items-center justify-between gap-4">
@@ -226,7 +212,6 @@ export const DashboardEmpleado = () => {
               </div>
             )}
 
-            {/* Agenda */}
             <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
                 <h3 className="font-medium text-gray-800 text-sm">Agenda de Hoy</h3>
@@ -267,7 +252,6 @@ export const DashboardEmpleado = () => {
             </div>
           </div>
 
-          {/* Columna derecha */}
           <div className="space-y-5">
             <div className="bg-white rounded-xl border border-gray-100 p-5">
               <h3 className="font-medium text-gray-800 mb-4 text-sm">Accesos Rápidos</h3>
@@ -310,8 +294,6 @@ export const DashboardEmpleado = () => {
         user={currentUser} canClose={(currentUser?.rol || "").toLowerCase().trim() === "administrador"}
         onCancel={() => setShowOpenShiftModal(false)} />
 
-      {/* Modal Stock Bajo: la tarjeta solo mostraba un número sin decir cuáles
-          productos eran — acá se listan por nombre, igual que en el panel del admin. */}
       {showStockModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setShowStockModal(false)}>
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden" onClick={(e) => e.stopPropagation()}>

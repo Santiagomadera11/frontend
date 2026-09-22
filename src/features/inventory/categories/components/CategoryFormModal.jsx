@@ -71,7 +71,6 @@ const CategoryFormModal = ({ isOpen, onClose, initialData = null, mode = 'create
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
         
-        {/* Header */}
         <div className={`${accent.header} px-5 py-3 border-b flex justify-between items-center`}>
           <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
             <Tag size={16} className={accent.text}/> {title}
@@ -81,7 +80,6 @@ const CategoryFormModal = ({ isOpen, onClose, initialData = null, mode = 'create
           </button>
         </div>
 
-        {/* Body */}
         {isView ? (
           <div className="p-6 space-y-4">
             <div className="flex items-start gap-3">
@@ -103,7 +101,6 @@ const CategoryFormModal = ({ isOpen, onClose, initialData = null, mode = 'create
         ) : (
           <div className="p-6 space-y-4">
 
-            {/* Nombre */}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">Nombre de la Categoría</label>
               <div className="relative">
@@ -122,7 +119,6 @@ const CategoryFormModal = ({ isOpen, onClose, initialData = null, mode = 'create
               {errors.nombre && <p className="text-red-500 text-[10px] mt-1">{errors.nombre}</p>}
             </div>
 
-            {/* Descripción */}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">Descripción</label>
               <div className="relative">
@@ -140,7 +136,6 @@ const CategoryFormModal = ({ isOpen, onClose, initialData = null, mode = 'create
               {errors.descripcion && <p className="text-red-500 text-[10px] mt-1">{errors.descripcion}</p>}
             </div>
 
-            {/* Estado */}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">Estado</label>
               <div className="relative">
@@ -159,7 +154,6 @@ const CategoryFormModal = ({ isOpen, onClose, initialData = null, mode = 'create
           </div>
         )}
 
-        {/* Footer */}
         <div className={`${accent.header} px-5 py-3 border-t flex justify-end gap-2`}>
           {isView ? (
             <button onClick={onClose} className="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">Cerrar</button>

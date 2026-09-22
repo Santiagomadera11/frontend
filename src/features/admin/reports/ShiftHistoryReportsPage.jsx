@@ -26,8 +26,6 @@ export const ShiftHistoryReportsPage = () => {
   const currentUser = JSON.parse(sessionStorage.getItem("syspharma_user") || '{"rol":""}');
   const isAdmin = (currentUser?.rol || "").toLowerCase().trim() === "administrador";
 
-  // Esta misma página la usan ambos paneles (Admin → Reportes → Turnos y Empleado →
-  // Reportes → Turnos): verde en admin, azul en empleado, igual que el resto del sistema.
   const theme = isAdmin
     ? { icon: "bg-emerald-50 text-emerald-600", button: "bg-emerald-600 hover:bg-emerald-700", ring: "focus:ring-emerald-200 focus:border-emerald-400", thead: "bg-emerald-600", theadHover: "hover:bg-emerald-700", header: "bg-emerald-50 border-emerald-200", headerIcon: "text-emerald-600", hoverIcon: "hover:text-emerald-600" }
     : { icon: "bg-blue-50 text-blue-600", button: "bg-blue-600 hover:bg-blue-700", ring: "focus:ring-blue-200 focus:border-blue-400", thead: "bg-blue-600", theadHover: "hover:bg-blue-700", header: "bg-blue-50 border-blue-200", headerIcon: "text-blue-600", hoverIcon: "hover:text-blue-600" };
@@ -113,7 +111,6 @@ export const ShiftHistoryReportsPage = () => {
         </button>
       </div>
 
-      {/* Filtros */}
       <div className="flex flex-col md:flex-row gap-3 items-end bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
         <div className="flex items-center gap-2 text-gray-400 pb-2 md:pb-0">
           <Filter size={16} />
@@ -135,7 +132,6 @@ export const ShiftHistoryReportsPage = () => {
         </button>
       </div>
 
-      {/* Resumen */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label: "Turnos Cerrados", value: cerrados.length, icon: Calendar, bg: "bg-blue-50", color: "text-blue-600", accent: "before:bg-blue-500" },
@@ -153,7 +149,6 @@ export const ShiftHistoryReportsPage = () => {
         ))}
       </div>
 
-      {/* Tabla */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-auto">
           <table className="w-full text-left border-collapse">
@@ -227,11 +222,9 @@ export const ShiftHistoryReportsPage = () => {
         </div>
       </div>
 
-      {/* Modal detalle */}
       {selectedShift && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedShift(null)}>
           <div className="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            {/* Header */}
             <div className={`${theme.header} px-5 py-3 border-b flex justify-between items-center flex-shrink-0`}>
               <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
                 <FileText size={16} className={theme.headerIcon} /> Detalle del turno — {selectedShift.usuarioNombre}
@@ -241,7 +234,6 @@ export const ShiftHistoryReportsPage = () => {
               </button>
             </div>
 
-            {/* Body */}
             <div className="p-5 space-y-4 overflow-y-auto">
               <div className="grid grid-cols-2 gap-3">
                 {[
@@ -266,7 +258,6 @@ export const ShiftHistoryReportsPage = () => {
               )}
             </div>
 
-            {/* Footer */}
             <div className={`${theme.header} px-5 py-3 border-t flex justify-end flex-shrink-0`}>
               <button onClick={() => setSelectedShift(null)}
                 className="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">

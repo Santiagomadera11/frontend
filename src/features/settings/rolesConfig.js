@@ -1,8 +1,5 @@
 export const PERMISSIONS_CONFIG = [
 
-  // =====================================================
-  // INICIO / DASHBOARD
-  // =====================================================
   {
     id: "dashboard.view",
     label: "Acceso al Dashboard",
@@ -10,9 +7,6 @@ export const PERMISSIONS_CONFIG = [
     category: "Inicio",
   },
 
-  // =====================================================
-  // USUARIOS
-  // =====================================================
   {
     id: "users.view",
     label: "Ver usuarios",
@@ -44,9 +38,6 @@ export const PERMISSIONS_CONFIG = [
     category: "Usuarios",
   },
 
-  // =====================================================
-  // COMPRAS
-  // =====================================================
   {
     id: "purchase.view",
     label: "Ver compras",
@@ -78,9 +69,6 @@ export const PERMISSIONS_CONFIG = [
     category: "Compras",
   },
 
-  // =====================================================
-  // PRODUCTOS
-  // =====================================================
   {
     id: "products.view",
     label: "Ver productos",
@@ -112,9 +100,6 @@ export const PERMISSIONS_CONFIG = [
     category: "Productos",
   },
 
-  // =====================================================
-  // CATEGORÍAS
-  // =====================================================
   {
     id: "categories.view",
     label: "Ver categorías",
@@ -146,9 +131,6 @@ export const PERMISSIONS_CONFIG = [
     category: "Categorías",
   },
 
-  // =====================================================
-  // MARCAS
-  // =====================================================
   {
     id: "brands.view",
     label: "Ver marcas",
@@ -180,9 +162,6 @@ export const PERMISSIONS_CONFIG = [
     category: "Marcas",
   },
 
-  // =====================================================
-  // PRESENTACIONES
-  // =====================================================
   {
     id: "presentations.view",
     label: "Ver presentaciones",
@@ -214,9 +193,6 @@ export const PERMISSIONS_CONFIG = [
     category: "Presentaciones",
   },
 
-  // =====================================================
-  // PROVEEDORES
-  // =====================================================
   {
     id: "suppliers.view",
     label: "Ver proveedores",
@@ -248,9 +224,6 @@ export const PERMISSIONS_CONFIG = [
     category: "Proveedores",
   },
 
-  // =====================================================
-  // VENTAS
-  // =====================================================
   {
     id: "sales.view",
     label: "Ver ventas",
@@ -288,9 +261,6 @@ export const PERMISSIONS_CONFIG = [
     category: "Ventas",
   },
 
-  // =====================================================
-  // SERVICIOS
-  // =====================================================
   {
     id: "services.view",
     label: "Ver servicios",
@@ -322,9 +292,6 @@ export const PERMISSIONS_CONFIG = [
     category: "Servicios",
   },
 
-  // =====================================================
-  // CITAS MÉDICAS
-  // =====================================================
   {
     id: "appointments.create",
     label: "Agregar cita",
@@ -386,9 +353,6 @@ export const PERMISSIONS_CONFIG = [
     category: "Citas Médicas",
   },
 
-  // =====================================================
-  // REPORTES
-  // =====================================================
   {
     id: "reports.shifts",
     label: "Historial de Turnos",
@@ -402,9 +366,6 @@ export const PERMISSIONS_CONFIG = [
     category: "Reportes",
   },
 
-  // =====================================================
-  // CONFIGURACIÓN
-  // =====================================================
   {
     id: "system.roles",
     label: "Gestionar Roles",

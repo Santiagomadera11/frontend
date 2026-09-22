@@ -101,7 +101,6 @@ const DoctorFormModal = ({ isOpen, onClose, onSave, doctor, accentColor = "emera
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden">
 
-        {/* Header */}
         <div className={`${accent.header} px-5 py-3 border-b flex justify-between items-center`}>
           <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
             <Stethoscope size={16} className={accent.text} />
@@ -121,7 +120,6 @@ const DoctorFormModal = ({ isOpen, onClose, onSave, doctor, accentColor = "emera
               </div>
             )}
 
-            {/* Nombre */}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">Nombre Completo *</label>
               <div className="relative">
@@ -138,7 +136,6 @@ const DoctorFormModal = ({ isOpen, onClose, onSave, doctor, accentColor = "emera
               {errors.nombre && <div className="flex items-center gap-1 mt-1 text-red-500 text-xs"><AlertCircle size={12} />{errors.nombre}</div>}
             </div>
 
-            {/* Especialidad */}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">Especialidad *</label>
               <div className="relative">
@@ -156,7 +153,6 @@ const DoctorFormModal = ({ isOpen, onClose, onSave, doctor, accentColor = "emera
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {/* Documento */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Documento</label>
                 <div className="relative">
@@ -173,7 +169,6 @@ const DoctorFormModal = ({ isOpen, onClose, onSave, doctor, accentColor = "emera
                 {errors.documento && <div className="flex items-center gap-1 mt-1 text-red-500 text-xs"><AlertCircle size={12} />{errors.documento}</div>}
               </div>
 
-              {/* Teléfono */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Teléfono</label>
                 <div className="relative">
@@ -191,7 +186,6 @@ const DoctorFormModal = ({ isOpen, onClose, onSave, doctor, accentColor = "emera
               </div>
             </div>
 
-            {/* Email */}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">Email</label>
               <div className="relative">
@@ -209,7 +203,6 @@ const DoctorFormModal = ({ isOpen, onClose, onSave, doctor, accentColor = "emera
             </div>
           </div>
 
-          {/* Footer */}
           <div className={`${accent.header} px-5 py-3 border-t flex justify-end gap-2`}>
             <button
               type="button"

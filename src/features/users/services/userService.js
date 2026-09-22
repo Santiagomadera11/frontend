@@ -76,15 +76,11 @@ export const userService = {
     
     const token = sessionStorage.getItem("syspharma_token");
     const response = await apiClient.post(`/api/Usuario/${userId}/foto`, formData, {
-      // La instancia de apiClient fija Content-Type: application/json por defecto.
-      // Hay que pisarlo para este request: axios detecta que el body es FormData y
-      // genera el boundary correcto solo si el header no quedó fijo en "application/json".
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
     });
 
     const data = response.data;
 
-    // ✅ Devolver URL completa para que sessionStorage quede bien
     return {
       avatar: data.avatar.startsWith("http")
         ? data.avatar

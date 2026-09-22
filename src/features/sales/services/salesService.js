@@ -27,16 +27,16 @@ export const salesService = {
       metodoPagoId: saleData.metodoPagoId,
       estadoId: saleData.estadoId || 1,
       porcentajeIva: saleData.porcentajeIva ?? 19,
-      subtotal: saleData.subtotal || 0,  // ← NUEVO
-      iva: saleData.iva || 0,            // ← NUEVO
-      total: saleData.total || 0,        // ← NUEVO
+      subtotal: saleData.subtotal || 0,
+      iva: saleData.iva || 0,
+      total: saleData.total || 0,
       notas: saleData.notas || null,
       detalles: (saleData.productos || saleData.detalles || []).map(p => ({
         productoId: p.id || p.productoId,
         cantidad: p.cantidad,
         precioUnitario: p.precio || p.precioUnitario,
         descuento: p.descuento || 0,
-        subtotal: p.subtotal || (p.cantidad * (p.precio || p.precioUnitario || 0)), // ← NUEVO
+        subtotal: p.subtotal || (p.cantidad * (p.precio || p.precioUnitario || 0)),
       })),
       servicios: (saleData.servicios || []).map(s => ({
         servicioId: s.servicioId,
@@ -87,10 +87,6 @@ export const salesService = {
     return res.data;
   },
 
-  // ── Helpers de estadísticas ───────────────────────────────────────────────
-  // Excluye anuladas (estadoId 3): de lo contrario, los totales derivados de esta lista
-  // (getTotalSalesToday, getTotalProductsToday) cuentan dinero/unidades que en realidad
-  // se revirtieron.
   getTodaySales: async () => {
     const all = await salesService.getAll();
     const today = new Date().toLocaleDateString("es-CO");
@@ -112,7 +108,6 @@ export const salesService = {
       sum + (s.detalles || []).reduce((a, d) => a + d.cantidad, 0), 0);
   },
 
-  // ── Servicios en Venta ────────────────────────────────────────
   createServiceDetail: async (ventaId, serviceData) => {
     const payload = {
       ventaId,

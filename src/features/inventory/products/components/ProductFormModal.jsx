@@ -3,7 +3,7 @@ import { X, Save } from "lucide-react";
 
 const emptyForm = {
   nombre: "",
-  descripcion: "", // <-- AGREGADO
+  descripcion: "",
   marcaId: "",
   tipoProducto: "Producto General",
   categoriaId: "",
@@ -73,22 +73,18 @@ const ProductModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
         
-        {/* Header */}
         <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
           <h3 className="font-bold text-gray-800 text-sm">{initialData ? "Editar Producto" : "Nuevo Producto"}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-red-500"><X size={18} /></button>
         </div>
 
-        {/* Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-3 no-scrollbar">
 
-          {/* Nombre */}
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1">Nombre *</label>
             <input type="text" className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-emerald-500" {...field("nombre")} />
           </div>
 
-          {/* Marca */}
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1">Marca</label>
             <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-emerald-500 bg-white"
@@ -98,14 +94,12 @@ const ProductModal = ({
             </select>
           </div>
 
-          {/* Descripción (AGREGADO) */}
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1">Descripción</label>
             <textarea className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-emerald-500" rows="2" 
               placeholder="Ingresa una descripción para el producto..." {...field("descripcion")} />
           </div>
 
-          {/* Tipo */}
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1">Tipo de Producto</label>
             <select className="w-full text-sm border border-gray-300 rounded px-3 py-2" {...field("tipoProducto")}>
@@ -114,7 +108,6 @@ const ProductModal = ({
             </select>
           </div>
 
-          {/* Grid básico */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">Categoría</label>
@@ -168,7 +161,6 @@ const ProductModal = ({
             </div>
           </div>
 
-          {/* Info técnica medicamentos */}
           {isMedicamento && (
             <div className="mt-4 pt-4 border-t border-gray-200">
               <h4 className="font-bold text-gray-800 text-sm mb-3">Información Técnica</h4>
@@ -231,7 +223,6 @@ const ProductModal = ({
 
         </div>
 
-        {/* Footer */}
         <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex justify-end gap-2 flex-shrink-0">
           <button onClick={onClose} className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded">Cancelar</button>
           <button onClick={handleSubmit} className="px-3 py-1.5 text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded flex items-center gap-1">

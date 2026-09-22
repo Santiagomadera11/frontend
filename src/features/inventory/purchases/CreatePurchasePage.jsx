@@ -17,9 +17,6 @@ export const CreatePurchasePage = () => {
   const isEmployeePath = location.pathname.startsWith("/employee");
   const { currentUser } = useCurrentUser();
   const user = currentUser || {};
-  // useCurrentUser ya normaliza el rol a minúsculas ("empleado"/"administrador"), así que
-  // comparar contra "Empleado" (con mayúscula) nunca daba true: por eso esta pantalla
-  // salía siempre en verde sin importar quién la abriera.
   const isEmployeeRole = (user.rol || "").toLowerCase().trim() !== "administrador";
 
   const primary = isEmployeeRole ? "#2563eb" : "#059669";
@@ -197,7 +194,6 @@ export const CreatePurchasePage = () => {
 
   return (
     <div className="h-full flex flex-col font-sans bg-[#f8fafc]">
-      {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between shadow-sm flex-shrink-0">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100" style={{ color: primary }}>
@@ -220,9 +216,7 @@ export const CreatePurchasePage = () => {
       )}
 
       <div className="flex-1 overflow-hidden flex p-3 gap-3">
-        {/* Columna principal: buscar + tabla de items */}
         <div className="flex-1 min-w-0 h-full flex flex-col gap-3">
-          {/* Buscar y agregar productos */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3 flex-shrink-0">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Agregar Productos</h3>
             <div className="flex flex-col md:flex-row gap-2 items-end mb-2">
@@ -299,7 +293,6 @@ export const CreatePurchasePage = () => {
             </div>
           </div>
 
-          {/* Tabla de items */}
           <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col min-h-0">
             <div className="flex-1 overflow-auto">
               <table className="w-full text-xs table-fixed">
@@ -357,7 +350,6 @@ export const CreatePurchasePage = () => {
           </div>
         </div>
 
-        {/* Columna lateral: proveedor + totales */}
         <div className="w-[300px] flex-shrink-0 h-full flex flex-col gap-3 overflow-y-auto no-scrollbar">
           <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm flex-shrink-0">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 flex items-center gap-1.5"><Truck size={12} /> Proveedor</h3>

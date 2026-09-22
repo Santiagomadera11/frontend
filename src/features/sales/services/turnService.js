@@ -2,11 +2,9 @@ import { apiClient } from "../../../shared/utils/apiClient";
 
 const ENDPOINT = "Turno";
 
-// Cache en memoria del turno activo (se pierde al recargar, se restaura con getActiveTurn)
 let _turnoActivo = null;
 
 export const turnService = {
-  // ── Abrir turno ──────────────────────────────────────────────
   openTurn: async (userData, montoBase) => {
     const res = await apiClient.post(`${ENDPOINT}/abrir`, {
       usuarioId: userData.userId || userData.id,
@@ -18,7 +16,6 @@ export const turnService = {
     return _turnoActivo;
   },
 
-  // ── Cerrar turno ─────────────────────────────────────────────
   closeTurn: async (closureData = {}) => {
     const turno = await turnService.getActiveTurn();
     if (!turno) throw new Error("No hay turno activo para cerrar");
@@ -34,7 +31,6 @@ export const turnService = {
     return res.data;
   },
 
-  // ── Obtener turno activo del usuario ─────────────────────────
   getActiveTurn: async (usuarioId) => {
     try {
       const user = JSON.parse(sessionStorage.getItem("syspharma_user") || "{}");
@@ -50,35 +46,28 @@ export const turnService = {
     }
   },
 
-  // ── Cache en memoria (sin llamada al servidor) ───────────────
   getCachedTurn: () => _turnoActivo,
 
-  // ── Verificar si hay turno activo ────────────────────────────
   hasActiveTurn: async (usuarioId) => {
     const turno = await turnService.getActiveTurn(usuarioId);
     return turno !== null;
   },
 
-  // ── Obtener todos los turnos (admin) ─────────────────────────
   getAllTurnsForAdmin: async () => {
     const res = await apiClient.get(ENDPOINT);
     return res.data;
   },
 
-  // ── Validar si se puede operar ───────────────────────────────
   validateOperationAllowed: async (user) => {
-    // Clientes y Administradores no necesitan turno
     const rol = String(user?.rol || "").toLowerCase().trim();
     if (rol === "cliente" || rol === "administrador") {
       return { valid: true, message: "" };
     }
-    // Los empleados sí necesitan turno activo
     const turno = await turnService.getActiveTurn(user?.id);
     if (!turno) return { valid: false, message: "No hay turno activo. Debes abrir caja primero." };
     return { valid: true, message: "" };
   },
 
-  // ── Calcular saldo esperado ───────────────────────────────────
   calculateExpectedBalance: async () => {
     const turno = await turnService.getActiveTurn();
     if (!turno) return { saldoEsperado: 0, montoBase: 0, totalVentas: 0, totalGastos: 0 };
@@ -90,7 +79,6 @@ export const turnService = {
     };
   },
 
-  // ── Compatibilidad con código anterior ───────────────────────
   recordSale: () => {},
   recordExpense: () => {},
   recordMedicalService: () => {},

@@ -28,7 +28,6 @@ export const AppointmentsPage = () => {
   const currentUserRole = (currentUser.rol || "Empleado").toLowerCase();
   const isEmployeePanel = currentUserRole === "empleado";
   
-  // Theme colors based on role
   const theme = isEmployeePanel
     ? { main: "bg-blue-600", hover: "hover:bg-blue-700", ring: "ring-blue-500", border: "border-blue-200", badge: "bg-blue-600" }
     : { main: "bg-emerald-600", hover: "hover:bg-emerald-700", ring: "ring-emerald-500", border: "border-emerald-200", badge: "bg-emerald-600" };
@@ -49,8 +48,6 @@ export const AppointmentsPage = () => {
   const isLoadingRef = useRef(false);
 
   const [searchTerm, setSearchTerm] = useState("");
-  // Por defecto la lista solo muestra las citas de hoy, igual que en Ventas; el rango
-  // se puede ampliar manualmente con los selectores de fecha.
   const [range, setRange] = useState({ start: todayStr(), end: todayStr() });
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -62,7 +59,6 @@ export const AppointmentsPage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
-  // Estado para controlar qué popover flotante de estado está activo
   const [activeStatusPopover, setActiveStatusPopover] = useState(null);
 
   const loadData = useCallback(async () => {
@@ -95,7 +91,6 @@ export const AppointmentsPage = () => {
     };
   }, [loadData]);
 
-  // Escuchar cambios en médicos y en citas para refrescar la vista en tiempo real
   useEffect(() => {
     const refresh = () => loadData();
     window.addEventListener("doctors:changed", refresh);
@@ -128,9 +123,6 @@ export const AppointmentsPage = () => {
     });
   }, [appointments, range, searchTerm]);
 
-  // "Completada" solo significa que se atendió, no que se cobró: contarla como ingreso
-  // inflaba la cifra con consultas nunca pagadas. Los ingresos reales solo cuentan
-  // cuando la cita quedó "Pagada" (vía una venta real).
   const financialSummary = useMemo(() => {
     const ingresos = filteredAppointments
       .filter(a => (a.estadoNombre || "").toLowerCase() === "pagada")
@@ -138,10 +130,6 @@ export const AppointmentsPage = () => {
     return { ingresos, totalCitas: filteredAppointments.length };
   }, [filteredAppointments]);
 
-  // Ingresos por citas de HOY, independiente del filtro de rango de arriba (igual que
-  // "Ingresos"/"Ventas Hoy" en la pantalla de Ventas): la plata que se cobró hoy por
-  // citas, para que quede claro que es distinta de la venta de productos en caja.
-  // Fecha LOCAL (no toISOString, que es UTC): con UTC-5 podía marcar "hoy" como ayer.
   const ingresosCitasHoy = useMemo(() => {
     const now = new Date();
     const hoy = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
@@ -188,7 +176,6 @@ export const AppointmentsPage = () => {
     }
   };
 
-  // Función de ayuda para formatear las clases de color del estado estático (Píldora)
   const getStatusPillStyle = (estadoNombre) => {
     const est = (estadoNombre || "").toLowerCase();
     if (est.includes("completada")) {
@@ -204,7 +191,6 @@ export const AppointmentsPage = () => {
   };
 
   const renderList = () => (
-    // --- MODIFICADO: Cambiado overflow-hidden a overflow-visible para que el modal flotante no se recorte ---
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-visible">
       <div className="p-3 border-b border-gray-50 bg-gray-50/30">
         <input type="text" placeholder="Buscar paciente o servicio..."
@@ -214,7 +200,6 @@ export const AppointmentsPage = () => {
       <table className="w-full text-left">
         <thead className="bg-gray-50 text-gray-400">
           <tr>
-            {/* --- MODIFICADO: Se agregaron clases rounded-tl-xl y rounded-tr-xl para conservar las esquinas redondeadas de la tabla sin recortar --- */}
             <th className="p-2.5 text-[10px] font-bold uppercase rounded-tl-xl">Paciente</th>
             <th className="p-2.5 text-[10px] font-bold uppercase">Fecha / Hora</th>
             <th className="p-2.5 text-[10px] font-bold uppercase">Servicio</th>
@@ -256,7 +241,6 @@ export const AppointmentsPage = () => {
                       <Eye size={15} />
                     </button>
 
-                    {/* Botón interactivo y popover de cambio de estado */}
                     <div className="relative">
                       <button
                         onClick={() => setActiveStatusPopover(activeStatusPopover === apt.id ? null : apt.id)}
@@ -269,8 +253,6 @@ export const AppointmentsPage = () => {
                       {activeStatusPopover === apt.id && (
                         <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-100 rounded-xl shadow-xl z-20 py-2 animate-in fade-in slide-in-from-top-2 duration-150">
                           <p className="text-[9px] font-bold uppercase text-gray-400 px-3 pb-1.5 border-b border-gray-50 tracking-wide">Cambiar Estado</p>
-                          {/* "Pagada" no es seleccionable a mano: solo se marca automáticamente
-                              al cobrar la cita a través de una venta real. */}
                           {estados.filter(est => est.nombre.toLowerCase() !== "pagada").map(est => (
                             <button
                               key={est.id}
@@ -372,7 +354,6 @@ export const AppointmentsPage = () => {
   return (
     <div className="flex flex-col gap-4 font-sans p-4 min-h-screen bg-[#f8fafc]">
 
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Gestión de Citas</h1>
@@ -384,7 +365,6 @@ export const AppointmentsPage = () => {
         </button>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-200 overflow-x-auto">
         {[
           { id: "calendario", icon: CalendarIcon, label: "Calendario" },
@@ -402,7 +382,6 @@ export const AppointmentsPage = () => {
         })}
       </div>
 
-      {/* Filtro por Rango */}
       {(activeTab === "calendario" || activeTab === "citas") && (
         <div className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -427,9 +406,6 @@ export const AppointmentsPage = () => {
         </div>
       )}
 
-      {/* Ingresos por citas — aparte de "Ventas Totales" del Dashboard/Reporte de Ventas.
-          Solo cuenta citas en estado "Pagada" (cobradas de verdad), nunca mezclado con lo
-          que se vendió en productos dentro de esa misma transacción de caja. */}
       {(activeTab === "calendario" || activeTab === "citas") && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className={`bg-white p-3 rounded-xl border ${theme.border} shadow-sm flex items-center gap-2.5`}>
@@ -466,7 +442,6 @@ export const AppointmentsPage = () => {
         </div>
       )}
 
-      {/* Vistas */}
       <div className="flex-1">
         {activeTab === "calendario" && renderCalendar()}
         {activeTab === "citas" && renderList()}
@@ -474,7 +449,6 @@ export const AppointmentsPage = () => {
         {activeTab === "medicos" && <DoctorsPage />}
       </div>
 
-      {/* Modales */}
       {isAppointmentModalOpen && (
         <AppointmentFormModal isOpen={isAppointmentModalOpen} onClose={() => setIsAppointmentModalOpen(false)} onSave={() => loadData()} appointment={editingAppointment} doctors={doctors} />
       )}
@@ -482,7 +456,6 @@ export const AppointmentsPage = () => {
         <AppointmentDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} appointment={selectedAppointment} accentColor={isEmployeePanel ? "blue" : "emerald"} />
       )}
 
-      {/* Modal Eliminar Cita */}
       <ConfirmDialog
         open={!!showDeleteConfirm}
         title="Eliminar Registro"
@@ -494,14 +467,12 @@ export const AppointmentsPage = () => {
         onConfirm={confirmDelete}
       />
 
-      {/* Modal Resumen del Día */}
 {isDaySummaryModalOpen && selectedDate && (
   <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
     onClick={() => setIsDaySummaryModalOpen(false)}>
     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
       onClick={(e) => e.stopPropagation()}>
       
-      {/* Header */}
       <div className={`${theme.main} px-5 py-4 flex items-center justify-between`}>
         <div>
           <h3 className="text-white font-black text-sm uppercase tracking-wide">
@@ -517,7 +488,6 @@ export const AppointmentsPage = () => {
         </button>
       </div>
 
-      {/* Lista de citas */}
       <div className="max-h-[60vh] overflow-y-auto divide-y divide-gray-50">
         {getAppointmentsForDate(selectedDate).length === 0 ? (
           <p className="text-center text-gray-400 text-sm py-8">No hay citas para este día</p>
@@ -528,7 +498,6 @@ export const AppointmentsPage = () => {
               <div key={apt.id} className="px-5 py-3 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    {/* Hora */}
                     <div className={`${isEmployeePanel ? "bg-blue-50 text-blue-700" : "bg-emerald-50 text-emerald-700"} font-black text-xs px-2 py-1 rounded-lg min-w-[48px] text-center`}>
                       {apt.hora ? formatHora(apt.hora) : "--"}
                     </div>
@@ -537,7 +506,6 @@ export const AppointmentsPage = () => {
                       <p className="text-[11px] text-gray-400 font-medium">{apt.medicoNombre} · {apt.servicioNombre}</p>
                     </div>
                   </div>
-                  {/* Estado */}
                   <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full border shrink-0 ${getStatusPillStyle(apt.estadoNombre)}`}>
                     {apt.estadoNombre}
                   </span>
@@ -547,7 +515,6 @@ export const AppointmentsPage = () => {
         )}
       </div>
 
-      {/* Footer */}
       <div className="bg-gray-50 px-5 py-3 border-t flex justify-between items-center">
         <button
           onClick={() => {

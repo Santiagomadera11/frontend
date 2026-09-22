@@ -151,7 +151,6 @@ export const EmployeeDoctorsPage = () => {
 
   return (
     <div className="h-full flex flex-col gap-6 font-sans overflow-hidden no-scrollbar">
-      {/* Header */}
       <div className="flex items-start justify-between flex-shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-employee-700">Gestión de Médicos</h1>
@@ -159,7 +158,6 @@ export const EmployeeDoctorsPage = () => {
         </div>
       </div>
 
-      {/* Búsqueda y filtros */}
       <div className="flex gap-4 flex-shrink-0 flex-wrap">
         <div className="flex-1 min-w-[250px] relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -181,7 +179,6 @@ export const EmployeeDoctorsPage = () => {
         )}
       </div>
 
-      {/* Tabla */}
       <div className="flex-1 overflow-auto no-scrollbar bg-white rounded-xl shadow-sm border border-gray-100">
         {loading ? (
           <div className="flex items-center justify-center h-48 text-gray-500">Cargando médicos...</div>
@@ -247,7 +244,6 @@ export const EmployeeDoctorsPage = () => {
         )}
       </div>
 
-      {/* Paginación */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between flex-shrink-0">
           <span className="text-sm text-gray-600">
@@ -268,14 +264,11 @@ export const EmployeeDoctorsPage = () => {
         </div>
       )}
 
-      {/* Modal Formulario */}
       <DoctorFormModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setEditingDoctor(null); }}
         onSave={handleSaveDoctor} doctor={editingDoctor} accentColor="blue" />
 
-      {/* Notificación */}
       {notification && <StatusNotification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
 
-      {/* Modal Detalle */}
       {isDetailModalOpen && selectedDoctor && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl flex flex-col">
@@ -308,7 +301,6 @@ export const EmployeeDoctorsPage = () => {
         </div>
       )}
 
-      {/* Modal Eliminar */}
       <ConfirmDialog
         open={!!showDeleteConfirm}
         title="Eliminar Médico"
@@ -319,7 +311,6 @@ export const EmployeeDoctorsPage = () => {
         onConfirm={confirmDelete}
       />
 
-      {/* Modal Toggle Estado */}
       <ConfirmDialog
         open={isToggleConfirmOpen && !!doctorToToggle}
         title={doctorToToggle?.estado ? "Desactivar Médico" : "Activar Médico"}

@@ -19,7 +19,6 @@ const Sidebar = ({ onClose, onShowLogoutModal }) => {
   const isActive = (path) => location.pathname === path;
   const isGroupActive = (path) => location.pathname.startsWith(path);
 
-  // Escuchar cambios de permisos
   React.useEffect(() => {
     const handlePermissionsUpdate = () => setRefresh(r => r + 1);
     window.addEventListener("permissionsUpdated", handlePermissionsUpdate);

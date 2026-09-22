@@ -29,7 +29,6 @@ const normalizeText = (str) => {
     .trim();
 };
 
-// yyyy-mm-dd en hora LOCAL (no UTC), para que coincida con lo que devuelve un <input type="date">
 const toLocalDateStr = (value) => {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
@@ -54,7 +53,6 @@ export const SalesPage = () => {
   const [sales, setSales] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
-  // Por defecto la tabla solo muestra las ventas de hoy; "" = ver todas las fechas.
   const [filterFecha, setFilterFecha] = useState(todayStr());
   const [currentPage, setCurrentPage] = useState(0);
   const [isSaleDetailOpen, setIsSaleDetailOpen] = useState(false);
@@ -78,10 +76,6 @@ export const SalesPage = () => {
 
   const fmt = (v) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v || 0);
 
-  // "Origen" ya no distingue de dónde vino el cobro (siempre decía "Caja"): ahora indica
-  // si la venta trae productos (Venta) o es puramente el cobro de una cita sin productos
-  // (Cita). Mixta (medicamento + cita en la misma venta) se trata como Venta, porque acá
-  // solo importa mostrar la parte de productos — la de la cita va al panel de Citas.
   const getOriginBadge = (sale) => {
     const orig = (sale.origen || "").toUpperCase();
     if (orig === "WEB") {
@@ -135,8 +129,6 @@ export const SalesPage = () => {
       setToast(location.state.notification);
       navigate(location.pathname, { replace: true, state: {} });
     }
-    // Solo se lee al montar: es el aviso de "venta registrada" que llega desde
-    // CreateOrderPage tras redirigir; no debe repetirse si el usuario vuelve.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -193,24 +185,17 @@ export const SalesPage = () => {
 
   const totalGastosHoy = todayExpenses.reduce((sum, g) => sum + (g.monto || g.Monto || 0), 0);
 
-  // Ventas válidas (sin Devolución/Anulada) del día de hoy. "Ingresos" sumaba TODAS las
-  // ventas de la historia del sistema y le restaba solo los gastos de HOY: una mezcla que
-  // inflaba el ingreso mostrado. Ahora usa el mismo filtro de fecha que ya tenía "Ventas Hoy".
   const ventasHoyValidas = useMemo(() => sales.filter(v =>
     new Date(v.fechaVenta).toDateString() === new Date().toDateString() &&
     !["devolucion", "anulada"].includes(normalizeText(v.estadoNombre))
   ), [sales]);
 
-  // Plata de servicios/citas cobrados dentro de una venta (ej: medicamento + consulta en
-  // el mismo cobro): esa parte no es "venta del día" de mostrador, es ingreso de citas —
-  // se muestra aparte en el panel de Citas ("Ingresos por Citas Hoy"), no acá.
   const ingresosHoyProductos = useMemo(() =>
     ventasHoyValidas.reduce((s, v) => s + productosMontoDe(v), 0)
   , [ventasHoyValidas]);
 
   return (
     <div className="h-full flex flex-col gap-4 font-sans p-3 bg-[#f8fafc] overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between flex-shrink-0">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Ventas</h1>
@@ -254,14 +239,12 @@ export const SalesPage = () => {
         </div>
       </div>
 
-      {/* KPIs */}
       <div className="grid grid-cols-3 gap-3 flex-shrink-0">
         <KPICard icon={DollarSign} label="Ingresos" value={fmt(ingresosHoyProductos - totalGastosHoy)} bg="bg-primary-50" text="text-primary-600" accent="before:bg-primary-500" />
         <KPICard icon={Receipt} label="Ventas Hoy" value={ventasHoyValidas.length} bg="bg-blue-50" text="text-blue-600" accent="before:bg-blue-500" />
         <KPICard icon={TrendingDown} label="Gastos Hoy" value={fmt(totalGastosHoy)} bg="bg-red-50" text="text-red-600" accent="before:bg-red-500" />
       </div>
 
-      {/* Buscador y Filtro */}
       <div className="flex gap-2 flex-shrink-0">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
@@ -292,9 +275,7 @@ export const SalesPage = () => {
         </div>
       </div>
 
-      {/* Tabla Adaptativa */}
       <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between">
-        {/* Contenedor del scroll de la tabla */}
         <div className="overflow-auto flex-1">
           <table className="w-full text-left">
             <thead className="bg-primary-600 text-white sticky top-0 z-10">
@@ -340,7 +321,6 @@ export const SalesPage = () => {
                         {config.label}
                       </span>
                     </td>
-                    {/* Acciones */}
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => { setSelectedSale(sale); setIsSaleDetailOpen(true); }}
@@ -367,7 +347,6 @@ export const SalesPage = () => {
           </table>
         </div>
 
-        {/* Paginación fijada en la parte inferior */}
         <div className="bg-gray-50/50 px-3 py-2 flex items-center justify-between border-t border-gray-100 flex-shrink-0">
           <span className="text-[11px] font-medium text-gray-400">Página {currentPage + 1} de {totalPages || 1}</span>
           <div className="flex gap-1">
@@ -379,7 +358,6 @@ export const SalesPage = () => {
         </div>
       </div>
 
-      {/* Modales */}
       <SaleDetailModal isOpen={isSaleDetailOpen} onClose={() => { setIsSaleDetailOpen(false); setSelectedSale(null); }} sale={selectedSale} />
       <ExpenseFormModal
         isOpen={isExpenseModalOpen}
@@ -387,7 +365,6 @@ export const SalesPage = () => {
         onSave={handleSaveExpense}
       />
       
-      {/* Modal de confirmación de anulación */}
       {confirmAnular && (
         <ConfirmDialog
           open={!!confirmAnular}

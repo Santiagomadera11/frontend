@@ -24,7 +24,6 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
   const isActive = (path) => location.pathname === path;
   const isGroupActive = (path) => location.pathname.startsWith(path);
 
-  // Escuchar cambios de permisos
   React.useEffect(() => {
     const handlePermissionsUpdate = () => setRefresh(r => r + 1);
     window.addEventListener("permissionsUpdated", handlePermissionsUpdate);
@@ -70,10 +69,8 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
 
         <nav className="flex-1 overflow-y-auto py-3 sm:py-4 space-y-0.5 px-1 sm:px-2 no-scrollbar">
 
-          {/* Inicio — siempre visible */}
           <MenuItem to="/employee/inicio" icon={LayoutDashboard} label="Inicio" active={isActive("/employee/inicio")} />
 
-          {/* ── Operaciones ── */}
           {has(
             "users.view", "users.create", "users.edit", "users.delete", "users.status",
             "purchase.view", "purchase.create", "purchase.edit", "purchase.delete", "purchase.status",
@@ -94,12 +91,10 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
             </div>
           )}
 
-          {/* Usuarios */}
           {has("users.view", "users.create", "users.edit", "users.delete", "users.status") && (
             <MenuItem to="/employee/usuarios" icon={Users} label="Usuarios" active={isActive("/employee/usuarios")} />
           )}
 
-          {/* Compras (Grupo) */}
           {has(
             "purchase.view", "purchase.create", "purchase.edit", "purchase.delete", "purchase.status",
             "products.view", "products.create", "products.edit", "products.delete", "products.status",
@@ -134,12 +129,10 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
             </MenuGroup>
           )}
 
-          {/* Ventas */}
           {has("sales.view", "sales.create", "sales.cancel", "sales.return", "sales.invoice", "sales.export") && (
             <MenuItem to="/employee/ventas" icon={DollarSign} label="Ventas" active={isActive("/employee/ventas")} />
           )}
 
-          {/* Servicios (Grupo) */}
           {has(
             "services.view", "services.create", "services.edit", "services.delete", "services.status",
             "appointments.create", "appointments.calendar", "appointments.list", "appointments.status",
@@ -162,7 +155,6 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
             </MenuGroup>
           )}
 
-          {/* Reportes (Grupo) */}
           {has("reports.shifts", "reports.performance") && (
             <MenuGroup
               title="Reportes"
@@ -180,10 +172,8 @@ const EmployeeSidebar = ({ isOpen, onClose, onShowLogoutModal }) => {
             </MenuGroup>
           )}
 
-          {/* Mi Perfil — siempre visible */}
           <MenuItem to="/employee/mi-perfil" icon={User} label="Mi Perfil" active={isActive("/employee/mi-perfil")} />
 
-          {/* Sistema / Configuración */}
           {has(
             "system.roles",
             "config.service_categories.create", "config.service_categories.edit", "config.service_categories.delete",

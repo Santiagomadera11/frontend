@@ -173,7 +173,6 @@ export const BrandsPage = () => {
   return (
     <div className="h-full flex flex-col p-6 font-sans text-gray-800 bg-white md:bg-transparent relative">
 
-      {/* HEADER */}
       <div className="flex items-center justify-between mb-3 flex-shrink-0">
         <div>
           <h1 className="text-lg font-bold text-gray-800">Marcas</h1>
@@ -189,7 +188,6 @@ export const BrandsPage = () => {
         )}
       </div>
 
-      {/* FILTROS */}
       <div className="flex gap-3 mb-3 flex-shrink-0">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -215,14 +213,12 @@ export const BrandsPage = () => {
         </div>
       </div>
 
-      {/* Loading */}
       {loading && (
         <div className="flex justify-center py-8">
           <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${theme.spinner}`} />
         </div>
       )}
 
-      {/* TABLA */}
       {!loading && (
         <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-auto">
@@ -290,7 +286,6 @@ export const BrandsPage = () => {
             </table>
           </div>
 
-          {/* PAGINACIÓN */}
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -304,7 +299,6 @@ export const BrandsPage = () => {
 
       <BrandFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} initialData={selectedBrand} mode={modalMode} onSave={handleSave} onDelete={(brd) => { setBrandToDelete(brd); setIsDeleteConfirmOpen(true); }} accentColor={isEmployeePanel ? "blue" : "emerald"} />
 
-      {/* Modal Eliminar */}
       <ConfirmDialog
         open={isDeleteConfirmOpen && !!brandToDelete}
         title="Eliminar Marca"
@@ -315,7 +309,6 @@ export const BrandsPage = () => {
         onConfirm={confirmDeleteBrand}
       />
 
-      {/* Modal Estado */}
       <ConfirmDialog
         open={isStatusConfirmOpen && !!brandToToggle}
         title={brandToToggle?.estado ? "Desactivar Marca" : "Activar Marca"}
@@ -327,7 +320,6 @@ export const BrandsPage = () => {
         onConfirm={confirmToggleStatus}
       />
 
-      {/* Notificación */}
       {notification && (
         <ToastNotification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />
       )}

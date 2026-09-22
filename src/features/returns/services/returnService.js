@@ -13,11 +13,6 @@ export const returnService = {
     return res.data;
   },
 
-  // Trae la VENTA (no la devolución) para poder elegir qué productos devolver de
-  // ella. Antes llamaba a "devolucion/venta/{id}", que busca una devolución YA
-  // EXISTENTE para esa venta: en el caso normal de "quiero devolver algo por
-  // primera vez" no hay ninguna todavía, así que ese endpoint respondía 404 ("No
-  // hay devolución para esta venta") y bloqueaba el flujo completo de Nueva Devolución.
   getVenta: async (ventaId) => {
     const res = await apiClient.get(`Venta/${ventaId}`);
     return res.data;

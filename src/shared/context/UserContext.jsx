@@ -16,7 +16,6 @@ export const UserProvider = ({ children }) => {
       });
       const userData = res.data;
 
-      // Obtener permisos del rol
       const rolesRes = await apiClient.get(`/api/RolMaestro`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -52,7 +51,6 @@ export const UserProvider = ({ children }) => {
           return;
         }
       } catch {
-        // Silencioso
       }
     }
     setLoading(false);

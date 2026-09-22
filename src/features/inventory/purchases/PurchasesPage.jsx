@@ -64,9 +64,6 @@ export const PurchasesPage = () => {
       setNotification(location.state.notification);
       navigate(location.pathname, { replace: true, state: {} });
     }
-    // Solo se lee al montar: es el aviso de "compra creada/editada" que llega
-    // desde CreatePurchasePage tras redirigir; no debe repetirse si el usuario
-    // navega de vuelta a esta misma página después.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
