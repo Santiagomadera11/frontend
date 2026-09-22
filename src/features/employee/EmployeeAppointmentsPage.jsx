@@ -21,6 +21,11 @@ import {
   Settings,
   DollarSign,
 } from "lucide-react";
+
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 import { appointmentService } from "../services/appointments/services/appointmentService";
 import { availabilityService } from "../services/appointments/services/availabilityService";
 import AppointmentFormModal from "../services/appointments/components/AppointmentFormModal";
@@ -44,6 +49,8 @@ export const EmployeeAppointmentsPage = () => {
   const [doctors, setDoctors] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState("");
+  // Por defecto la lista solo muestra las citas de hoy, igual que en Ventas; "" = ver todas.
+  const [filterFecha, setFilterFecha] = useState(todayStr());
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [selectedDate, setSelectedDate] = useState(null);
@@ -91,7 +98,7 @@ export const EmployeeAppointmentsPage = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, filterFecha]);
 
   useEffect(() => {
     if (activeTab === "calendario" && !canCalendar && canList) setActiveTab("citas");
@@ -348,12 +355,14 @@ export const EmployeeAppointmentsPage = () => {
   };
 
   const renderAppointmentsList = () => {
-    const filteredAppointments = appointments.filter(
-      (apt) =>
+    const filteredAppointments = appointments.filter((apt) => {
+      const matchSearch =
         (apt.paciente && apt.paciente.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (apt.telefono && apt.telefono.includes(searchTerm)) ||
-        (apt.email && apt.email.toLowerCase().includes(searchTerm.toLowerCase())),
-    );
+        (apt.email && apt.email.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchFecha = !filterFecha || (apt.fecha && apt.fecha.substring(0, 10) === filterFecha);
+      return matchSearch && matchFecha;
+    });
 
     // Ordenar de la más reciente a la más antigua (fecha + hora desc)
     const sorted = filteredAppointments.sort((a, b) => {
@@ -373,8 +382,8 @@ export const EmployeeAppointmentsPage = () => {
 
     return (
       <div className="space-y-4">
-        <div>
-          <div className="relative">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
             <Search
               size={18}
               className="absolute left-3 top-3 text-gray-400"
@@ -386,6 +395,19 @@ export const EmployeeAppointmentsPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-300"
             />
+          </div>
+          <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2 py-1">
+            <Calendar size={13} className="text-gray-400 flex-shrink-0" />
+            <input type="date" value={filterFecha}
+              onChange={(e) => setFilterFecha(e.target.value)}
+              className="text-xs font-medium text-gray-700 outline-none bg-transparent" />
+            {filterFecha && (
+              <button onClick={() => setFilterFecha("")}
+                title="Ver todas las fechas"
+                className="text-[10px] font-semibold text-employee-600 hover:text-employee-700 px-1.5 border-l border-gray-200">
+                Ver todas
+              </button>
+            )}
           </div>
         </div>
 

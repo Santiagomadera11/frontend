@@ -18,6 +18,11 @@ const getAuthHeaders = () => ({
   headers: { Authorization: `Bearer ${sessionStorage.getItem("syspharma_token")}` },
 });
 
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
 export const AppointmentsPage = () => {
   const { currentUser } = useCurrentUser();
   const currentUserRole = (currentUser.rol || "Empleado").toLowerCase();
@@ -44,10 +49,9 @@ export const AppointmentsPage = () => {
   const isLoadingRef = useRef(false);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [range, setRange] = useState({
-    start: `${new Date().getFullYear()}-01-01`,
-    end: `${new Date().getFullYear()}-12-31`
-  });
+  // Por defecto la lista solo muestra las citas de hoy, igual que en Ventas; el rango
+  // se puede ampliar manualmente con los selectores de fecha.
+  const [range, setRange] = useState({ start: todayStr(), end: todayStr() });
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -405,10 +409,20 @@ export const AppointmentsPage = () => {
             <div className={`${isEmployeePanel ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-600"} p-2 rounded-lg`}><Filter size={16} /></div>
             <span className="font-bold text-gray-800 text-[10px] uppercase">Rango de datos</span>
           </div>
-          <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-lg border">
-            <input type="date" value={range.start} onChange={(e) => setRange(p => ({ ...p, start: e.target.value }))} className="bg-transparent text-xs font-medium outline-none p-1" />
-            <div className="h-4 w-[1px] bg-gray-300"></div>
-            <input type="date" value={range.end} onChange={(e) => setRange(p => ({ ...p, end: e.target.value }))} className="bg-transparent text-xs font-medium outline-none p-1" />
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-lg border">
+              <input type="date" value={range.start} onChange={(e) => setRange(p => ({ ...p, start: e.target.value }))} className="bg-transparent text-xs font-medium outline-none p-1" />
+              <div className="h-4 w-[1px] bg-gray-300"></div>
+              <input type="date" value={range.end} onChange={(e) => setRange(p => ({ ...p, end: e.target.value }))} className="bg-transparent text-xs font-medium outline-none p-1" />
+            </div>
+            <button onClick={() => setRange({ start: todayStr(), end: todayStr() })}
+              className="text-[10px] font-semibold text-gray-500 hover:text-gray-700 px-2 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+              Hoy
+            </button>
+            <button onClick={() => setRange({ start: "2000-01-01", end: "2100-12-31" })}
+              className={`text-[10px] font-semibold ${isEmployeePanel ? "text-blue-600 hover:text-blue-700" : "text-emerald-600 hover:text-emerald-700"} px-2 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors`}>
+              Ver todas
+            </button>
           </div>
         </div>
       )}

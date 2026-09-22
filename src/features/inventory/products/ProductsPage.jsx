@@ -4,7 +4,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   Plus, Search, Edit, Trash2, Eye,
   Package,
-  X, CheckCircle, Database, MoreVertical, Tag, DollarSign, Layers
+  X, CheckCircle, Database, MoreVertical, Tag, DollarSign, Layers,
+  Boxes, AlertTriangle, PackageX
 } from "lucide-react";
 import ProductModal from "./components/ProductFormModal";
 import { ProductLotesModal } from "./components/ProductLotesModal";
@@ -26,6 +27,38 @@ const isExpiringSoon = (expiryDateStr) => {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return diffDays <= 30;
 };
+
+const STOCK_BAJO_LIMITE = 10;
+
+const getStockStyle = (stock) => {
+  if (stock <= 0) return "text-red-600";
+  if (stock <= STOCK_BAJO_LIMITE) return "text-amber-600";
+  return "text-gray-900";
+};
+
+// Avatar circular con inicial del producto: reemplaza el icono genérico repetido en
+// cada fila y ayuda a que la mirada distinga una fila de otra en listas largas.
+const ProductAvatar = ({ nombre, theme }) => (
+  <div className={`w-7 h-7 rounded-full ${theme.lightBg} ${theme.text} flex items-center justify-center text-[11px] font-bold flex-shrink-0`}>
+    {(nombre || "?").trim().charAt(0).toUpperCase()}
+  </div>
+);
+
+const KPICard = ({ icon: Icon, label, value, bg, text, accent, onClick, active }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`group relative overflow-hidden p-3 rounded-xl border bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 before:absolute before:inset-x-0 before:top-0 before:h-1 text-left w-full ${accent} ${
+      active ? "border-gray-300 shadow-md ring-1 ring-gray-200" : "border-gray-100"
+    }`}
+  >
+    <div className={`inline-flex p-1.5 rounded-lg mb-1.5 ${bg} ${text} group-hover:scale-110 transition-transform duration-200`}>
+      <Icon size={14} />
+    </div>
+    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">{label}</p>
+    <h3 className="text-lg font-bold text-gray-900 mt-0.5">{value}</h3>
+  </button>
+);
 
 // Agrupa las acciones secundarias (Lotes, Estado, Eliminar) en un menú compacto
 // para que la columna de Acciones no empuje el resto de la tabla fuera de vista.
@@ -79,6 +112,7 @@ export const ProductsPage = () => {
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState(location.state?.filterStatus || "todos");
+  const [filterCategory, setFilterCategory] = useState("todas");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -252,7 +286,7 @@ export const ProductsPage = () => {
     const matchSearch =
       p.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.categoria?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     let matchStatus = true;
     if (filterStatus === "Activo") {
       matchStatus = p.estado;
@@ -260,15 +294,24 @@ export const ProductsPage = () => {
       matchStatus = !p.estado;
     } else if (filterStatus === "proximos") {
       matchStatus = p.estado && isExpiringSoon(p.fechaVencimientoProxima);
+    } else if (filterStatus === "bajo") {
+      matchStatus = p.estado && p.stock <= STOCK_BAJO_LIMITE;
     }
-    
-    return matchSearch && matchStatus;
+
+    const matchCategory = filterCategory === "todas" || p.categoria === filterCategory;
+
+    return matchSearch && matchStatus && matchCategory;
   });
 
   const currentItems = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
-  useEffect(() => { setCurrentPage(1); }, [searchTerm, filterStatus, products.length]);
+  const totalProductos = products.length;
+  const totalActivos = products.filter((p) => p.estado).length;
+  const totalProximos = products.filter((p) => p.estado && isExpiringSoon(p.fechaVencimientoProxima)).length;
+  const totalStockBajo = products.filter((p) => p.estado && p.stock <= STOCK_BAJO_LIMITE).length;
+
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, filterStatus, filterCategory, products.length]);
   useEffect(() => {
     if (totalPages === 0) setCurrentPage(1);
     else if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -293,18 +336,40 @@ export const ProductsPage = () => {
         )}
       </div>
 
+      {/* KPIs: también funcionan como filtros rápidos de la tabla de abajo */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 flex-shrink-0">
+        <KPICard icon={Boxes} label="Total" value={totalProductos} bg={theme.lightBg} text={theme.text} accent={`before:${theme.main}`}
+          active={filterStatus === "todos"} onClick={() => setFilterStatus("todos")} />
+        <KPICard icon={CheckCircle} label="Activos" value={totalActivos} bg="bg-emerald-50" text="text-emerald-600" accent="before:bg-emerald-500"
+          active={filterStatus === "Activo"} onClick={() => setFilterStatus("Activo")} />
+        <KPICard icon={AlertTriangle} label="Por vencer" value={totalProximos} bg="bg-amber-50" text="text-amber-600" accent="before:bg-amber-500"
+          active={filterStatus === "proximos"} onClick={() => setFilterStatus("proximos")} />
+        <KPICard icon={PackageX} label="Stock bajo" value={totalStockBajo} bg="bg-red-50" text="text-red-600" accent="before:bg-red-500"
+          active={filterStatus === "bajo"} onClick={() => setFilterStatus("bajo")} />
+      </div>
+
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4 flex-shrink-0">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
             type="text"
-            placeholder="Buscar..."
+            placeholder="Buscar por nombre o categoría..."
             className={`w-full pl-9 pr-3 py-2 rounded-md border border-gray-300 text-sm focus:outline-none ${theme.focus} focus:ring-1 transition-colors`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <select
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          className={`px-3 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 ${theme.focus} w-full sm:w-auto sm:max-w-[180px]`}
+        >
+          <option value="todas">Todas las categorías</option>
+          {categories.map((c) => (
+            <option key={c.id || c.nombre} value={c.nombre}>{c.nombre}</option>
+          ))}
+        </select>
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
@@ -314,6 +379,7 @@ export const ProductsPage = () => {
           <option value="Activo">Activos</option>
           <option value="Inactivo">Inactivos</option>
           <option value="proximos">Próximos a vencer</option>
+          <option value="bajo">Stock bajo</option>
         </select>
       </div>
 
@@ -327,43 +393,57 @@ export const ProductsPage = () => {
       {/* TABLA DESKTOP */}
       {!loading && (
         <div className="hidden sm:flex flex-1 bg-white rounded-lg shadow-sm border border-gray-200 flex-col overflow-hidden min-h-0">
+          <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+            <span className="text-xs font-semibold text-gray-500">
+              {filtered.length} producto{filtered.length !== 1 ? "s" : ""} {filterCategory !== "todas" ? `en "${filterCategory}"` : "en total"}
+            </span>
+          </div>
           <div className="flex-1 overflow-auto no-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead className={`${theme.main} text-white sticky top-0 z-10`}>
                 <tr>
-                  <th className="py-1.5 px-3 sm:px-4 text-[10px] font-semibold tracking-wider uppercase w-14">ID</th>
-                  <th className="py-1.5 px-3 sm:px-4 text-[10px] font-semibold tracking-wider uppercase">Nombre</th>
-                  <th className="py-1.5 px-3 sm:px-4 text-[10px] font-semibold tracking-wider uppercase hidden md:table-cell">Presentación</th>
-                  <th className="py-1.5 px-3 sm:px-4 text-[10px] font-semibold tracking-wider uppercase hidden lg:table-cell">Categoría</th>
-                  <th className="py-1.5 px-3 sm:px-4 text-[10px] text-center font-semibold tracking-wider uppercase w-20">Stock</th>
-                  <th className="py-1.5 px-3 sm:px-4 text-[10px] text-right font-semibold tracking-wider uppercase hidden lg:table-cell">Precio</th>
-                  <th className="py-1.5 px-3 sm:px-4 text-[10px] text-center font-semibold tracking-wider uppercase w-24">Estado</th>
-                  <th className="py-1.5 px-3 sm:px-4 text-[10px] text-center font-semibold tracking-wider uppercase w-24">Acciones</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] font-semibold tracking-wider uppercase w-12">#</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] font-semibold tracking-wider uppercase">Producto</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] font-semibold tracking-wider uppercase hidden md:table-cell w-32">Presentación</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] font-semibold tracking-wider uppercase hidden lg:table-cell w-40">Categoría</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] text-center font-semibold tracking-wider uppercase w-20">Stock</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] text-right font-semibold tracking-wider uppercase hidden lg:table-cell w-28">Precio</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] text-center font-semibold tracking-wider uppercase w-24">Estado</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] text-center font-semibold tracking-wider uppercase w-24">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {currentItems.length > 0 ? currentItems.map((prod, idx) => (
-                  <tr key={prod.id} className={`${theme.hoverRow} transition-colors`}>
-                    <td className="py-1.5 px-3 sm:px-4 text-xs font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
-                    <td className="py-1.5 px-3 sm:px-4 max-w-0 w-full">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Package size={13} className={`${theme.icon} flex-shrink-0`} />
-                        <span className="text-xs font-semibold text-gray-900 truncate" title={prod.nombre}>{prod.nombre}</span>
-                        {isExpiringSoon(prod.fechaVencimientoProxima) && (
-                          <span className="text-xs flex-shrink-0 select-none cursor-help" title={`Próximo a vencer (${prod.fechaVencimientoProxima})`}>⚠️</span>
-                        )}
+                  <tr key={prod.id} className={`${theme.hoverRow} ${idx % 2 === 1 ? "bg-gray-50/40" : ""} transition-colors`}>
+                    <td className="py-2 px-3 sm:px-4 text-xs font-medium text-gray-400">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
+                    <td className="py-2 px-3 sm:px-4 max-w-0 w-full">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <ProductAvatar nombre={prod.nombre} theme={theme} />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-semibold text-gray-900 truncate" title={prod.nombre}>{prod.nombre}</span>
+                            {isExpiringSoon(prod.fechaVencimientoProxima) && (
+                              <span className="text-xs flex-shrink-0 select-none cursor-help" title={`Próximo a vencer (${prod.fechaVencimientoProxima})`}>⚠️</span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-gray-400 md:hidden lg:hidden">{prod.presentacion || "-"} · {prod.categoria}</span>
+                        </div>
                       </div>
                     </td>
-                    <td className="py-1.5 px-3 sm:px-4 text-xs text-gray-600 font-semibold hidden md:table-cell max-w-[160px] truncate" title={prod.presentacion || "-"}>{prod.presentacion || "-"}</td>
-                    <td className="py-1.5 px-3 sm:px-4 text-xs text-gray-600 hidden lg:table-cell max-w-[140px] truncate" title={prod.categoria}>{prod.categoria}</td>
-                    <td className="py-1.5 px-3 sm:px-4 text-xs text-center font-semibold text-gray-900">{prod.stock}</td>
-                    <td className={`py-1.5 px-3 sm:px-4 text-xs text-right font-semibold ${theme.text} hidden lg:table-cell`}>$ {Number(prod.precio).toLocaleString()}</td>
-                    <td className="py-1.5 px-3 sm:px-4 text-center">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${prod.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                    <td className="py-2 px-3 sm:px-4 text-xs text-gray-600 font-medium hidden md:table-cell max-w-[160px] truncate" title={prod.presentacion || "-"}>{prod.presentacion || "-"}</td>
+                    <td className="py-2 px-3 sm:px-4 hidden lg:table-cell">
+                      <span className="inline-block max-w-full truncate px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200" title={prod.categoria}>
+                        {prod.categoria}
+                      </span>
+                    </td>
+                    <td className={`py-2 px-3 sm:px-4 text-xs text-center font-bold ${getStockStyle(prod.stock)}`}>{prod.stock}</td>
+                    <td className={`py-2 px-3 sm:px-4 text-xs text-right font-semibold ${theme.text} hidden lg:table-cell whitespace-nowrap`}>$ {Number(prod.precio).toLocaleString()}</td>
+                    <td className="py-2 px-3 sm:px-4 text-center">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${prod.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
                         {prod.estado ? "Activo" : "Inactivo"}
                       </span>
                     </td>
-                    <td className="py-1.5 px-3 sm:px-4">
+                    <td className="py-2 px-3 sm:px-4">
                       <div className="flex justify-center items-center gap-1">
                         <button onClick={() => setDetailProduct(prod)} className="p-1 rounded-md text-blue-600 hover:bg-blue-50 transition-colors" title="Ver detalle">
                           <Eye size={15} />
@@ -386,7 +466,8 @@ export const ProductsPage = () => {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan="8" className="py-8 px-4 text-center">
+                    <td colSpan="8" className="py-10 px-4 text-center">
+                      <Package className="mx-auto mb-2 text-gray-300" size={28} />
                       <p className="text-gray-400 text-sm">No hay productos que coincidan con los filtros aplicados</p>
                     </td>
                   </tr>
@@ -410,11 +491,11 @@ export const ProductsPage = () => {
       {/* TARJETAS MÓVIL */}
       {!loading && (
         <div className="sm:hidden flex-1 flex flex-col gap-3 overflow-y-auto no-scrollbar">
-          {currentItems.length > 0 ? currentItems.map((prod, idx) => (
+          {currentItems.length > 0 ? currentItems.map((prod) => (
             <div key={prod.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-3">
               <div className="flex items-start justify-between">
-                <div className="flex items-start gap-2 flex-1 min-w-0">
-                  <Package size={18} className={`${theme.icon} flex-shrink-0 mt-1`} />
+                <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                  <ProductAvatar nombre={prod.nombre} theme={theme} />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-gray-900 truncate">
                       {prod.nombre}
@@ -422,17 +503,18 @@ export const ProductsPage = () => {
                         <span className="text-xs ml-1 select-none" title={`Próximo a vencer (${prod.fechaVencimientoProxima})`}>⚠️</span>
                       )}
                     </p>
-                    <p className="text-xs text-gray-600">ID: {(currentPage - 1) * itemsPerPage + idx + 1}</p>
+                    <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                      {prod.categoria}
+                    </span>
                   </div>
                 </div>
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${prod.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${prod.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
                   {prod.estado ? "Activo" : "Inactivo"}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div><p className="text-gray-500 font-medium">Categoría</p><p className="text-gray-900 font-semibold">{prod.categoria}</p></div>
                 <div><p className="text-gray-500 font-medium">Presentación</p><p className="text-gray-900 font-semibold">{prod.presentacion || "-"}</p></div>
-                <div><p className="text-gray-500 font-medium">Stock</p><p className="text-gray-900 font-semibold">{prod.stock}</p></div>
+                <div><p className="text-gray-500 font-medium">Stock</p><p className={`font-bold ${getStockStyle(prod.stock)}`}>{prod.stock}</p></div>
                 <div className="col-span-2"><p className="text-gray-500 font-medium">Precio</p><p className={`${theme.text} font-bold`}>$ {Number(prod.precio).toLocaleString()}</p></div>
               </div>
               <div className="flex items-center gap-2">

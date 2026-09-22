@@ -13,7 +13,9 @@ export const ProductLotesModal = ({ isOpen, onClose, product }) => {
 
   const currentUser = JSON.parse(sessionStorage.getItem("syspharma_user") || "{}");
   const userRole = (currentUser.rol || "Administrador").toLowerCase().trim();
-  const isEmployee = userRole === "empleado";
+  // Igual que en ProductsPage.jsx: cualquier rol que no sea Administrador ve el panel
+  // en azul, no solo el rol fijo "Empleado" — si no, un rol dinámico se quedaba en verde.
+  const isEmployee = userRole !== "administrador";
 
   // Estilos y temas
   const headerBgColor = isEmployee ? "bg-blue-600" : "bg-emerald-600";

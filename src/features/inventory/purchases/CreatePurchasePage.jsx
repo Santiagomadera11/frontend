@@ -16,7 +16,11 @@ export const CreatePurchasePage = () => {
   const location = useLocation();
   const isEmployeePath = location.pathname.startsWith("/employee");
   const { currentUser } = useCurrentUser();
-  const isEmployeeRole = (currentUser.rol || "") === "Empleado";
+  const user = currentUser || {};
+  // useCurrentUser ya normaliza el rol a minúsculas ("empleado"/"administrador"), así que
+  // comparar contra "Empleado" (con mayúscula) nunca daba true: por eso esta pantalla
+  // salía siempre en verde sin importar quién la abriera.
+  const isEmployeeRole = (user.rol || "").toLowerCase().trim() !== "administrador";
 
   const primary = isEmployeeRole ? "#2563eb" : "#059669";
   const primaryLight = isEmployeeRole ? "#eff6ff" : "#ecfdf5";
@@ -206,7 +210,7 @@ export const CreatePurchasePage = () => {
             <p className="text-[9px] text-gray-400 font-bold uppercase">{new Date().toLocaleDateString()}</p>
           </div>
         </div>
-        <p className="text-[11px] font-black text-gray-900">{currentUser.nombre}</p>
+        <p className="text-[11px] font-black text-gray-900">{user.nombre}</p>
       </div>
 
       {formErrorMsg && (

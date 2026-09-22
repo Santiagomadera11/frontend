@@ -47,11 +47,7 @@ const CartProductsPage = React.lazy(() => import("../features/sales/orders/CartP
 /*                       SISTEMA DE EMPLEADO                                  */
 /* -------------------------------------------------------------------------- */
 const EmployeeInicio = React.lazy(() => import("../features/employee/EmployeeInicio"));
-const EmployeeCompras = React.lazy(() => import("../features/employee/EmployeeCompras"));
 const EmployeeSalesPage = React.lazy(() => import("../features/employee/EmployeeSalesPage"));
-const EmployeeProductos = React.lazy(() => import("../features/employee/EmployeeProductos"));
-const EmployeeCitas = React.lazy(() => import("../features/employee/EmployeeCitas"));
-const EmployeeServicesPage = React.lazy(() => import("../features/employee/EmployeeServicesPage").then(m => ({ default: m.EmployeeServicesPage })));
 const EmployeeAppointmentsPage = React.lazy(() => import("../features/employee/EmployeeAppointmentsPage").then(m => ({ default: m.EmployeeAppointmentsPage })));
 
 /* -------------------------------------------------------------------------- */

@@ -90,7 +90,7 @@ const CategoryFormModal = ({ isOpen, onClose, initialData = null, mode = 'create
               </div>
               <div className="min-w-0 flex-1">
                 <h4 className="text-base font-semibold text-gray-900 truncate">{formData.nombre}</h4>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold mt-1.5 ${formData.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold mt-1.5 ${formData.estado ? `${accent.iconBg} ${accent.text}` : "bg-gray-100 text-gray-500"}`}>
                   {formData.estado ? "Activo" : "Inactivo"}
                 </span>
               </div>

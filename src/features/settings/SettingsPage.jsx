@@ -169,6 +169,13 @@ export const SettingsPage = () => {
   const isAdmin = (user.rol || "").toLowerCase().trim() === "administrador";
   const userPerms = (user.permisos || []).map((p) => String(p || "").toLowerCase().trim());
   const canManageRoles = isAdmin || userPerms.includes("system.roles");
+  // Esta página también la usa el panel de Empleado (Configuración → Parámetros), así
+  // que sus acentos de marca (botones, pestaña activa, foco, seleccionados) siguen el
+  // mismo esquema azul/verde que el resto del sistema.
+  const isEmployeePanel = !isAdmin;
+  const theme = isEmployeePanel
+    ? { text: "text-blue-600", border: "border-blue-600", bg: "bg-blue-600", bgHover: "hover:bg-blue-700", shadow: "shadow-blue-100", focus: "focus:border-blue-500", light: "bg-blue-50", lightBorder: "border-blue-500", lightText: "text-blue-800" }
+    : { text: "text-emerald-600", border: "border-emerald-600", bg: "bg-emerald-600", bgHover: "hover:bg-emerald-700", shadow: "shadow-emerald-100", focus: "focus:border-emerald-500", light: "bg-emerald-50", lightBorder: "border-emerald-500", lightText: "text-emerald-800" };
 
   React.useEffect(() => { loadRoles(); }, []);
 
@@ -251,7 +258,11 @@ export const SettingsPage = () => {
 
   const guardarDiasAlerta = async () => {
     try {
-      await apiClient.put("/api/Configuracion/dias_alerta_vencimiento", diasAlerta);
+      // El backend espera el body como un string JSON ("30"), pero si le pasamos un
+      // string que ya parece un número, axios lo manda sin comillas (30) porque asume
+      // que ya viene serializado — el backend lo rechaza con 400. Se fuerza el
+      // JSON.stringify para que siempre viaje entre comillas.
+      await apiClient.put("/api/Configuracion/dias_alerta_vencimiento", JSON.stringify(String(diasAlerta)));
       setToast({ message: "Configuración guardada", type: "success" });
     } catch {
       setToast({ message: "Error al guardar configuración", type: "error" });
@@ -346,7 +357,7 @@ export const SettingsPage = () => {
               setModalStep("form");
               setShowModal(true);
             }}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all active:scale-95"
+            className={`${theme.bg} ${theme.bgHover} text-white px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg ${theme.shadow} transition-all active:scale-95`}
           >
             Crear Nuevo Rol
           </button>
@@ -360,7 +371,7 @@ export const SettingsPage = () => {
             onClick={() => setActiveSection("roles")}
             className={`pb-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${
               activeSection === "roles"
-                ? "border-emerald-600 text-emerald-600"
+                ? `${theme.border} ${theme.text}`
                 : "border-transparent text-slate-400"
             }`}
           >
@@ -371,7 +382,7 @@ export const SettingsPage = () => {
           onClick={() => setActiveSection("params")}
           className={`pb-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${
             activeSection === "params"
-              ? "border-emerald-600 text-emerald-600"
+              ? `${theme.border} ${theme.text}`
               : "border-transparent text-slate-400"
           }`}
         >
@@ -490,7 +501,7 @@ export const SettingsPage = () => {
                     onClick={() => setCurrentPage(page)}
                     className={`w-8 h-8 rounded-xl text-xs font-black transition-all ${
                       currentPage === page
-                        ? "bg-emerald-600 text-white shadow-md"
+                        ? `${theme.bg} text-white shadow-md`
                         : "text-slate-400 hover:bg-slate-200"
                     }`}
                   >
@@ -528,12 +539,12 @@ export const SettingsPage = () => {
                   type="number"
                   value={diasAlerta}
                   onChange={(e) => setDiasAlerta(e.target.value)}
-                  className="w-24 px-3 py-2 border-2 border-slate-100 rounded-xl text-sm font-bold focus:border-emerald-500 outline-none"
+                  className={`w-24 px-3 py-2 border-2 border-slate-100 rounded-xl text-sm font-bold ${theme.focus} outline-none`}
                 />
               </div>
               <button
                 onClick={guardarDiasAlerta}
-                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-md shadow-emerald-100 transition-all active:scale-95"
+                className={`px-6 py-2.5 ${theme.bg} ${theme.bgHover} text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-md ${theme.shadow} transition-all active:scale-95`}
               >
                 Guardar
               </button>
@@ -577,19 +588,19 @@ export const SettingsPage = () => {
                   <button
                     onClick={() => setModalStep("form")}
                     className={`text-[10px] font-black uppercase tracking-widest transition-colors ${
-                      modalStep === "form" ? "text-emerald-600" : "text-slate-400"
+                      modalStep === "form" ? theme.text : "text-slate-400"
                     }`}
                   >
-                    <span className={modalStep === "form" ? "border-b border-emerald-600" : ""}>1. Info</span>
+                    <span className={modalStep === "form" ? theme.border + " border-b" : ""}>1. Info</span>
                   </button>
                   <span className="text-slate-300 text-[10px]">→</span>
                   <button
                     onClick={() => setModalStep("perms")}
                     className={`text-[10px] font-black uppercase tracking-widest transition-colors ${
-                      modalStep === "perms" ? "text-emerald-600" : "text-slate-400"
+                      modalStep === "perms" ? theme.text : "text-slate-400"
                     }`}
                   >
-                    <span className={modalStep === "perms" ? "border-b border-emerald-600" : ""}>2. Permisos</span>
+                    <span className={modalStep === "perms" ? theme.border + " border-b" : ""}>2. Permisos</span>
                   </button>
                 </div>
               </div>
@@ -610,7 +621,7 @@ export const SettingsPage = () => {
                     <input
                       value={roleName}
                       onChange={(e) => setRoleName(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl border-2 border-slate-100 focus:border-emerald-500 outline-none font-bold text-sm text-slate-700"
+                      className={`w-full px-3 py-2.5 rounded-xl border-2 border-slate-100 ${theme.focus} outline-none font-bold text-sm text-slate-700`}
                       placeholder="Ej: Administrador de Ventas"
                     />
                   </div>
@@ -619,7 +630,7 @@ export const SettingsPage = () => {
                     <textarea
                       value={roleDesc}
                       onChange={(e) => setRoleDesc(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl border-2 border-slate-100 focus:border-emerald-500 outline-none font-medium text-sm text-slate-600 h-20 resize-none"
+                      className={`w-full px-3 py-2.5 rounded-xl border-2 border-slate-100 ${theme.focus} outline-none font-medium text-sm text-slate-600 h-20 resize-none`}
                       placeholder="Describe las responsabilidades..."
                     />
                   </div>
@@ -662,7 +673,7 @@ export const SettingsPage = () => {
                   </div>
                   <button
                     onClick={() => setModalStep("perms")}
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-md transition-all"
+                    className={`w-full py-3 ${theme.bg} ${theme.bgHover} text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-md transition-all`}
                   >
                     Configurar Permisos →
                   </button>
@@ -685,10 +696,10 @@ export const SettingsPage = () => {
                         >
                           <div
                             className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all
-                              ${allSelected ? "bg-emerald-500 border-emerald-500 text-white" : someSelected ? "bg-emerald-100 border-emerald-400" : "bg-white border-slate-300 group-hover:border-emerald-300"}`}
+                              ${allSelected ? `${theme.bg} ${theme.border} text-white` : someSelected ? `${theme.light} ${theme.border}` : "bg-white border-slate-300"}`}
                           >
                             {allSelected && <CheckCircle2 size={10} strokeWidth={3} />}
-                            {someSelected && <div className="w-1.5 h-0.5 bg-emerald-500 rounded-sm" />}
+                            {someSelected && <div className={`w-1.5 h-0.5 rounded-sm ${theme.bg}`} />}
                           </div>
                           {React.cloneElement(group.icon, { size: 16 })}
                           <h4 className="font-black text-slate-800 text-[10px] uppercase tracking-wider flex-1 leading-tight">
@@ -710,7 +721,7 @@ export const SettingsPage = () => {
                                   <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); toggleAllPerms(subPerms); }}
-                                    className="text-[8px] text-emerald-600 hover:text-emerald-700 font-bold uppercase"
+                                    className={`text-[8px] ${theme.text} font-bold uppercase`}
                                   >
                                     Todo
                                   </button>
@@ -723,19 +734,19 @@ export const SettingsPage = () => {
                                       onClick={() => togglePerm(p.id)}
                                       className={`flex items-center gap-1.5 px-2 py-1 rounded-md border transition-all cursor-pointer select-none ${
                                         selectedPerms[p.id]
-                                          ? "border-emerald-500 bg-emerald-50 text-emerald-800"
+                                          ? `${theme.lightBorder} ${theme.light} ${theme.lightText}`
                                           : "border-slate-200 bg-white hover:border-slate-300 text-slate-500"
                                       }`}
                                     >
                                       <div
                                         className={`w-3 h-3 rounded-sm border flex items-center justify-center flex-shrink-0 ${
-                                          selectedPerms[p.id] ? "bg-emerald-500 border-emerald-500 text-white" : "bg-white border-slate-300"
+                                          selectedPerms[p.id] ? `${theme.bg} ${theme.border} text-white` : "bg-white border-slate-300"
                                         }`}
                                       >
                                         {selectedPerms[p.id] && <CheckCircle2 size={8} strokeWidth={3} />}
                                       </div>
                                       <span className={`text-[9px] font-bold uppercase tracking-wide whitespace-nowrap ${
-                                        selectedPerms[p.id] ? "text-emerald-800" : "text-slate-500"
+                                        selectedPerms[p.id] ? theme.lightText : "text-slate-500"
                                       }`}>
                                         {p.label}
                                       </span>
@@ -765,7 +776,7 @@ export const SettingsPage = () => {
               )}
               <div className={`flex items-center gap-3 ${modalStep === "form" ? "ml-auto" : ""}`}>
                 <span className="text-[10px] font-black text-slate-400 uppercase">
-                  Seleccionados: <span className="text-emerald-600">{Object.values(selectedPerms).filter(Boolean).length}</span>
+                  Seleccionados: <span className={theme.text}>{Object.values(selectedPerms).filter(Boolean).length}</span>
                 </span>
                 <button
                   onClick={handleSave}
