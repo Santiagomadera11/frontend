@@ -11,12 +11,11 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
-  const [activeSubTab, setActiveSubTab] = useState("citas"); // "citas" or "catalogo"
+  const [activeSubTab, setActiveSubTab] = useState("citas");
   const [catalogServices, setCatalogServices] = useState([]);
   const [catalogSearchTerm, setCatalogSearchTerm] = useState("");
   const [catalogLoading, setCatalogLoading] = useState(false);
 
-  // Cargar catálogo de servicios al entrar en la pestaña correspondiente
   useEffect(() => {
     if (activeSubTab === "catalogo") {
       setCatalogLoading(true);
@@ -29,14 +28,12 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
     }
   }, [activeSubTab]);
 
-  // Buscar citas del paciente
   const handleSearchPatient = useCallback(async () => {
     if (!searchTerm.trim()) return;
 
     setLoading(true);
     setSearched(true);
     try {
-      // Obtener todas las citas
       const allAppointments = await appointmentService.getAppointments();
       const filtered = allAppointments.filter(
         (apt) =>
@@ -45,7 +42,6 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
           (apt.documento || "").toLowerCase().includes(searchTerm.toLowerCase())
       );
 
-      // Filtrar citas COMPLETADAS y que NO tengan venta asociada
       const completedAndUnpaid = filtered.filter(
         (apt) => {
           const estado = (apt.estado || apt.estadoNombre || "").toLowerCase();
@@ -63,7 +59,6 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
   }, [searchTerm]);
 
   const handleAddService = useCallback((appointment) => {
-    // Crear el servicio desde la cita existente
     onAddService({
       id: `service_${appointment.id}`,
       servicioId: appointment.servicioId,
@@ -85,7 +80,6 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
   }, [onAddService]);
 
   const handleAddCatalogService = useCallback((service) => {
-    // Agregar un servicio directo sin cita previa (walk-in)
     onAddService({
       id: `walkin_${service.id}_${Date.now()}`,
       servicioId: service.id,
@@ -107,7 +101,6 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
 
   return (
     <div className="h-full flex flex-col gap-3">
-      {/* Selector de subpestañas */}
       <div className="flex bg-gray-100 p-0.5 rounded-lg w-fit flex-shrink-0 text-[10px] font-black uppercase">
         <button
           onClick={() => setActiveSubTab("citas")}
@@ -129,7 +122,6 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
 
       {activeSubTab === "citas" ? (
         <>
-          {/* Búsqueda de Paciente */}
           <div className="space-y-1.5">
             <div className="relative flex gap-1.5">
               <div className="relative flex-1">
@@ -154,7 +146,6 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
             </div>
           </div>
 
-          {/* Estado de búsqueda */}
           {searched && filteredAppointments.length === 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 flex gap-1.5">
               <AlertCircle size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
@@ -164,7 +155,6 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
             </div>
           )}
 
-          {/* Lista de Citas del Paciente */}
           <div className="flex-1 overflow-y-auto space-y-1.5 bg-gray-50 rounded-lg p-2">
             {loading ? (
               <div className="flex items-center justify-center h-full text-gray-400 text-xs">Buscando citas...</div>
@@ -224,7 +214,6 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
         </>
       ) : (
         <>
-          {/* Búsqueda de Catálogo */}
           <div className="space-y-1.5">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
@@ -238,7 +227,6 @@ export const ServicesSearchView = ({ onAddService, primary }) => {
             </div>
           </div>
 
-          {/* Lista de Servicios del Catálogo */}
           <div className="flex-1 overflow-y-auto space-y-1.5 bg-gray-50 rounded-lg p-2">
             {catalogLoading ? (
               <div className="flex items-center justify-center h-full text-gray-400 text-xs">Cargando catálogo...</div>

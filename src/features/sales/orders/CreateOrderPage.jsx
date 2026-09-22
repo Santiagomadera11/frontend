@@ -21,7 +21,8 @@ export const CreateOrderPage = () => {
 
   const isEmployeePath = location.pathname.startsWith("/employee");
   const { currentUser } = useCurrentUser();
-  const isEmployeeRole = (currentUser.rol || "") === "Empleado";
+  const user = currentUser || {};
+  const isEmployeeRole = (user.rol || "").toLowerCase().trim() !== "administrador";
 
   const primary = isEmployeeRole ? "#2563eb" : "#059669";
   const primaryLight = isEmployeeRole ? "#eff6ff" : "#ecfdf5";
@@ -41,10 +42,8 @@ export const CreateOrderPage = () => {
     setReferenciaPago("");
   }, [clientInfo.metodoPagoId]);
 
-  // ============ NUEVO: Estado para IVA ============
   const [porcentajeIva, setPorcentajeIva] = useState(19);
 
-  // ============ NUEVO: Estado para lista de usuarios ============
   const [usuarios, setUsuarios] = useState([]);
 
   const [paymentMethods, setPaymentMethods] = useState([]);
@@ -87,7 +86,6 @@ export const CreateOrderPage = () => {
 
     loadActiveTurn();
 
-    // ============ NUEVO: Cargar usuarios al montar ============
     const cargarUsuarios = async () => {
       try {
         const response = await apiClient.get(`${API_URL}/Usuario`);
@@ -99,7 +97,6 @@ export const CreateOrderPage = () => {
     cargarUsuarios();
   }, [currentUser?.id]);
 
-  // ============ CORREGIDO: Buscar cliente por documento (búsqueda local) ============
   const handleSearchClient = () => {
     if (!clientInfo.documento || clientInfo.documento.length < 3) {
       setNotification({ message: "Ingrese al menos 3 caracteres del documento", type: "warning" });
@@ -124,7 +121,6 @@ export const CreateOrderPage = () => {
     }
   };
 
-  // ============ NUEVO: Función para calcular totales con IVA ============
   const calcularTotales = useCallback(() => {
     const subtotalProds = productCart.reduce((sum, p) => sum + p.cantidad * p.precio, 0);
     const subtotalServs = serviceCart.reduce((sum, s) => sum + s.precio, 0);
@@ -134,9 +130,6 @@ export const CreateOrderPage = () => {
     return { subtotal, iva, total };
   }, [productCart, serviceCart, porcentajeIva]);
 
-  // Dos líneas del mismo producto/lote pero con distinta forma de venta
-  // (ej. 2 Unidades sueltas + 1 Blister) son filas independientes: la clave
-  // de "misma línea" incluye formaVentaId.
   const isSameCartLine = (p, id, loteId, formaVentaId) =>
     p.id === id && p.loteId === loteId && (p.formaVentaId ?? null) === (formaVentaId ?? null);
 
@@ -216,7 +209,6 @@ export const CreateOrderPage = () => {
         throw new Error("No se puede procesar: No tienes una caja abierta.");
       }
 
-      // ============ NUEVO: Calcular totales con IVA ============
       const { subtotal, iva, total } = calcularTotales();
 
       const ventaPayload = {
@@ -258,11 +250,11 @@ export const CreateOrderPage = () => {
 
       window.dispatchEvent(new Event("syspharma_products_updated"));
       window.dispatchEvent(new Event("sales:changed"));
-      setNotification({ message: "Transacción exitosa", type: "success" });
 
-      setTimeout(() => {
-        navigate(isEmployeePath ? "/employee/ventas" : "/admin/ventas");
-      }, 1500);
+      navigate(isEmployeePath ? "/employee/ventas" : "/admin/ventas", {
+        state: { notification: { message: "Transacción exitosa", type: "success" } },
+      });
+      return;
 
     } catch (err) {
       console.error("❌ Error API completo:", JSON.stringify(err.response?.data, null, 2));
@@ -312,13 +304,12 @@ export const CreateOrderPage = () => {
         </div>
 
         <div className="text-right">
-          <p className="text-[11px] font-black text-gray-900">{currentUser.nombre}</p>
+          <p className="text-[11px] font-black text-gray-900">{user.nombre}</p>
           {turnoActivo && <span className="text-[9px] font-black bg-blue-600 text-white px-1.5 py-0.5 rounded">CAJA #{turnoActivo.id}</span>}
         </div>
       </div>
 
       <div className="flex-1 overflow-hidden flex p-3 gap-3">
-        {/* Columna 1: Búsqueda */}
         <div className="w-[300px] flex-shrink-0 h-full">
           {activeTab === "productos" ? (
             <ProductsSearchView onAddProduct={handleAddProduct} primary={primary} primaryLight={primaryLight} primaryBorder={primaryBorder} />
@@ -327,7 +318,6 @@ export const CreateOrderPage = () => {
           )}
         </div>
 
-        {/* Columna 2: Carrito unificado (productos + servicios) */}
         <div className="flex-1 min-w-0 h-full">
           <UnifiedCart
             products={productCart}
@@ -340,11 +330,9 @@ export const CreateOrderPage = () => {
           />
         </div>
 
-        {/* Columna 3: Cliente + Pago, siempre visible sin scroll */}
         <div className="w-[280px] flex-shrink-0 h-full flex flex-col gap-3 overflow-y-auto no-scrollbar">
           <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm flex-shrink-0">
             <div className="space-y-2">
-              {/* Documento */}
               <div className="flex flex-col gap-0.5">
                 <label className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">Documento</label>
                 <div className="flex gap-1.5">
@@ -363,7 +351,6 @@ export const CreateOrderPage = () => {
                 </div>
               </div>
 
-              {/* Nombre completo */}
               <div className="flex flex-col gap-0.5">
                 <label className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">Nombre completo *</label>
                 <input
@@ -374,7 +361,6 @@ export const CreateOrderPage = () => {
                 />
               </div>
 
-              {/* Teléfono y Método de pago */}
               <div className="grid grid-cols-2 gap-1.5">
                 <div className="flex flex-col gap-0.5">
                   <label className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">Teléfono</label>
@@ -397,7 +383,6 @@ export const CreateOrderPage = () => {
                 </div>
               </div>
 
-              {/* IVA % */}
               <div className="flex flex-col gap-0.5">
                 <label className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">IVA %</label>
                 <input
@@ -407,16 +392,15 @@ export const CreateOrderPage = () => {
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                   min="0"
                   max="100"
-                  disabled={currentUser.rol?.toLowerCase() !== "administrador"}
+                  disabled={(user.rol || "").toLowerCase() !== "administrador"}
                 />
               </div>
 
-              <button onClick={() => setClientInfo({ documento: "222222222", nombre: "Consumidor Final", telefono: "-", correo: "-", metodoPagoId: paymentMethods[0]?.id?.toString() || "" })} className="w-full py-1.5 text-[9px] font-black text-blue-600 border border-blue-100 bg-blue-50 rounded-lg uppercase mt-0.5">Cargar Genérico</button>
+              <button onClick={() => setClientInfo({ documento: "222222222", nombre: "Consumidor Final", telefono: "", correo: "", metodoPagoId: paymentMethods[0]?.id?.toString() || "" })} className="w-full py-1.5 text-[9px] font-black text-blue-600 border border-blue-100 bg-blue-50 rounded-lg uppercase mt-0.5">Cargar Genérico</button>
             </div>
           </div>
 
           <div className="flex-shrink-0">
-            {/* ============ NUEVO: Pasar totales calculados al carrito ============ */}
             <IntegratedCart
               products={productCart}
               services={serviceCart}

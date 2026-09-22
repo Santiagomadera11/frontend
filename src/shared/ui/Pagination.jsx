@@ -6,7 +6,6 @@ const ACCENTS = {
   blue: { active: "bg-blue-600 text-white shadow-sm" },
 };
 
-// Ventana de páginas visibles alrededor de la página actual (máx. 5 botones)
 const getPageWindow = (currentPage, totalPages) => {
   const maxButtons = 5;
   if (totalPages <= maxButtons) {
@@ -21,9 +20,6 @@ const getPageWindow = (currentPage, totalPages) => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 };
 
-// Paginador único y consistente para todas las tablas del sistema (admin,
-// empleado y cliente). Mantiene el mismo look & feel en todas partes;
-// solo cambia el color de acento entre panel admin (emerald) y empleado (blue).
 export const Pagination = ({
   currentPage,
   totalPages,

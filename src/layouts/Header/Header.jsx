@@ -9,7 +9,6 @@ export const Header = ({ onMenuClick }) => {
   return (
     <header className="h-14 bg-primary-600 border-b border-primary-700 flex items-center justify-between px-3 sm:px-5 shadow-md z-20 text-white flex-shrink-0">
 
-      {/* IZQUIERDA: Botón Menú (el logo ya lo muestra el sidebar) */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           onClick={onMenuClick}
@@ -20,7 +19,6 @@ export const Header = ({ onMenuClick }) => {
         </button>
       </div>
 
-      {/* DERECHA */}
       <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
         <div className="flex items-center gap-2 sm:gap-3 cursor-pointer group">
           <div className="text-right hidden sm:block">

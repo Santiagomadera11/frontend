@@ -18,7 +18,6 @@ export const ReturnsPage = () => {
   const ventasPath = userRole === "administrador" ? "/admin/ventas" : "/employee/ventas";
   const colorClass = userRole === "administrador" ? "emerald" : "blue";
   
-  // Validar permisos de acceso
   const hasAccess = userRole === "administrador" || userPerms.includes("sales.view") || userPerms.includes("sales.return");
 
   if (!hasAccess) {
@@ -29,7 +28,9 @@ export const ReturnsPage = () => {
           <p className="text-gray-600 mb-6">No tienes permisos para ver las devoluciones. Contacta al administrador para que te asigne los permisos necesarios.</p>
           <button
             onClick={() => navigate(ventasPath)}
-            className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+            className={`px-6 py-2 text-white rounded-lg transition-colors font-medium ${
+              userRole === "administrador" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
             Volver a Ventas
           </button>
@@ -40,7 +41,6 @@ export const ReturnsPage = () => {
 
   return (
     <div className="p-6 space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black text-gray-900 flex items-center gap-3">
@@ -65,7 +65,6 @@ export const ReturnsPage = () => {
         </button>
       </div>
 
-      {/* Pestañas */}
       <div className="flex gap-2 border-b border-gray-200">
         {[
           { key: "devoluciones", label: "Devoluciones" },
@@ -87,7 +86,6 @@ export const ReturnsPage = () => {
         ))}
       </div>
 
-      {/* Contenido */}
       {tab === "devoluciones" ? (
         <ReturnList devoluciones={devoluciones} loading={loading} onRefresh={fetchAll} />
       ) : (

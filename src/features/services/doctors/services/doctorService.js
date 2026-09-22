@@ -1,4 +1,5 @@
 import { apiClient } from "../../../../shared/utils/apiClient";
+import { resolveAvatarUrl } from "../../../../shared/utils/resolveAvatarUrl";
 
 const ENDPOINT = "Medico";
 
@@ -10,7 +11,7 @@ const parseDias = (diasStr) => {
 const mapDoctor = (m) => ({
   ...m,
   diasLaborales: parseDias(m.diasLaborales),
-  avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(m.nombre || m.id)}`,
+  avatar: resolveAvatarUrl(m.avatar, m.nombre || m.id),
 });
 
 export const doctorService = {

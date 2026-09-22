@@ -19,14 +19,19 @@ const ServiceFormModal = ({
   onSave,
   initialData,
   isViewMode,
+  accentColor = "emerald",
 }) => {
-  // 🟢 VERSIÓN ADMIN - SIEMPRE VERDE
-  const headerBgColor = "bg-emerald-600";
-  const buttonBgColor = "bg-emerald-600 hover:bg-emerald-700";
-  const focusBorderColor = "focus:border-emerald-500";
+  const isBlue = accentColor === "blue";
+  const headerBgColor = isBlue ? "bg-blue-50 border-blue-200" : "bg-emerald-50 border-emerald-200";
+  const iconTextColor = isBlue ? "text-blue-600" : "text-emerald-600";
+  const hoverTextColor = isBlue ? "hover:text-blue-600" : "hover:text-emerald-600";
+  const buttonBgColor = isBlue ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-700";
+  const focusBorderColor = isBlue ? "focus:border-blue-500" : "focus:border-emerald-500";
+  const iconBoxColor = isBlue ? "bg-blue-100 text-blue-600" : "bg-emerald-100 text-emerald-600";
+  const activeBadgeColor = isBlue ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700";
 
   const [formData, setFormData] = useState({
-    id: "", // <-- AGREGADO AL ESTADO INICIAL
+    id: "",
     nombre: "",
     categoriaId: "",
     estado: "Activo",
@@ -47,14 +52,12 @@ const ServiceFormModal = ({
     if (initialData) {
       setFormData({
         ...initialData,
-        // Normalizar estado a string "Activo"/"Inactivo" para el select
         estado: initialData.estado === true || initialData.estado === "Activo" ? "Activo" : "Inactivo",
-        // Asegurar que categoriaId sea string para que el select lo muestre bien
         categoriaId: String(initialData.categoriaId ?? ""),
       });
     } else {
       setFormData({
-        id: "", // <-- LIMPIAR ID AL CREAR NUEVO
+        id: "",
         nombre: "",
         categoriaId: String(defaultCat),
         estado: "Activo",
@@ -116,14 +119,10 @@ const ServiceFormModal = ({
 
     const dataToSave = {
       nombre: formData.nombre,
-      // parseInt garantiza que llegue como número entero, nunca como string
       categoriaId: parseInt(formData.categoriaId, 10),
       precio: parseFloat(formData.precio),
-      // null si viene vacío para respetar el int? del DTO
       duracion: formData.duracion ? parseInt(formData.duracion, 10) : null,
-      // null si viene vacío para respetar el string? del DTO
       descripcion: formData.descripcion || null,
-      // bool para respetar el bool del ServicioUpdateDto
       estado: formData.estado === "Activo",
     };
 
@@ -150,19 +149,54 @@ const ServiceFormModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden">
         <div className={`${headerBgColor} px-5 py-3 border-b flex justify-between items-center`}>
-          <h3 className="font-bold text-white text-sm flex items-center gap-2">
-            {isViewMode ? <Eye size={16} /> : <Stethoscope size={16} />}
+          <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+            {isViewMode ? <Eye size={16} className={iconTextColor} /> : <Stethoscope size={16} className={iconTextColor} />}
             {getTitle()}
           </h3>
-          <button onClick={onClose} className="text-white/70 hover:text-white transition-colors">
+          <button onClick={onClose} className={`text-gray-400 ${hoverTextColor} transition-colors`}>
             <X size={18} />
           </button>
         </div>
 
+        {isViewMode ? (
+          <div className="p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className={`p-2.5 rounded-lg flex-shrink-0 ${iconBoxColor}`}>
+                <Stethoscope size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="text-base font-semibold text-gray-900 truncate">{formData.nombre}</h4>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {categories.find((c) => String(c.id) === String(formData.categoriaId))?.value || "Sin categoría"}
+                </p>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold mt-1.5 ${formData.estado === "Activo" ? activeBadgeColor : "bg-gray-100 text-gray-500"}`}>
+                  {formData.estado}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg border border-gray-100">
+                <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${iconBoxColor}`}><DollarSign size={13} /></div>
+                <p className="text-[10px] text-gray-400">Precio</p>
+                <p className="text-xs font-semibold text-gray-900">$ {Number(formData.precio || 0).toLocaleString()}</p>
+              </div>
+              <div className="p-3 rounded-lg border border-gray-100">
+                <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${iconBoxColor}`}><Clock size={13} /></div>
+                <p className="text-[10px] text-gray-400">Duración</p>
+                <p className="text-xs font-semibold text-gray-900">{formData.duracion ? `${formData.duracion} min` : "Sin especificar"}</p>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-lg border border-gray-100">
+              <label className="text-[10px] font-semibold text-gray-400 uppercase block mb-1">Descripción</label>
+              <p className="text-xs text-gray-700 whitespace-pre-line">{formData.descripcion || "Sin descripción disponible."}</p>
+            </div>
+          </div>
+        ) : (
         <div className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            
-            {/* Campo ID - Se muestra solo si el servicio ya existe (Edición o Vista de Detalles) */}
+
             {formData.id && (
               <div className="col-span-1">
                 <label className="block text-xs font-bold text-gray-700 mb-1">ID</label>
@@ -175,7 +209,6 @@ const ServiceFormModal = ({
               </div>
             )}
 
-            {/* Campo Nombre - Ocupa la mitad si se muestra el ID, o el ancho completo si es nuevo */}
             <div className={formData.id ? "col-span-1" : "col-span-2"}>
               <label className="block text-xs font-bold text-gray-700 mb-1">Nombre</label>
               <input
@@ -280,11 +313,12 @@ const ServiceFormModal = ({
             </div>
           </div>
         </div>
+        )}
 
-        <div className="bg-gray-50 px-5 py-3 border-t border-gray-200 flex justify-end gap-2">
+        <div className={`${headerBgColor} px-5 py-3 border-t flex justify-end gap-2`}>
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-200 rounded-md transition-colors"
+            className="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
           >
             {isViewMode ? "Cerrar" : "Cancelar"}
           </button>

@@ -3,7 +3,6 @@ import { apiClient } from "../../../../shared/utils/apiClient";
 const APPOINTMENTS_ENDPOINT = "Cita";
 const DOCTORS_ENDPOINT = "Medico";
 
-// IDs reales de la tabla estados_cita
 const STATUS_MAP = {
   "Confirmar Asistencia": 1,
   "Confirmada": 2,
@@ -13,7 +12,6 @@ const STATUS_MAP = {
   "No asistió": 5,
 };
 
-// Mapear estructura del frontend a la API
 const mapToApiFormat = (appointmentData) => {
   const currentUser = JSON.parse(sessionStorage.getItem("syspharma_user") || "{}");
 
@@ -35,7 +33,6 @@ const mapToApiFormat = (appointmentData) => {
   };
 };
 
-// Mapear estructura de la API a lo que espera el frontend
 const mapFromApiFormat = (apiData) => ({
   id: apiData.id,
   doctorId: apiData.medicoId,
@@ -59,7 +56,6 @@ const mapFromApiFormat = (apiData) => ({
 });
 
 export const appointmentService = {
-  // --- MÉDICOS ---
   getDoctors: async () => {
     try {
       const res = await apiClient.get(DOCTORS_ENDPOINT);
@@ -81,7 +77,6 @@ export const appointmentService = {
     }
   },
 
-  // --- CITAS ---
   getAppointments: async (desde) => {
     try {
       const res = await apiClient.get(APPOINTMENTS_ENDPOINT, desde ? { params: { desde } } : undefined);
@@ -167,7 +162,6 @@ export const appointmentService = {
     }
   },
 
-  // --- UTILIDADES ---
   getAppointmentsByDate: async (date) => {
     try {
       const appointments = await appointmentService.getAppointments();
@@ -198,7 +192,6 @@ export const appointmentService = {
     }
   },
 
-  // --- CATÁLOGO DE SERVICIOS ---
   getCatalogServices: async () => {
     try {
       const res = await apiClient.get("Servicio");

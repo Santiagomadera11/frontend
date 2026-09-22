@@ -28,7 +28,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
     loadProducts();
   }, [loadProducts]);
 
-  // Foco automático para poder escanear apenas se abre la pantalla de venta
   useEffect(() => {
     searchInputRef.current?.focus();
   }, []);
@@ -59,9 +58,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
     return activeLotes.find(l => l.id === Number(selectedLoteId));
   }, [selectedLoteId, activeLotes]);
 
-  // Formas de venta habilitadas del producto (Unidad/Blister/Caja). Si el
-  // producto no tiene más que "Unidad" (caso normal hoy), este array queda
-  // con 0 o 1 elementos y no se muestra selector alguno.
   const activeFormasVenta = useMemo(() => {
     if (!selectedProduct || !Array.isArray(selectedProduct.formasVenta)) return [];
     return selectedProduct.formasVenta.filter(f => f.activo !== false);
@@ -79,9 +75,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
   const precioActual = formaSeleccionada ? formaSeleccionada.precio : (selectedProduct?.precio ?? 0);
   const factorActual = formaSeleccionada ? (formaSeleccionada.factorUnidades || 1) : 1;
 
-  // Cantidad máxima vendible en la forma elegida: el stock siempre se guarda
-  // en unidades sueltas, así que si la forma tiene factor > 1 (ej. Blister
-  // x10) hay que convertir el stock disponible a "cantidad de esa forma".
   const maxCantidad = useMemo(() => {
     if (!selectedProduct) return 1;
     const stockUnidades = selectedLote ? selectedLote.cantidad : (selectedProduct.stock || 0);
@@ -140,10 +133,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
     searchInputRef.current?.focus();
   };
 
-  // Lector de código de barras: escribe el código y envía Enter automáticamente.
-  // Si el código coincide exacto con un producto, se agrega directo (1 unidad,
-  // lote más próximo a vencer) sin pasar por el modal, para que el flujo de
-  // venta sea "escanear y listo".
   const handleSearchKeyDown = (e) => {
     if (e.key !== "Enter") return;
     const term = searchTerm.trim();
@@ -168,9 +157,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
       : [];
     const lote = productLotes[0] || null;
 
-    // El escaneo siempre agrega "Unidad" (comportamiento actual preservado),
-    // pero igual hay que propagar el formaVentaId de esa forma para que el
-    // backend pueda resolver el factor/precio congelado correctamente.
     const unidadForma = Array.isArray(match.formasVenta)
       ? match.formasVenta.find(f => f.tipo === "Unidad")
       : null;
@@ -192,7 +178,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
 
   return (
     <div className="h-full flex flex-col gap-3">
-      {/* Búsqueda */}
       <div className="relative">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
@@ -217,7 +202,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
           <p className="text-[11px] text-red-600 font-semibold mt-1">{scanError}</p>
         )}
 
-        {/* Dropdown de Resultados */}
         {showDropdown && filteredProducts.length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-lg shadow-lg z-40 max-h-80 overflow-y-auto">
             {filteredProducts.map((product) => {
@@ -230,14 +214,17 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
                   className="w-full px-3 py-2 hover:bg-emerald-50 border-b border-gray-100 last:border-0 flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-left"
                 >
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: primaryLight }}>
-                    {product.imagen ? (
-                      <img src={product.imagen} alt={product.nombre} className="w-full h-full object-contain p-1" />
-                    ) : (
-                      <Package size={16} style={{ color: primary, opacity: 0.4 }} />
-                    )}
+                    <Package size={16} style={{ color: primary, opacity: 0.4 }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 truncate text-xs">{product.nombre}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-semibold text-gray-900 truncate text-xs">{product.nombre}</p>
+                      {product.marca && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: primaryLight, color: primary }}>
+                          {product.marca}
+                        </span>
+                      )}
+                    </div>
                     {(() => {
                       const parts = [product.concentracion, product.presentacion].filter(Boolean);
                       return parts.length > 0 ? (
@@ -264,7 +251,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
         )}
       </div>
 
-      {/* Modal de Cantidad */}
       {showModal && selectedProduct && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
@@ -277,16 +263,19 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
 
             <div className="flex gap-4 mb-4">
               <div className="w-24 h-24 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: primaryLight }}>
-                {selectedProduct.imagen ? (
-                  <img src={selectedProduct.imagen} alt={selectedProduct.nombre} className="w-full h-full object-contain p-1" />
-                ) : (
-                  <Package size={32} style={{ color: primary, opacity: 0.4 }} />
-                )}
+                <Package size={32} style={{ color: primary, opacity: 0.4 }} />
               </div>
               <div className="flex-1">
-                <p className="font-bold text-gray-900">{selectedProduct.nombre}</p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <p className="font-bold text-gray-900">{selectedProduct.nombre}</p>
+                  {selectedProduct.marca && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: primaryLight, color: primary }}>
+                      {selectedProduct.marca}
+                    </span>
+                  )}
+                </div>
                 {(() => {
-                  const parts = [selectedProduct.marca, selectedProduct.concentracion, selectedProduct.presentacion].filter(Boolean);
+                  const parts = [selectedProduct.concentracion, selectedProduct.presentacion].filter(Boolean);
                   return parts.length > 0 ? (
                     <p className="text-xs text-gray-500 font-medium mt-0.5">{parts.join(" · ")}</p>
                   ) : null;
@@ -296,9 +285,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
               </div>
             </div>
 
-            {/* Selector de forma de venta: solo aparece si el producto tiene
-                más de una forma habilitada (ej. Unidad + Blister). Si solo
-                tiene "Unidad" (caso normal hoy), no se muestra nada. */}
             {activeFormasVenta.length > 1 && (
               <div className="mb-4">
                 <label className="text-sm font-semibold text-gray-600 block mb-2">Forma de venta</label>
@@ -332,7 +318,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
               </div>
             )}
 
-            {/* Lotes selector */}
             {activeLotes.length > 0 && (
               <div className="mb-4">
                 <label className="text-sm font-semibold text-gray-600 block mb-1">Seleccionar Lote (FEFO)</label>
@@ -412,7 +397,6 @@ export const ProductsSearchView = ({ onAddProduct, primary, primaryLight }) => {
         </div>
       )}
 
-      {/* Estado vacío / hint — el carrito real vive en la columna central */}
       {!showDropdown && (
         <div className="flex-1 flex flex-col items-center justify-center text-gray-300 rounded-lg border-2 border-dashed border-gray-100">
           <Search size={28} className="mb-1.5 opacity-40" />

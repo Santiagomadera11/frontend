@@ -12,8 +12,12 @@ import {
   XCircle,
 } from "lucide-react";
 
-const AppointmentDetailModal = ({ isOpen, onClose, appointment, doctors = [] }) => {
+const AppointmentDetailModal = ({ isOpen, onClose, appointment, doctors = [], accentColor = "emerald" }) => {
   if (!isOpen || !appointment) return null;
+
+  const accent = accentColor === "blue"
+    ? { header: "bg-blue-50 border-blue-200", text: "text-blue-600", iconBg: "bg-blue-100" }
+    : { header: "bg-emerald-50 border-emerald-200", text: "text-emerald-600", iconBg: "bg-emerald-100" };
 
   const doctorId = appointment.doctorId || appointment.medicoId;
   const doctor = doctors.find((d) => d.id === doctorId);
@@ -40,131 +44,89 @@ const AppointmentDetailModal = ({ isOpen, onClose, appointment, doctors = [] }) 
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-sm w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
-        {/* Header Verde */}
-        <div className="bg-emerald-50 border-b border-emerald-200 px-6 py-4 flex items-center justify-between sticky top-0">
-          <h2 className="text-lg font-bold text-gray-800">Detalle de Cita</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
+      <div className="bg-white rounded-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-hidden shadow-xl flex flex-col">
+        <div className={`${accent.header} border-b px-6 py-4 flex items-center justify-between flex-shrink-0`}>
+          <h2 className={`text-lg font-semibold ${accent.text}`}>Detalle de Cita</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X size={20} />
           </button>
         </div>
 
-        {/* Contenido */}
-        <div className="p-6 space-y-4">
-          {/* Estado de la cita */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-600">Estado:</span>
-            <span
-              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(currentEstado)}`}
-            >
-              {getStatusIcon(currentEstado)}
-              {currentEstado}
-            </span>
+        <div className="flex-1 overflow-y-auto no-scrollbar">
+          <div className="px-6 pt-5 pb-4 border-b border-gray-100">
+            <div className="flex items-start gap-3">
+              <div className={`p-2.5 rounded-lg ${accent.iconBg} ${accent.text} flex-shrink-0`}>
+                <User size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-semibold text-gray-900 truncate">{appointment.paciente || appointment.pacienteNombre}</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{appointment.documento || appointment.pacienteDocumento || "Sin documento"}</p>
+                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold mt-2 ${getStatusColor(currentEstado)}`}>
+                  {getStatusIcon(currentEstado)}
+                  {currentEstado}
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Información del Paciente */}
-          <div className="border-t pt-4">
-            <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <User size={18} />
-              Información del Paciente
-            </h3>
-            <div className="grid grid-cols-1 gap-3">
-              <div>
-                <span className="text-sm font-medium text-gray-600">
-                  Nombre:
-                </span>
-                <p className="text-gray-900">{appointment.paciente || appointment.pacienteNombre}</p>
+          <div className="px-6 py-4 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg border border-gray-100">
+                <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${accent.iconBg} ${accent.text}`}><Calendar size={13} /></div>
+                <p className="text-[10px] text-gray-400">Fecha</p>
+                <p className="text-xs font-semibold text-gray-900">
+                  {appointment.fecha ? new Date(appointment.fecha).toLocaleDateString("es-ES", { weekday: "short", year: "numeric", month: "short", day: "numeric" }) : "-"}
+                </p>
               </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600">
-                  Documento:
-                </span>
-                <p className="text-gray-900">{appointment.documento || appointment.pacienteDocumento}</p>
+              <div className="p-3 rounded-lg border border-gray-100">
+                <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${accent.iconBg} ${accent.text}`}><Clock size={13} /></div>
+                <p className="text-[10px] text-gray-400">Hora</p>
+                <p className="text-xs font-semibold text-gray-900">{appointment.hora}</p>
               </div>
               {(appointment.telefono || appointment.pacienteTelefono) && (
-                <div>
-                  <span className="text-sm font-medium text-gray-600">
-                    Teléfono:
-                  </span>
-                  <p className="text-gray-900 flex items-center gap-2">
-                    <Phone size={14} />
-                    {appointment.telefono || appointment.pacienteTelefono}
-                  </p>
+                <div className="p-3 rounded-lg border border-gray-100 col-span-2">
+                  <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${accent.iconBg} ${accent.text}`}><Phone size={13} /></div>
+                  <p className="text-[10px] text-gray-400">Teléfono</p>
+                  <p className="text-xs font-semibold text-gray-900">{appointment.telefono || appointment.pacienteTelefono}</p>
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Información de la Cita */}
-          <div className="border-t pt-4">
-            <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <Stethoscope size={18} />
-              Información de la Cita
-            </h3>
-            <div className="grid grid-cols-1 gap-3">
-              <div>
-                <span className="text-sm font-medium text-gray-600">
-                  Profesional:
-                </span>
-                <p className="text-gray-900">
-                  {doctor?.nombre || appointment.medicoNombre || "Médico"} - {doctor?.especialidad || doctor?.especialidad || "General"}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600">
-                  Fecha:
-                </span>
-                <p className="text-gray-900 flex items-center gap-2">
-                  <Calendar size={14} />
-                  {appointment.fecha ? new Date(appointment.fecha).toLocaleDateString("es-ES", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  }) : "-"}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600">Hora:</span>
-                <p className="text-gray-900 flex items-center gap-2">
-                  <Clock size={14} />
-                  {appointment.hora}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600">
-                  Servicio:
-                </span>
-                <p className="text-gray-900">{appointment.servicio || appointment.servicioNombre || "Consulta Médica"}</p>
+            <div className={`rounded-lg border ${accent.header} p-3`}>
+              <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${accent.text}`}>
+                <Stethoscope size={13} /> Información de la Cita
+              </h4>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div className="col-span-2">
+                  <p className="text-[10px] text-gray-500">Profesional</p>
+                  <p className="text-xs font-medium text-gray-900">
+                    {doctor?.nombre || appointment.medicoNombre || "Médico"} · {doctor?.especialidad || "General"}
+                  </p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-[10px] text-gray-500">Servicio</p>
+                  <p className="text-xs font-medium text-gray-900">{appointment.servicio || appointment.servicioNombre || "Consulta Médica"}</p>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Notas */}
-          {appointment.notas && (
-            <div className="border-t pt-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                <FileText size={14} />
-                Notas
-              </h3>
-              <p className="text-gray-700 bg-gray-50 p-3 rounded text-sm">
-                {appointment.notas}
+            {appointment.notas && (
+              <div className="p-3 rounded-lg border border-gray-100">
+                <label className="text-[10px] font-semibold text-gray-400 uppercase mb-1 flex items-center gap-1"><FileText size={12} /> Notas</label>
+                <p className="text-xs text-gray-700 whitespace-pre-line">{appointment.notas}</p>
+              </div>
+            )}
+
+            {appointment.fechaCreacion && (
+              <p className="text-[10px] text-gray-400 text-center">
+                Cita creada el {new Date(appointment.fechaCreacion).toLocaleString("es-ES")}
               </p>
-            </div>
-          )}
+            )}
+          </div>
+        </div>
 
-          {/* Fecha de creación */}
-          {appointment.fechaCreacion && (
-            <div className="border-t pt-4">
-              <div className="text-xs text-gray-500">
-                Cita creada el:{" "}
-                {new Date(appointment.fechaCreacion).toLocaleString("es-ES")}
-              </div>
-            </div>
-          )}
+        <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex justify-end flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Cerrar</button>
         </div>
       </div>
     </div>

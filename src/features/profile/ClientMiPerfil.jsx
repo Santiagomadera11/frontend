@@ -22,7 +22,7 @@ export const ClientMiPerfil = () => {
     documento: "",
     correo: "",
     direccion: "",
-    tipoDocumento: "", // guarda el ID numérico
+    tipoDocumento: "",
   });
 
   const [tempAvatar, setTempAvatar] = useState(null);
@@ -149,7 +149,6 @@ export const ClientMiPerfil = () => {
         nombres: formData.nombres,
         apellidos: formData.apellidos,
         email: formData.correo,
-        // FIX: mandamos el ID real como número, no hardcodeado en 1
         tipoDocumentoId: formData.tipoDocumento ? Number(formData.tipoDocumento) : null,
         documento: formData.documento,
         telefono: formData.telefono,
@@ -209,7 +208,6 @@ export const ClientMiPerfil = () => {
 
   return (
     <div className="h-full flex flex-col gap-6 font-sans">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Mi Perfil</h1>
         <p className="text-gray-500 text-sm mt-1">
@@ -217,9 +215,7 @@ export const ClientMiPerfil = () => {
         </p>
       </div>
 
-      {/* Grid Layout: Card 1 (1/3) + Card 2 (2/3) */}
       <div className="grid grid-cols-3 gap-6 items-start">
-        {/* Card 1: Avatar y Información Básica */}
         <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 flex flex-col items-center justify-start">
           <div className="relative mb-4 w-28 h-28">
             <div className={`w-28 h-28 rounded-full bg-gradient-to-br ${theme.avatarGradient} flex items-center justify-center border-4 ${theme.avatarBorder} shadow-lg overflow-hidden`}>
@@ -292,7 +288,6 @@ export const ClientMiPerfil = () => {
           </span>
         </div>
 
-        {/* Card 2: Información Personal */}
         <div className="col-span-2 bg-white rounded-xl shadow-md border border-gray-100 p-6 flex flex-col justify-start">
           <div className="flex items-center justify-between mb-5 pb-3 border-b-2 border-gray-200">
             <h3 className="text-lg font-bold text-gray-900">Información Personal</h3>
@@ -360,7 +355,6 @@ export const ClientMiPerfil = () => {
                 className={`w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm bg-white disabled:bg-gray-50 disabled:text-gray-700 focus:outline-none focus:ring-2 ${theme.ring} transition-all`}
               >
                 <option value="">--</option>
-                {/* FIX: value usa dt.id (número) en vez de dt.value (texto) */}
                 {documentTypes.map((dt) => (
                   <option key={dt.id} value={dt.id}>{dt.value}</option>
                 ))}
@@ -422,7 +416,6 @@ export const ClientMiPerfil = () => {
         </div>
       </div>
 
-      {/* Card 3: Seguridad */}
       <div className="bg-white rounded-xl shadow-md border border-gray-100 p-8">
         <h3 className="text-xl font-bold text-gray-900 mb-6">Seguridad</h3>
         <div className={`${theme.secBoxBg} border-2 ${theme.secBoxBorder} rounded-lg p-5 flex gap-4 mb-6`}>

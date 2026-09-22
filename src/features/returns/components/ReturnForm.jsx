@@ -25,10 +25,12 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
   const canCreateReturn = userRole === "administrador" || userPerms.includes("sales.create") || userPerms.includes("sales.return");
 
   React.useEffect(() => {
-    if (isOpen && !canCreateReturn) {
-      setToast({ 
-        message: "No tienes permisos para crear devoluciones", 
-        type: "error" 
+    if (!isOpen) return;
+    setToast(null);
+    if (!canCreateReturn) {
+      setToast({
+        message: "No tienes permisos para crear devoluciones",
+        type: "error"
       });
       setTimeout(() => onClose?.(), 1500);
     }
@@ -62,8 +64,8 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
     }
   };
 
-  const handleCantidadChange = (detalleId, value) => {
-    const numValue = Math.max(0, parseInt(value) || 0);
+  const handleCantidadChange = (detalleId, value, maxCantidad) => {
+    const numValue = Math.max(0, Math.min(parseInt(value) || 0, maxCantidad));
     setCantidades((prev) => ({
       ...prev,
       [detalleId]: numValue,
@@ -110,7 +112,6 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
       setTimeout(() => {
         resetForm();
         onSuccess?.();
-        // ← NUEVO: Navegar de vuelta a ventas después de crear devolución (se refrescará automáticamente)
         const userRole = (user.rol || "").toLowerCase().trim();
         navigate(userRole === "administrador" ? "/admin/ventas" : "/employee/ventas");
       }, 1500);
@@ -134,6 +135,7 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
     setMotivo("");
     setObservaciones("");
     setSearchError("");
+    setToast(null);
   };
 
   const handleClose = () => {
@@ -153,7 +155,6 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-          {/* Header */}
           <div className={`px-6 py-4 flex items-center justify-between flex-shrink-0 ${
             userRole === "administrador" ? "bg-emerald-600" : "bg-blue-600"
           }`}>
@@ -168,10 +169,8 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
             </button>
           </div>
 
-          {/* Contenido */}
           <div className="flex-1 overflow-y-auto p-6">
             {step === 1 ? (
-              // Paso 1: Búsqueda de venta
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -214,9 +213,7 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
                 </div>
               </div>
             ) : (
-              // Paso 2: Detalles de devolución
               <div className="space-y-4">
-                {/* Info de venta */}
                 <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
@@ -234,7 +231,6 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
                   </div>
                 </div>
 
-                {/* Productos */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Productos a Devolver
@@ -257,7 +253,7 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
                             min="0"
                             max={detalle.cantidad}
                             value={cantidades[detalle.id] || 0}
-                            onChange={(e) => handleCantidadChange(detalle.id, e.target.value)}
+                            onChange={(e) => handleCantidadChange(detalle.id, e.target.value, detalle.cantidad)}
                             className={`w-16 px-2 py-1 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 ${
                               userRole === "administrador" ? "focus:ring-emerald-500" : "focus:ring-blue-500"
                             } text-sm`}
@@ -281,7 +277,6 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
                   </div>
                 </div>
 
-                {/* Motivo */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Motivo <span className="text-red-500">*</span>
@@ -297,7 +292,6 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
                   />
                 </div>
 
-                {/* Observaciones */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Observaciones (opcional)
@@ -313,7 +307,6 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
                   />
                 </div>
 
-                {/* Total */}
                 <div className={`border rounded-lg p-4 ${
                   userRole === "administrador" 
                     ? "bg-emerald-50 border-emerald-200" 
@@ -333,7 +326,6 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
             )}
           </div>
 
-          {/* Footer */}
           <div className="border-t border-gray-100 px-6 py-4 bg-gray-50 flex gap-3 flex-shrink-0">
             {step === 2 && (
               <button

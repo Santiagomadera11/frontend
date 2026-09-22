@@ -4,13 +4,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   Plus, Search, Edit, Trash2, Eye,
   Package,
-  X, CheckCircle, Database
+  X, CheckCircle, Database, MoreVertical, Tag, DollarSign, Layers,
+  Boxes, AlertTriangle, PackageX
 } from "lucide-react";
 import ProductModal from "./components/ProductFormModal";
 import { ProductLotesModal } from "./components/ProductLotesModal";
 import { productService } from "./services/productService";
 import { categoryService } from "../categories/services/categoryService";
-import { providerService } from "../providers/services/providerService";
 import { brandService } from "../brands/services/brandService";
 import { presentationService } from "../presentations/services/presentationService";
 import { StatusNotification } from "/src/shared/ui/StatusNotification";
@@ -28,15 +28,87 @@ const isExpiringSoon = (expiryDateStr) => {
   return diffDays <= 30;
 };
 
+const STOCK_BAJO_LIMITE = 10;
+
+const getStockStyle = (stock) => {
+  if (stock <= 0) return "text-red-600";
+  if (stock <= STOCK_BAJO_LIMITE) return "text-amber-600";
+  return "text-gray-900";
+};
+
+const ProductAvatar = ({ nombre, theme }) => (
+  <div className={`w-7 h-7 rounded-full ${theme.lightBg} ${theme.text} flex items-center justify-center text-[11px] font-bold flex-shrink-0`}>
+    {(nombre || "?").trim().charAt(0).toUpperCase()}
+  </div>
+);
+
+const KPICard = ({ icon: Icon, label, value, bg, text, accent, onClick, active }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`group relative overflow-hidden p-3 rounded-xl border bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 before:absolute before:inset-x-0 before:top-0 before:h-1 text-left w-full ${accent} ${
+      active ? "border-gray-300 shadow-md ring-1 ring-gray-200" : "border-gray-100"
+    }`}
+  >
+    <div className={`inline-flex p-1.5 rounded-lg mb-1.5 ${bg} ${text} group-hover:scale-110 transition-transform duration-200`}>
+      <Icon size={14} />
+    </div>
+    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">{label}</p>
+    <h3 className="text-lg font-bold text-gray-900 mt-0.5">{value}</h3>
+  </button>
+);
+
+const RowActionsMenu = ({ canToggleStatus, canDelete, isInactive, onLotes, onToggleEstado, onDelete }) => {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  return (
+    <div className="relative inline-block" ref={menuRef}>
+      <button onClick={() => setOpen((o) => !o)} className="p-1 rounded-md text-gray-500 hover:bg-gray-100 transition-colors" title="Más acciones">
+        <MoreVertical size={15} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg border border-gray-200 shadow-lg z-20 py-1 text-left">
+          <button onClick={() => { onLotes(); setOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+            <Database size={14} className="text-purple-500" /> Ver lotes
+          </button>
+          {canToggleStatus && (
+            <button onClick={() => { onToggleEstado(); setOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+              <CheckCircle size={14} className="text-emerald-500" /> {isInactive ? "Activar" : "Desactivar"}
+            </button>
+          )}
+          {canDelete && (
+            <>
+              <div className="my-1 border-t border-gray-100" />
+              <button onClick={() => { onDelete(); setOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors">
+                <Trash2 size={14} /> Eliminar
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [providers, setProviders] = useState([]);
   const [brands, setBrands] = useState([]);
   const [presentations, setPresentations] = useState([]);
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState(location.state?.filterStatus || "todos");
+  const [filterCategory, setFilterCategory] = useState("todas");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -96,17 +168,15 @@ export const ProductsPage = () => {
     isLoadingRef.current = true;
     try {
       setLoading(true);
-      const [prods, cats, provs, brds, press] = await Promise.all([
+      const [prods, cats, brds, press] = await Promise.all([
         productService.getAll(),
         categoryService.getAll(),
-        providerService.getAll(),
         brandService.getAll(),
         presentationService.getAll(),
       ]);
       if (!isMountedRef.current) return;
       setProducts(prods);
       setCategories(cats);
-      setProviders(provs);
       setBrands(brds);
       setPresentations(press);
     } catch (err) {
@@ -212,7 +282,7 @@ export const ProductsPage = () => {
     const matchSearch =
       p.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.categoria?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     let matchStatus = true;
     if (filterStatus === "Activo") {
       matchStatus = p.estado;
@@ -220,15 +290,24 @@ export const ProductsPage = () => {
       matchStatus = !p.estado;
     } else if (filterStatus === "proximos") {
       matchStatus = p.estado && isExpiringSoon(p.fechaVencimientoProxima);
+    } else if (filterStatus === "bajo") {
+      matchStatus = p.estado && p.stock <= STOCK_BAJO_LIMITE;
     }
-    
-    return matchSearch && matchStatus;
+
+    const matchCategory = filterCategory === "todas" || p.categoria === filterCategory;
+
+    return matchSearch && matchStatus && matchCategory;
   });
 
   const currentItems = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
-  useEffect(() => { setCurrentPage(1); }, [searchTerm, filterStatus, products.length]);
+  const totalProductos = products.length;
+  const totalActivos = products.filter((p) => p.estado).length;
+  const totalProximos = products.filter((p) => p.estado && isExpiringSoon(p.fechaVencimientoProxima)).length;
+  const totalStockBajo = products.filter((p) => p.estado && p.stock <= STOCK_BAJO_LIMITE).length;
+
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, filterStatus, filterCategory, products.length]);
   useEffect(() => {
     if (totalPages === 0) setCurrentPage(1);
     else if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -237,7 +316,6 @@ export const ProductsPage = () => {
   return (
     <div className="h-full flex flex-col p-3 sm:p-6 font-sans text-gray-800 bg-white md:bg-transparent relative overflow-hidden">
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3 flex-shrink-0">
         <div>
           <h1 className="text-lg sm:text-xl font-bold">Productos</h1>
@@ -253,18 +331,38 @@ export const ProductsPage = () => {
         )}
       </div>
 
-      {/* Filtros */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 flex-shrink-0">
+        <KPICard icon={Boxes} label="Total" value={totalProductos} bg={theme.lightBg} text={theme.text} accent={`before:${theme.main}`}
+          active={filterStatus === "todos"} onClick={() => setFilterStatus("todos")} />
+        <KPICard icon={CheckCircle} label="Activos" value={totalActivos} bg="bg-emerald-50" text="text-emerald-600" accent="before:bg-emerald-500"
+          active={filterStatus === "Activo"} onClick={() => setFilterStatus("Activo")} />
+        <KPICard icon={AlertTriangle} label="Por vencer" value={totalProximos} bg="bg-amber-50" text="text-amber-600" accent="before:bg-amber-500"
+          active={filterStatus === "proximos"} onClick={() => setFilterStatus("proximos")} />
+        <KPICard icon={PackageX} label="Stock bajo" value={totalStockBajo} bg="bg-red-50" text="text-red-600" accent="before:bg-red-500"
+          active={filterStatus === "bajo"} onClick={() => setFilterStatus("bajo")} />
+      </div>
+
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4 flex-shrink-0">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
             type="text"
-            placeholder="Buscar..."
+            placeholder="Buscar por nombre o categoría..."
             className={`w-full pl-9 pr-3 py-2 rounded-md border border-gray-300 text-sm focus:outline-none ${theme.focus} focus:ring-1 transition-colors`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <select
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          className={`px-3 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 ${theme.focus} w-full sm:w-auto sm:max-w-[180px]`}
+        >
+          <option value="todas">Todas las categorías</option>
+          {categories.map((c) => (
+            <option key={c.id || c.nombre} value={c.nombre}>{c.nombre}</option>
+          ))}
+        </select>
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
@@ -274,84 +372,93 @@ export const ProductsPage = () => {
           <option value="Activo">Activos</option>
           <option value="Inactivo">Inactivos</option>
           <option value="proximos">Próximos a vencer</option>
+          <option value="bajo">Stock bajo</option>
         </select>
       </div>
 
-      {/* Loading */}
       {loading && (
         <div className="flex justify-center py-8">
           <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${theme.spinner}`} />
         </div>
       )}
 
-      {/* TABLA DESKTOP */}
       {!loading && (
         <div className="hidden sm:flex flex-1 bg-white rounded-lg shadow-sm border border-gray-200 flex-col overflow-hidden min-h-0">
-          <div className="flex-1 overflow-y-auto no-scrollbar">
+          <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+            <span className="text-xs font-semibold text-gray-500">
+              {filtered.length} producto{filtered.length !== 1 ? "s" : ""} {filterCategory !== "todas" ? `en "${filterCategory}"` : "en total"}
+            </span>
+          </div>
+          <div className="flex-1 overflow-auto no-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead className={`${theme.main} text-white sticky top-0 z-10`}>
                 <tr>
-                  <th className="py-2.5 px-3 sm:px-4 text-[11px] font-semibold tracking-wider uppercase">ID</th>
-                  <th className="py-2.5 px-3 sm:px-4 text-[11px] font-semibold tracking-wider uppercase">Nombre</th>
-                  <th className="py-2.5 px-3 sm:px-4 text-[11px] font-semibold tracking-wider uppercase">Presentación</th>
-                  <th className="py-2.5 px-3 sm:px-4 text-[11px] font-semibold tracking-wider uppercase hidden md:table-cell">Categoría</th>
-                  <th className="py-2.5 px-3 sm:px-4 text-[11px] text-center font-semibold tracking-wider uppercase">Stock</th>
-                  <th className="py-2.5 px-3 sm:px-4 text-[11px] text-right font-semibold tracking-wider uppercase hidden lg:table-cell">Precio</th>
-                  <th className="py-2.5 px-3 sm:px-4 text-[11px] text-center font-semibold tracking-wider uppercase">Estado</th>
-                  <th className="py-2.5 px-3 sm:px-4 text-[11px] text-center font-semibold tracking-wider uppercase">Acciones</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] font-semibold tracking-wider uppercase w-12">#</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] font-semibold tracking-wider uppercase">Producto</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] font-semibold tracking-wider uppercase hidden md:table-cell w-32">Presentación</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] font-semibold tracking-wider uppercase hidden lg:table-cell w-40">Categoría</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] text-center font-semibold tracking-wider uppercase w-20">Stock</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] text-right font-semibold tracking-wider uppercase hidden lg:table-cell w-28">Precio</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] text-center font-semibold tracking-wider uppercase w-24">Estado</th>
+                  <th className="py-2 px-3 sm:px-4 text-[10px] text-center font-semibold tracking-wider uppercase w-24">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {currentItems.length > 0 ? currentItems.map((prod, idx) => (
-                  <tr key={prod.id} className={`${theme.hoverRow} transition-colors`}>
-                    <td className="py-2.5 px-3 sm:px-4 text-xs font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
-                    <td className="py-2.5 px-3 sm:px-4">
-                      <div className="flex items-center gap-2">
-                        <Package size={14} className={`${theme.icon} flex-shrink-0`} />
-                        <span className="text-xs font-semibold text-gray-900 truncate">{prod.nombre}</span>
-                        {isExpiringSoon(prod.fechaVencimientoProxima) && (
-                          <span className="text-xs ml-1 select-none cursor-help" title={`Próximo a vencer (${prod.fechaVencimientoProxima})`}>⚠️</span>
-                        )}
+                  <tr key={prod.id} className={`${theme.hoverRow} ${idx % 2 === 1 ? "bg-gray-50/40" : ""} transition-colors`}>
+                    <td className="py-2 px-3 sm:px-4 text-xs font-medium text-gray-400">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
+                    <td className="py-2 px-3 sm:px-4 max-w-0 w-full">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <ProductAvatar nombre={prod.nombre} theme={theme} />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-semibold text-gray-900 truncate" title={prod.nombre}>{prod.nombre}</span>
+                            {isExpiringSoon(prod.fechaVencimientoProxima) && (
+                              <span className="text-xs flex-shrink-0 select-none cursor-help" title={`Próximo a vencer (${prod.fechaVencimientoProxima})`}>⚠️</span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-gray-400 md:hidden lg:hidden">{prod.presentacion || "-"} · {prod.categoria}</span>
+                        </div>
                       </div>
                     </td>
-                    <td className="py-2.5 px-3 sm:px-4 text-xs text-gray-600 font-semibold">{prod.presentacion || "-"}</td>
-                    <td className="py-2.5 px-3 sm:px-4 text-xs text-gray-600 hidden md:table-cell">{prod.categoria}</td>
-                    <td className="py-2.5 px-3 sm:px-4 text-xs text-center font-semibold text-gray-900">{prod.stock}</td>
-                    <td className={`py-2.5 px-3 sm:px-4 text-xs text-right font-semibold ${theme.text} hidden lg:table-cell`}>$ {Number(prod.precio).toLocaleString()}</td>
-                    <td className="py-2.5 px-3 sm:px-4 text-center">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${prod.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                    <td className="py-2 px-3 sm:px-4 text-xs text-gray-600 font-medium hidden md:table-cell max-w-[160px] truncate" title={prod.presentacion || "-"}>{prod.presentacion || "-"}</td>
+                    <td className="py-2 px-3 sm:px-4 hidden lg:table-cell">
+                      <span className="inline-block max-w-full truncate px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200" title={prod.categoria}>
+                        {prod.categoria}
+                      </span>
+                    </td>
+                    <td className={`py-2 px-3 sm:px-4 text-xs text-center font-bold ${getStockStyle(prod.stock)}`}>{prod.stock}</td>
+                    <td className={`py-2 px-3 sm:px-4 text-xs text-right font-semibold ${theme.text} hidden lg:table-cell whitespace-nowrap`}>$ {Number(prod.precio).toLocaleString()}</td>
+                    <td className="py-2 px-3 sm:px-4 text-center">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${prod.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
                         {prod.estado ? "Activo" : "Inactivo"}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 sm:px-4">
-                      <div className="flex justify-center gap-1.5">
-                        <button onClick={() => setDetailProduct(prod)} className="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors" title="Ver detalle">
-                          <Eye size={16} />
+                    <td className="py-2 px-3 sm:px-4">
+                      <div className="flex justify-center items-center gap-1">
+                        <button onClick={() => setDetailProduct(prod)} className="p-1 rounded-md text-blue-600 hover:bg-blue-50 transition-colors" title="Ver detalle">
+                          <Eye size={15} />
                         </button>
-                        <button onClick={() => setLotesProduct(prod)} className="p-1.5 rounded-md text-purple-600 hover:bg-purple-50 transition-colors" title="Ver lotes">
-                          <Database size={16} />
-                        </button>
-                        {canToggleStatus && (
-                          <button onClick={() => handleStatusToggle(prod)} className="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors" title="Cambiar estado">
-                            <CheckCircle size={16} />
-                          </button>
-                        )}
                         {canEdit && (
-                          <button onClick={() => handleEdit(prod)} className="p-1.5 rounded-md text-yellow-600 hover:bg-yellow-50 transition-colors" title="Editar">
-                            <Edit size={16} />
+                          <button onClick={() => handleEdit(prod)} className="p-1 rounded-md text-amber-600 hover:bg-amber-50 transition-colors" title="Editar">
+                            <Edit size={15} />
                           </button>
                         )}
-                        {canDelete && (
-                          <button onClick={() => setShowDeleteConfirm(prod)} className="p-1.5 rounded-md text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
-                            <Trash2 size={16} />
-                          </button>
-                        )}
+                        <RowActionsMenu
+                          canToggleStatus={canToggleStatus}
+                          canDelete={canDelete}
+                          isInactive={!prod.estado}
+                          onLotes={() => setLotesProduct(prod)}
+                          onToggleEstado={() => handleStatusToggle(prod)}
+                          onDelete={() => setShowDeleteConfirm(prod)}
+                        />
                       </div>
                     </td>
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan="7" className="py-8 px-4 text-center">
+                    <td colSpan="8" className="py-10 px-4 text-center">
+                      <Package className="mx-auto mb-2 text-gray-300" size={28} />
                       <p className="text-gray-400 text-sm">No hay productos que coincidan con los filtros aplicados</p>
                     </td>
                   </tr>
@@ -360,7 +467,6 @@ export const ProductsPage = () => {
             </table>
           </div>
 
-          {/* Paginación Desktop */}
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -372,14 +478,13 @@ export const ProductsPage = () => {
         </div>
       )}
 
-      {/* TARJETAS MÓVIL */}
       {!loading && (
         <div className="sm:hidden flex-1 flex flex-col gap-3 overflow-y-auto no-scrollbar">
-          {currentItems.length > 0 ? currentItems.map((prod, idx) => (
+          {currentItems.length > 0 ? currentItems.map((prod) => (
             <div key={prod.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-3">
               <div className="flex items-start justify-between">
-                <div className="flex items-start gap-2 flex-1 min-w-0">
-                  <Package size={18} className={`${theme.icon} flex-shrink-0 mt-1`} />
+                <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                  <ProductAvatar nombre={prod.nombre} theme={theme} />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-gray-900 truncate">
                       {prod.nombre}
@@ -387,41 +492,37 @@ export const ProductsPage = () => {
                         <span className="text-xs ml-1 select-none" title={`Próximo a vencer (${prod.fechaVencimientoProxima})`}>⚠️</span>
                       )}
                     </p>
-                    <p className="text-xs text-gray-600">ID: {(currentPage - 1) * itemsPerPage + idx + 1}</p>
+                    <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                      {prod.categoria}
+                    </span>
                   </div>
                 </div>
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${prod.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${prod.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
                   {prod.estado ? "Activo" : "Inactivo"}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div><p className="text-gray-500 font-medium">Categoría</p><p className="text-gray-900 font-semibold">{prod.categoria}</p></div>
                 <div><p className="text-gray-500 font-medium">Presentación</p><p className="text-gray-900 font-semibold">{prod.presentacion || "-"}</p></div>
-                <div><p className="text-gray-500 font-medium">Stock</p><p className="text-gray-900 font-semibold">{prod.stock}</p></div>
+                <div><p className="text-gray-500 font-medium">Stock</p><p className={`font-bold ${getStockStyle(prod.stock)}`}>{prod.stock}</p></div>
                 <div className="col-span-2"><p className="text-gray-500 font-medium">Precio</p><p className={`${theme.text} font-bold`}>$ {Number(prod.precio).toLocaleString()}</p></div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <button onClick={() => setDetailProduct(prod)} className="flex-1 py-1.5 px-3 rounded-md text-blue-600 hover:bg-blue-50 transition-colors text-xs font-medium flex items-center justify-center gap-1">
                   <Eye size={14} /> Ver
                 </button>
-                <button onClick={() => setLotesProduct(prod)} className="flex-1 py-1.5 px-3 rounded-md text-purple-600 hover:bg-purple-50 transition-colors text-xs font-medium flex items-center justify-center gap-1">
-                  <Database size={14} /> Lotes
-                </button>
-                {canToggleStatus && (
-                  <button onClick={() => handleStatusToggle(prod)} className="flex-1 py-1.5 px-3 rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors text-xs font-medium flex items-center justify-center gap-1">
-                    <CheckCircle size={14} /> Estado
-                  </button>
-                )}
                 {canEdit && (
-                  <button onClick={() => handleEdit(prod)} className="flex-1 py-1.5 px-3 rounded-md text-yellow-600 hover:bg-yellow-50 transition-colors text-xs font-medium flex items-center justify-center gap-1">
+                  <button onClick={() => handleEdit(prod)} className="flex-1 py-1.5 px-3 rounded-md text-amber-600 hover:bg-amber-50 transition-colors text-xs font-medium flex items-center justify-center gap-1">
                     <Edit size={14} /> Editar
                   </button>
                 )}
-                {canDelete && (
-                  <button onClick={() => setShowDeleteConfirm(prod)} className="flex-1 py-1.5 px-3 rounded-md text-red-600 hover:bg-red-50 transition-colors text-xs font-medium flex items-center justify-center gap-1">
-                    <Trash2 size={14} /> Borrar
-                  </button>
-                )}
+                <RowActionsMenu
+                  canToggleStatus={canToggleStatus}
+                  canDelete={canDelete}
+                  isInactive={!prod.estado}
+                  onLotes={() => setLotesProduct(prod)}
+                  onToggleEstado={() => handleStatusToggle(prod)}
+                  onDelete={() => setShowDeleteConfirm(prod)}
+                />
               </div>
             </div>
           )) : (
@@ -429,7 +530,6 @@ export const ProductsPage = () => {
               <p className="text-gray-400 text-sm">No hay productos que coincidan</p>
             </div>
           )}
-          {/* Paginación Móvil */}
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -442,7 +542,7 @@ export const ProductsPage = () => {
         </div>
       )}
 
-      <ProductModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} initialData={editingItem} categories={categories} providers={providers} brands={brands} presentations={presentations} />
+      <ProductModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} initialData={editingItem} categories={categories} brands={brands} presentations={presentations} />
 
       {lotesProduct && (
         <ProductLotesModal isOpen={!!lotesProduct} onClose={() => setLotesProduct(null)} product={lotesProduct} />
@@ -450,83 +550,100 @@ export const ProductsPage = () => {
 
       {notification && <StatusNotification message={notification.message} type={notification.type} duration={notification.duration} onClose={() => setNotification(null)} />}
 
-      {/* Modal Detalle */}
       {detailProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[95vh] shadow-2xl flex flex-col">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
             <div className={`px-6 py-4 flex items-center justify-between border-b ${theme.border} ${theme.lightBg} flex-shrink-0`}>
               <h2 className={`text-lg font-semibold ${theme.text}`}>Detalle del Producto</h2>
               <button onClick={() => setDetailProduct(null)} className={`p-1 ${theme.hoverLight} rounded-lg transition-colors ${theme.text}`}><X size={20} /></button>
             </div>
-            <div className="flex-1 p-4 sm:p-6 overflow-hidden">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
-                {detailProduct.imagen && (
-                  <div className="md:col-span-1 flex items-start justify-center">
-                    <div className="w-full h-48 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
-                      <img src={detailProduct.imagen} alt={detailProduct.nombre} className="max-w-full max-h-full object-contain p-2" />
+
+            <div className="flex-1 overflow-y-auto no-scrollbar">
+              <div className="px-6 pt-5 pb-4 border-b border-gray-100">
+                <div className="flex items-start gap-3">
+                  <div className={`p-2.5 rounded-lg ${theme.lightBg} ${theme.text} flex-shrink-0`}>
+                    <Package size={20} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-base font-semibold text-gray-900">{detailProduct.nombre}</h3>
+                      <span className="text-[10px] text-gray-400 font-medium">#{detailProduct.id}</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {detailProduct.marca || "Genérico"} · {detailProduct.presentacion || "Sin especificar"} · {detailProduct.tipoProducto}
+                    </p>
+                    <div className="flex items-center gap-1.5 flex-wrap mt-2">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${detailProduct.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                        {detailProduct.estado ? "Activo" : "Inactivo"}
+                      </span>
+                      {detailProduct.tipoProducto === "Medicamento" && detailProduct.requiereFormula !== undefined && (
+                        detailProduct.requiereFormula ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
+                            Requiere fórmula médica 🩺
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600">
+                            Venta libre 🟢
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-6 py-4 space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="p-3 rounded-lg border border-gray-100">
+                    <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${theme.lightBg} ${theme.text}`}><Tag size={13} /></div>
+                    <p className="text-[10px] text-gray-400">Categoría</p>
+                    <p className="text-xs font-semibold text-gray-900 truncate" title={detailProduct.categoria}>{detailProduct.categoria}</p>
+                  </div>
+                  <div className="p-3 rounded-lg border border-gray-100">
+                    <div className="inline-flex p-1.5 rounded-md mb-1.5 bg-orange-50 text-orange-600"><Layers size={13} /></div>
+                    <p className="text-[10px] text-gray-400">Stock</p>
+                    <p className="text-xs font-semibold text-gray-900">{detailProduct.stock}</p>
+                  </div>
+                  <div className="p-3 rounded-lg border border-gray-100">
+                    <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${theme.lightBg} ${theme.text}`}><DollarSign size={13} /></div>
+                    <p className="text-[10px] text-gray-400">Precio</p>
+                    {detailProduct.enOferta && detailProduct.porcentajeDescuento > 0 ? (
+                      <div>
+                        <p className="text-[10px] text-gray-400 line-through">$ {Number(detailProduct.precio).toLocaleString()}</p>
+                        <p className={`text-xs font-bold ${theme.text}`}>${Number(Math.round(detailProduct.precio * (1 - detailProduct.porcentajeDescuento / 100))).toLocaleString()} <span className="text-red-500">-{detailProduct.porcentajeDescuento}%</span></p>
+                      </div>
+                    ) : (
+                      <p className={`text-xs font-bold ${theme.text}`}>$ {Number(detailProduct.precio).toLocaleString()}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-lg border border-gray-100">
+                  <label className="text-[10px] font-semibold text-gray-400 uppercase block mb-1">Descripción</label>
+                  <p className="text-xs text-gray-700 whitespace-pre-line">{detailProduct.descripcion || "Sin descripción disponible."}</p>
+                </div>
+
+                {detailProduct.tipoProducto === "Medicamento" && (
+                  <div className={`rounded-lg border ${theme.border} ${theme.lightBg} p-3`}>
+                    <h4 className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${theme.text}`}>Información del Medicamento</h4>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                      {detailProduct.viaAdministracion && <div><p className="text-[10px] text-gray-500">Vía de administración</p><p className="text-xs font-medium text-gray-900">{detailProduct.viaAdministracion}</p></div>}
+                      {detailProduct.concentracion && <div><p className="text-[10px] text-gray-500">Concentración</p><p className="text-xs font-medium text-gray-900">{detailProduct.concentracion}</p></div>}
+                      {detailProduct.composicion && <div className="col-span-2"><p className="text-[10px] text-gray-500">Composición</p><p className="text-xs font-medium text-gray-900">{detailProduct.composicion}</p></div>}
+                      {detailProduct.registroSanitario && <div className="col-span-2"><p className="text-[10px] text-gray-500">Registro sanitario</p><p className="text-xs font-medium text-gray-900">{detailProduct.registroSanitario}</p></div>}
                     </div>
                   </div>
                 )}
-                <div className={`${detailProduct.imagen ? "md:col-span-2" : "md:col-span-3"} grid grid-cols-2 gap-2 sm:gap-3 text-sm overflow-y-auto`}>
-                  <div><label className="text-xs font-semibold text-gray-500 uppercase block">ID</label><p className="text-xs text-gray-900 font-medium truncate">{detailProduct.id}</p></div>
-                  <div><label className="text-xs font-semibold text-gray-500 uppercase block">Nombre</label><p className="text-xs text-gray-900 font-medium line-clamp-2">{detailProduct.nombre}</p></div>
-                  <div><label className="text-xs font-semibold text-gray-500 uppercase block">Marca</label><p className="text-xs text-gray-900 font-medium truncate">{detailProduct.marca || "Genérico"}</p></div>
-                  <div><label className="text-xs font-semibold text-gray-500 uppercase block">Presentación</label><p className="text-xs text-gray-900 font-medium truncate">{detailProduct.presentacion || "Sin especificar"}</p></div>
-
-                  <div className="col-span-2">
-                    <label className="text-xs font-semibold text-gray-500 uppercase block">Descripción</label>
-                    <p className="text-xs text-gray-900 font-medium whitespace-pre-line">{detailProduct.descripcion || "Sin descripción disponible."}</p>
-                  </div>
-
-                  <div><label className="text-xs font-semibold text-gray-500 uppercase block">Categoría</label><p className="text-xs text-gray-900 font-medium truncate">{detailProduct.categoria}</p></div>
-                  <div><label className="text-xs font-semibold text-gray-500 uppercase block">Tipo</label><p className="text-xs text-gray-900 font-medium truncate">{detailProduct.tipoProducto}</p></div>
-                  <div><label className="text-xs font-semibold text-gray-500 uppercase block">Stock</label><p className="text-xs text-gray-900 font-bold">{detailProduct.stock}</p></div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase block">Precio</label>
-                    {detailProduct.enOferta && detailProduct.porcentajeDescuento > 0 ? (
-                      <div>
-                        <p className="text-xs text-gray-500 line-through">$ {Number(detailProduct.precio).toLocaleString()}</p>
-                        <p className={`text-xs ${theme.text} font-bold`}>${Number(Math.round(detailProduct.precio * (1 - detailProduct.porcentajeDescuento / 100))).toLocaleString()}<span className="text-red-500 ml-1">-{detailProduct.porcentajeDescuento}%</span></p>
-                      </div>
-                    ) : (
-                      <p className={`text-xs ${theme.text} font-bold`}>$ {Number(detailProduct.precio).toLocaleString()}</p>
-                    )}
-                  </div>
-                  <div><label className="text-xs font-semibold text-gray-500 uppercase block">Estado</label><p className="text-xs text-gray-900 font-medium">{detailProduct.estado ? "Activo" : "Inactivo"}</p></div>
-                  {detailProduct.tipoProducto === "Medicamento" && (
-                    <>
-                      <div className="col-span-2 border-t border-gray-100 pt-2 mt-2"><h3 className="font-semibold text-[10px] text-gray-400 uppercase tracking-wider mb-2">Información del Medicamento</h3></div>
-                      {detailProduct.viaAdministracion && <div><label className="text-xs font-semibold text-gray-500 uppercase block">Vía Admin</label><p className="text-xs text-gray-900 truncate">{detailProduct.viaAdministracion}</p></div>}
-                      {detailProduct.concentracion && <div><label className="text-xs font-semibold text-gray-500 uppercase block">Concentración</label><p className="text-xs text-gray-900 truncate">{detailProduct.concentracion}</p></div>}
-                      {detailProduct.composicion && <div><label className="text-xs font-semibold text-gray-500 uppercase block">Composición</label><p className="text-xs text-gray-900 truncate">{detailProduct.composicion}</p></div>}
-                      {detailProduct.registroSanitario && <div><label className="text-xs font-semibold text-gray-500 uppercase block">Registro Sanitario</label><p className="text-xs text-gray-900 truncate">{detailProduct.registroSanitario}</p></div>}
-                      {detailProduct.requiereFormula !== undefined && (
-                        <div className="col-span-2 mt-1">
-                          {detailProduct.requiereFormula ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
-                              Requiere fórmula médica 🩺
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                              Venta libre 🟢
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex justify-end gap-2 flex-shrink-0">
+
+            <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex justify-end flex-shrink-0">
               <button onClick={() => setDetailProduct(null)} className="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Cerrar</button>
-              {canEdit && <button onClick={() => { setDetailProduct(null); handleEdit(detailProduct); }} className={`px-4 py-2 text-xs font-bold text-white ${theme.main} ${theme.mainHover} rounded-lg transition-colors`}>Editar Producto</button>}
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Eliminar */}
       <ConfirmDialog
         open={!!showDeleteConfirm}
         title="Eliminar Producto"
@@ -537,7 +654,6 @@ export const ProductsPage = () => {
         onConfirm={() => handleDelete(showDeleteConfirm)}
       />
 
-      {/* Modal Estado */}
       <ConfirmDialog
         open={isStatusConfirmOpen && !!productToToggle}
         title={productToToggle?.estado ? "Desactivar Producto" : "Activar Producto"}

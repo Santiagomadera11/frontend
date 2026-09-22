@@ -73,7 +73,7 @@ export const UsersPage = () => {
           : (defaultColors[r.nombre] || palette[i % palette.length]);
       });
       setRoleColorMap(colorMap);
-    } catch { /* silencioso */ }
+    } catch { }
   };
 
   const handleOpenCreate = () => { setEditingUser(null); setIsModalOpen(true); };
@@ -298,7 +298,7 @@ export const UsersPage = () => {
       </div>
 
       <UserFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveUser} userToEdit={editingUser} />
-      <UserDetailModal isOpen={isDetailOpen} onClose={() => setIsDetailOpen(false)} user={detailUser} />
+      <UserDetailModal isOpen={isDetailOpen} onClose={() => setIsDetailOpen(false)} user={detailUser} accentColor={isAdmin ? "emerald" : "blue"} />
 
       {notification && <StatusNotification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
 

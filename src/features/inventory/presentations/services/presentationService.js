@@ -2,7 +2,6 @@ import { apiClient } from "../../../../shared/utils/apiClient";
 
 const ENDPOINT = "Presentacion";
 
-// Solo activas — para dropdowns de productos
 const getAll = async (estado) => {
   const params = {};
   if (estado) params.estado = estado;
@@ -10,7 +9,6 @@ const getAll = async (estado) => {
   return response.data;
 };
 
-// Activas + inactivas — para la página de gestión de presentaciones
 const getAllIncludingInactive = async (estado) => {
   const params = {};
   if (estado) params.estado = estado;

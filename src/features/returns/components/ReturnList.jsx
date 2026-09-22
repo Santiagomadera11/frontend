@@ -26,12 +26,12 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
 
   const itemsPerPage = 10;
 
-  // Validar permisos
   const { currentUser } = useCurrentUser();
   const user = currentUser || {};
   const userRole = (user.rol || "").toLowerCase().trim();
   const userPerms = (user.permisos || []).map((perm) => String(perm || "").toLowerCase().trim());
   const canCreateReturn = userRole === "administrador" || userPerms.includes("sales.create") || userPerms.includes("sales.return");
+  const isAdminPanel = userRole === "administrador";
 
   const filteredReturns = useMemo(() => {
     return devoluciones.filter((d) => {
@@ -83,14 +83,13 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${isAdminPanel ? "border-emerald-600" : "border-blue-600"}`}></div>
       </div>
     );
   }
 
   return (
     <>
-      {/* Buscador y Filtros */}
       <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm mb-4">
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
@@ -104,7 +103,7 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(0);
                 }}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                className={`w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-sm ${isAdminPanel ? "focus:ring-emerald-500" : "focus:ring-blue-500"}`}
               />
             </div>
             <button
@@ -126,7 +125,6 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
             </button>
           </div>
 
-          {/* Filtro por estado */}
           <div className="flex gap-2 flex-wrap">
             <span className="text-xs font-medium text-gray-600 flex items-center">Estado:</span>
             {["todos", "1", "2", "3"].map((estado) => {
@@ -153,7 +151,6 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
         </div>
       </div>
 
-      {/* Tabla */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         {filteredReturns.length === 0 ? (
           <div className="p-8 text-center">
@@ -230,7 +227,6 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
               </table>
             </div>
 
-            {/* Paginación */}
             {totalPages > 1 && (
               <Pagination
                 currentPage={currentPage + 1}
@@ -244,7 +240,6 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
         )}
       </div>
 
-      {/* Modales */}
       <ReturnDetailModal
         isOpen={isDetailModalOpen}
         onClose={handleModalClose}

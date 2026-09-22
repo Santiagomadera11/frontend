@@ -55,7 +55,6 @@ export const CalendarPicker = ({
     );
   };
 
-  // Retorna información sobre si la fecha está deshabilitada y la razón (si aplica)
   const getDisabledInfo = (day) => {
     const date = new Date(
       currentMonth.getFullYear(),
@@ -64,7 +63,6 @@ export const CalendarPicker = ({
     );
     const dateStr = getDateString(date);
 
-    // Validar rango de fechas
     if (minDate) {
   const [y, m, d] = minDate.split("-").map(Number);
   const minDateLocal = new Date(y, m - 1, d);
@@ -79,7 +77,6 @@ export const CalendarPicker = ({
     if (!disabledDates || disabledDates.length === 0)
       return { disabled: false };
 
-    // disabledDates puede ser array de strings o array de objetos { date, reason }
     const foundObj = disabledDates.find((d) => {
       if (!d) return false;
       if (typeof d === "string") return d === dateStr;
@@ -114,12 +111,10 @@ export const CalendarPicker = ({
   const daysInMonth = getDaysInMonth(currentMonth);
   const firstDay = getFirstDayOfMonth(currentMonth);
 
-  // Agregar celdas vacías al inicio
   for (let i = 0; i < firstDay; i++) {
     days.push(null);
   }
 
-  // Agregar días del mes
   for (let i = 1; i <= daysInMonth; i++) {
     days.push(i);
   }
@@ -131,7 +126,6 @@ export const CalendarPicker = ({
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={handlePrevMonth}
@@ -152,7 +146,6 @@ export const CalendarPicker = ({
         </button>
       </div>
 
-      {/* Días de la semana */}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map((dayName) => (
           <div
@@ -164,7 +157,6 @@ export const CalendarPicker = ({
         ))}
       </div>
 
-      {/* Calendario */}
       <div className="grid grid-cols-7 gap-1">
         {days.map((day, idx) => {
           if (day === null) {
@@ -183,7 +175,6 @@ export const CalendarPicker = ({
               ),
             );
 
-          // Determinar clases según motivo
           let badgeClass =
             `bg-white text-gray-700 border border-gray-200 ${hoverBgClass} ${hoverBorderClass}`;
           let title = "";
@@ -231,7 +222,6 @@ export const CalendarPicker = ({
         })}
       </div>
 
-      {/* Leyenda */}
       <div className="mt-4 pt-3 border-t border-gray-200 space-y-2">
         <div className="flex items-center gap-2">
           <div className={`w-4 h-4 rounded ${selectedBgClass}`} />

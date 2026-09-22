@@ -18,7 +18,6 @@ export const UnifiedCart = ({
 
   return (
     <div className="h-full bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
-      {/* Header */}
       <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-1.5">
           <ShoppingCart size={15} style={{ color: primary }} />
@@ -31,7 +30,6 @@ export const UnifiedCart = ({
         )}
       </div>
 
-      {/* Lista */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
         {!hasItems && (
           <div className="h-full flex flex-col items-center justify-center text-gray-300">
@@ -61,6 +59,11 @@ export const UnifiedCart = ({
                   {formaLabel && <span className="ml-1 font-bold text-gray-400">· {formaLabel}</span>}
                 </p>
                 <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                  {item.marca && (
+                    <span className="text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: primaryLight, color: primary }}>
+                      {item.marca}
+                    </span>
+                  )}
                   {item.numeroLote && (
                     <span className="text-[9px] font-bold text-blue-600 bg-blue-50 border border-blue-100 rounded px-1 py-0.5">
                       Lote: {item.numeroLote}

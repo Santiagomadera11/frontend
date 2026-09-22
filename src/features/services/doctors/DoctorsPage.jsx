@@ -2,7 +2,7 @@ import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight,
-  Eye, CheckCircle, X,
+  Eye, CheckCircle, X, Stethoscope, FileText, Mail, Phone, Info,
 } from "lucide-react";
 import { doctorService } from "./services/doctorService";
 import DoctorFormModal from "./components/DoctorFormModal";
@@ -32,6 +32,10 @@ export const DoctorsPage = () => {
   const userRole = (currentUser.rol || "").toLowerCase().trim();
   const userPerms = (currentUser.permisos || []).map((perm) => String(perm || "").toLowerCase().trim());
   const isAdmin = userRole === "administrador";
+  const isEmployeePanel = !isAdmin;
+  const theme = isEmployeePanel
+    ? { main: "bg-blue-600", mainHover: "hover:bg-blue-700", text: "text-blue-700", ring: "focus:ring-blue-500", lightBg: "bg-blue-50", lightBorder: "border-blue-100", lightText: "text-blue-600", iconHover: "hover:bg-blue-50" }
+    : { main: "bg-emerald-600", mainHover: "hover:bg-emerald-700", text: "text-emerald-700", ring: "focus:ring-emerald-500", lightBg: "bg-emerald-50", lightBorder: "border-emerald-100", lightText: "text-emerald-600", iconHover: "hover:bg-emerald-50" };
   const hasPerm = (perm) => isAdmin || userPerms.includes(perm);
   const canCreate = hasPerm("appointments.doctors.create");
   const canEdit = hasPerm("appointments.doctors.edit");
@@ -168,43 +172,40 @@ export const DoctorsPage = () => {
 
   return (
     <div className="h-full flex flex-col gap-6 font-sans overflow-hidden no-scrollbar">
-      {/* Header */}
       <div className="flex items-start justify-between flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-emerald-700">Gestión de Médicos</h1>
+          <h1 className={`text-2xl font-bold ${theme.text}`}>Gestión de Médicos</h1>
           <p className="text-gray-500 text-xs mt-0.5">Administra el registro completo de profesionales médicos</p>
         </div>
       </div>
 
-      {/* Búsqueda y filtros */}
       <div className="flex gap-4 flex-shrink-0 flex-wrap">
         <div className="flex-1 min-w-[250px] relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input type="text" placeholder="Buscar por nombre, especialidad o email..."
-            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className={`w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 ${theme.ring}`}
             value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(0); }} />
         </div>
         <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(0); }}
-          className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white">
+          className={`px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 ${theme.ring} bg-white`}>
           <option value="all">Todos</option>
           <option value="active">Activos</option>
           <option value="inactive">Inactivos</option>
         </select>
         {canCreate && (
           <button onClick={handleOpenCreate}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2">
+            className={`${theme.main} ${theme.mainHover} text-white px-4 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2`}>
             <Plus size={16} /> Nuevo Médico
           </button>
         )}
       </div>
 
-      {/* Tabla */}
       <div className="flex-1 overflow-auto no-scrollbar bg-white rounded-xl shadow-sm border border-gray-100">
         {loading ? (
           <div className="flex items-center justify-center h-48 text-gray-500">Cargando médicos...</div>
         ) : (
           <table className="w-full">
-            <thead className="bg-emerald-600 text-white sticky top-0">
+            <thead className={`${theme.main} text-white sticky top-0`}>
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold">Nombre</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold">Especialidad</th>
@@ -236,11 +237,11 @@ export const DoctorsPage = () => {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
-                        <button onClick={() => handleViewDetail(doctor)} className="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors" title="Ver detalle">
+                        <button onClick={() => handleViewDetail(doctor)} className={`p-1.5 rounded-md ${theme.lightText} ${theme.iconHover} transition-colors`} title="Ver detalle">
                           <Eye size={16} />
                         </button>
                         {canChangeStatus && (
-                          <button onClick={() => handleToggleStatus(doctor)} className="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors" title="Cambiar estado">
+                          <button onClick={() => handleToggleStatus(doctor)} className={`p-1.5 rounded-md ${theme.lightText} ${theme.iconHover} transition-colors`} title="Cambiar estado">
                             <CheckCircle size={16} />
                           </button>
                         )}
@@ -264,7 +265,6 @@ export const DoctorsPage = () => {
         )}
       </div>
 
-      {/* Paginación */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between flex-shrink-0">
           <span className="text-sm text-gray-600">
@@ -275,7 +275,7 @@ export const DoctorsPage = () => {
               className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50"><ChevronLeft size={20} /></button>
             {Array.from({ length: totalPages }).map((_, i) => (
               <button key={i} onClick={() => setCurrentPage(i)}
-                className={`px-3 py-1 rounded text-sm font-medium ${currentPage === i ? "bg-emerald-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
+                className={`px-3 py-1 rounded text-sm font-medium ${currentPage === i ? `${theme.main} text-white` : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
                 {i + 1}
               </button>
             ))}
@@ -285,47 +285,73 @@ export const DoctorsPage = () => {
         </div>
       )}
 
-      {/* Modal Formulario */}
       <DoctorFormModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setEditingDoctor(null); }}
-        onSave={handleSaveDoctor} doctor={editingDoctor} />
+        onSave={handleSaveDoctor} doctor={editingDoctor} accentColor={isEmployeePanel ? "blue" : "emerald"} />
 
-      {/* Notificación */}
       {notification && <StatusNotification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
 
-      {/* Modal Detalle */}
       {isDetailModalOpen && selectedDoctor && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl flex flex-col">
-            <div className="px-6 py-4 flex items-center justify-between border-b border-emerald-100 bg-emerald-50">
-              <h2 className="text-lg font-semibold text-emerald-900">{selectedDoctor.nombre}</h2>
-              <button onClick={() => setIsDetailModalOpen(false)} className="p-1 hover:bg-emerald-100 rounded-lg text-emerald-600"><X size={20} /></button>
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+            <div className={`px-6 py-4 flex items-center justify-between border-b ${theme.lightBorder} ${theme.lightBg} flex-shrink-0`}>
+              <h2 className={`text-lg font-semibold ${theme.text}`}>Detalle del Médico</h2>
+              <button onClick={() => setIsDetailModalOpen(false)} className={`p-1 ${theme.iconHover} rounded-lg ${theme.lightText}`}><X size={20} /></button>
             </div>
-            <div className="p-6 space-y-4">
-              {[
-                { label: "Especialidad", value: selectedDoctor.especialidad },
-                { label: "Documento", value: selectedDoctor.documento },
-                { label: "Email", value: selectedDoctor.email },
-                { label: "Teléfono", value: selectedDoctor.telefono },
-              ].map(({ label, value }) => value && (
-                <div key={label}>
-                  <label className="text-xs font-semibold text-gray-600 uppercase block mb-1">{label}</label>
-                  <p className="text-sm text-gray-900 font-medium">{value}</p>
+
+            <div className="flex-1 overflow-y-auto no-scrollbar">
+              <div className="px-6 pt-5 pb-4 border-b border-gray-100">
+                <div className="flex items-start gap-3">
+                  <img src={selectedDoctor.avatar} alt={selectedDoctor.nombre} className="w-14 h-14 rounded-full flex-shrink-0 border-2 border-gray-100" />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base font-semibold text-gray-900 truncate">{selectedDoctor.nombre}</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">{selectedDoctor.especialidad || "Sin especialidad"}</p>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold mt-1.5 ${selectedDoctor.estado ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                      {selectedDoctor.estado ? "Activo" : "Inactivo"}
+                    </span>
+                  </div>
                 </div>
-              ))}
-              <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg">
-                <p className="text-xs text-emerald-700 font-medium">
-                  💡 El horario detallado se configura desde la pestaña <strong>Disponibilidad</strong>.
-                </p>
+              </div>
+
+              <div className="px-6 py-4 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg border border-gray-100">
+                    <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${theme.lightBg} ${theme.lightText}`}><FileText size={13} /></div>
+                    <p className="text-[10px] text-gray-400">Documento</p>
+                    <p className="text-xs font-semibold text-gray-900 truncate">{selectedDoctor.documento || "Sin especificar"}</p>
+                  </div>
+                  <div className="p-3 rounded-lg border border-gray-100">
+                    <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${theme.lightBg} ${theme.lightText}`}><Stethoscope size={13} /></div>
+                    <p className="text-[10px] text-gray-400">Especialidad</p>
+                    <p className="text-xs font-semibold text-gray-900 truncate">{selectedDoctor.especialidad || "Sin especificar"}</p>
+                  </div>
+                  <div className="p-3 rounded-lg border border-gray-100">
+                    <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${theme.lightBg} ${theme.lightText}`}><Mail size={13} /></div>
+                    <p className="text-[10px] text-gray-400">Email</p>
+                    <p className="text-xs font-semibold text-gray-900 truncate">{selectedDoctor.email || "Sin especificar"}</p>
+                  </div>
+                  <div className="p-3 rounded-lg border border-gray-100">
+                    <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${theme.lightBg} ${theme.lightText}`}><Phone size={13} /></div>
+                    <p className="text-[10px] text-gray-400">Teléfono</p>
+                    <p className="text-xs font-semibold text-gray-900 truncate">{selectedDoctor.telefono || "Sin especificar"}</p>
+                  </div>
+                </div>
+
+                <div className={`rounded-lg border ${theme.lightBorder} ${theme.lightBg} p-3 flex items-start gap-2`}>
+                  <Info size={14} className={`${theme.lightText} flex-shrink-0 mt-0.5`} />
+                  <p className={`text-xs font-medium ${theme.text}`}>
+                    El horario detallado se configura desde la pestaña <strong>Disponibilidad</strong>.
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="bg-gray-50 px-6 py-3 border-t flex justify-end">
-              <button onClick={() => setIsDetailModalOpen(false)} className="px-4 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100">Cerrar</button>
+
+            <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex justify-end flex-shrink-0">
+              <button onClick={() => setIsDetailModalOpen(false)} className="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Cerrar</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Eliminar */}
       <ConfirmDialog
         open={!!showDeleteConfirm}
         title="Eliminar Médico"
@@ -336,7 +362,6 @@ export const DoctorsPage = () => {
         onConfirm={confirmDelete}
       />
 
-      {/* Modal Toggle Estado */}
       <ConfirmDialog
         open={isToggleConfirmOpen && !!doctorToToggle}
         title={doctorToToggle?.estado ? "Desactivar Médico" : "Activar Médico"}

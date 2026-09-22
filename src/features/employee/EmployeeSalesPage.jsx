@@ -1,10 +1,10 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Plus, Eye, ChevronLeft, ChevronRight,
   ShoppingCart, DollarSign, Clock, TrendingDown, Receipt,
-  RotateCcw, FileDown, FileText
+  RotateCcw, FileDown, FileText, Calendar as CalendarIcon
 } from "lucide-react";
 import { turnService } from "../sales/services/turnService";
 import { salesService } from "../sales/services/salesService";
@@ -18,24 +18,30 @@ import { ToastNotification } from "../../shared/ui/ToastNotification";
 const fmt = (v) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v || 0);
 
+const toLocalDateStr = (value) => {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+const todayStr = () => toLocalDateStr(new Date());
+
 export const EmployeeSalesPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { currentUser } = useCurrentUser();
   const user = currentUser || {};
 
-  // ── Helpers de permisos
   const isAdmin = (user.rol || "").toLowerCase().trim() === "administrador";
   const hasPerm = (perm) =>
     isAdmin || (user.permisos || []).map((p) => String(p || "").toLowerCase().trim()).includes(perm);
 
-  // ── Permisos individuales
   const canViewSales    = hasPerm("sales.view");
   const canCreateSale   = hasPerm("sales.create");
   const canReturnSale   = hasPerm("sales.return");
   const canExportSales  = hasPerm("sales.export");
 
-  // ── Estado
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentTurn, setCurrentTurn] = useState(null);
@@ -45,6 +51,7 @@ export const EmployeeSalesPage = () => {
   const [toast, setToast] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
+  const [filterFecha, setFilterFecha] = useState(todayStr());
   const [currentPage, setCurrentPage] = useState(0);
   const [isSaleDetailOpen, setIsSaleDetailOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
@@ -52,7 +59,6 @@ export const EmployeeSalesPage = () => {
   const [todayExpenses, setTodayExpenses] = useState([]);
   const itemsPerPage = 10;
 
-  // ── Carga de datos
   const loadSales = useCallback(async () => {
     if (!canViewSales) { setSales([]); setLoading(false); return; }
     try {
@@ -88,6 +94,14 @@ export const EmployeeSalesPage = () => {
   }, [user.id]);
 
   useEffect(() => {
+    if (location.state?.notification) {
+      setToast(location.state.notification);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     loadSales();
     loadTurno();
     loadTodayExpenses();
@@ -100,7 +114,6 @@ export const EmployeeSalesPage = () => {
     };
   }, [loadSales, loadTurno, loadTodayExpenses]);
 
-  // ── Acciones
   const handleNewSale = () => {
     if (!canCreateSale) return;
     if (!currentTurn) { setShowOpenShiftModal(true); return; }
@@ -115,7 +128,6 @@ export const EmployeeSalesPage = () => {
   const handleExport = async () => {
     if (!canExportSales) return;
     try {
-      // Generar CSV desde los datos actuales
       const headers = ["N° Venta", "Fecha", "Cliente", "Productos", "Método Pago", "Total", "Estado"];
       const rows = sales.map(sale => [
         sale.numeroVenta,
@@ -127,13 +139,11 @@ export const EmployeeSalesPage = () => {
         sale.estadoNombre || "-"
       ]);
 
-      // Crear CSV
       const csv = [headers, ...rows]
         .map(row => row.map(cell => `"${cell}"`).join(","))
         .join("\n");
 
-      // Descargar archivo
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = `reporte_ventas_${new Date().toISOString().split("T")[0]}.csv`;
@@ -164,10 +174,6 @@ export const EmployeeSalesPage = () => {
     loadTodayExpenses();
   };
 
-  // ── Métricas
-  // Se excluyen las ventas anuladas (estadoId 3): antes se sumaban igual que cualquier
-  // venta válida, inflando el total y el conteo de "Ventas de hoy" con dinero que en
-  // realidad se revirtió.
   const ventasHoy = useMemo(() => {
     const today = new Date().toLocaleDateString("es-CO");
     return sales.filter(s =>
@@ -187,8 +193,9 @@ export const EmployeeSalesPage = () => {
       (s.numeroVenta || "").toLowerCase().includes(term) ||
       (s.metodoPagoNombre || "").toLowerCase().includes(term);
     const matchEstado = filterEstado === "todos" || (s.estadoNombre || "").toLowerCase() === filterEstado;
-    return matchSearch && matchEstado;
-  }), [sales, searchTerm, filterEstado]);
+    const matchFecha = !filterFecha || toLocalDateStr(s.fechaVenta) === filterFecha;
+    return matchSearch && matchEstado && matchFecha;
+  }), [sales, searchTerm, filterEstado, filterFecha]);
 
   const totalPages = Math.ceil(filteredSales.length / itemsPerPage);
   const displayedSales = filteredSales.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
@@ -201,7 +208,6 @@ export const EmployeeSalesPage = () => {
     return "bg-employee-100 text-employee-700";
   };
 
-  // ── Sin acceso a ventas
   if (!canViewSales && !isAdmin) {
     return (
       <div className="h-full flex items-center justify-center text-center text-gray-400">
@@ -217,7 +223,6 @@ export const EmployeeSalesPage = () => {
   return (
     <div className="h-full flex flex-col gap-4 font-sans">
 
-      {/* ── Header ── */}
       <div className="flex items-center justify-between flex-shrink-0 flex-wrap gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Mis Ventas</h1>
@@ -226,7 +231,6 @@ export const EmployeeSalesPage = () => {
 
         <div className="flex items-center gap-2 flex-wrap">
 
-          {/* Registrar Gasto — siempre visible para empleados con turno */}
           <button
             onClick={() => setIsExpenseModalOpen(true)}
             className="px-4 py-2 rounded-lg font-bold shadow-sm text-xs flex items-center gap-1.5 transition-all bg-red-600 hover:bg-red-700 text-white"
@@ -234,7 +238,6 @@ export const EmployeeSalesPage = () => {
             <TrendingDown size={16} /> Registrar Gasto
           </button>
 
-          {/* Devoluciones — requiere sales.return */}
           {canReturnSale && (
             <button
               onClick={handleReturn}
@@ -244,7 +247,6 @@ export const EmployeeSalesPage = () => {
             </button>
           )}
 
-          {/* Exportar reporte — requiere sales.export */}
           {canExportSales && (
             <button
               onClick={handleExport}
@@ -254,7 +256,6 @@ export const EmployeeSalesPage = () => {
             </button>
           )}
 
-          {/* Cerrar turno */}
           <button
             onClick={() => setShowCloseShiftModal(true)}
             disabled={!currentTurn}
@@ -267,7 +268,6 @@ export const EmployeeSalesPage = () => {
             <DollarSign size={16} /> Cerrar Turno
           </button>
 
-          {/* Estado turno */}
           <div className="flex items-center gap-2 bg-employee-50 px-4 py-2 rounded-lg border border-employee-200">
             <Clock size={16} className="text-employee-600" />
             <div>
@@ -280,7 +280,6 @@ export const EmployeeSalesPage = () => {
         </div>
       </div>
 
-      {/* ── KPIs ── */}
       <div className="grid grid-cols-3 gap-3 flex-shrink-0">
         <div className="bg-gradient-to-br from-employee-50 to-cyan-50 rounded-xl p-4 border border-cyan-200 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
@@ -310,7 +309,6 @@ export const EmployeeSalesPage = () => {
         </div>
       </div>
 
-      {/* ── Filtros y botón nueva venta ── */}
       <div className="flex gap-2 flex-shrink-0 items-center">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -333,7 +331,20 @@ export const EmployeeSalesPage = () => {
           <option value="anulada">Anuladas</option>
         </select>
 
-        {/* Nueva Venta — requiere sales.create */}
+        <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2 py-1">
+          <CalendarIcon size={13} className="text-gray-400 flex-shrink-0" />
+          <input type="date" value={filterFecha}
+            onChange={(e) => { setFilterFecha(e.target.value); setCurrentPage(0); }}
+            className="text-xs font-medium text-gray-700 outline-none bg-transparent" />
+          {filterFecha && (
+            <button onClick={() => { setFilterFecha(""); setCurrentPage(0); }}
+              title="Ver todas las fechas"
+              className="text-[10px] font-semibold text-employee-600 hover:text-employee-700 px-1.5 border-l border-gray-200">
+              Ver todas
+            </button>
+          )}
+        </div>
+
         {canCreateSale && (
           <button
             onClick={handleNewSale}
@@ -344,7 +355,6 @@ export const EmployeeSalesPage = () => {
         )}
       </div>
 
-      {/* ── Tabla ── */}
       <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between">
         <div className="overflow-auto flex-1">
           <table className="w-full text-left border-collapse text-xs">
@@ -409,13 +419,12 @@ export const EmployeeSalesPage = () => {
         )}
       </div>
 
-      {/* ── Modales ── */}
       <OpenShiftModal isOpen={showOpenShiftModal} onShiftOpened={handleShiftOpened} user={user}
         canClose={isAdmin} onCancel={() => setShowOpenShiftModal(false)} />
       <CloseShiftModal isOpen={showCloseShiftModal} onShiftClosed={handleShiftClosed}
         onCancel={() => setShowCloseShiftModal(false)} user={user} />
       <SaleDetailModal isOpen={isSaleDetailOpen}
-        onClose={() => { setIsSaleDetailOpen(false); setSelectedSale(null); }} sale={selectedSale} />
+        onClose={() => { setIsSaleDetailOpen(false); setSelectedSale(null); }} sale={selectedSale} accentColor="blue" />
       <ExpenseFormModal
         isOpen={isExpenseModalOpen}
         onClose={() => setIsExpenseModalOpen(false)}

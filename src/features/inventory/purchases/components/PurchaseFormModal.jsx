@@ -15,7 +15,7 @@ const emptyForm = {
 
 const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", onSave }) => {
   const { currentUser } = useCurrentUser();
-  const isEmployee = currentUser.rol === "Empleado";
+  const isEmployee = (currentUser?.rol || "").toLowerCase().trim() !== "administrador";
   const headerBg = isEmployee ? "bg-blue-50" : "bg-emerald-50";
   const headerBorder = isEmployee ? "border-blue-200" : "border-emerald-200";
   const btnBg = isEmployee ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-700";
@@ -57,9 +57,9 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
 
   useEffect(() => {
     if (!isOpen) return;
+    setFormErrorMsg("");
 
     const loadPurchaseDetails = async () => {
-      // Crear nueva compra — resetear todo
       if (!initialData || !initialData.id) {
         setFormData(emptyForm);
         setPurchaseItems([]);
@@ -67,7 +67,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
         return;
       }
 
-      // BUG 1 FIX: SIEMPRE hacer getById en view/edit para traer detalles frescos del back
       if (mode === "view" || mode === "edit") {
         setLoadingDetails(true);
         try {
@@ -83,7 +82,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
             estadoId: fullPurchase.estadoId,
           });
 
-          // BUG 2 FIX: mapear detalles correctamente con todos los posibles nombres de campo
           const detalles = fullPurchase.detalles || fullPurchase.items || fullPurchase.productos || [];
           setPurchaseItems(detalles.map(d => ({
             id: d.id || Date.now() + Math.random(),
@@ -95,7 +93,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
           })));
         } catch (err) {
           console.error("Error loading purchase details:", err);
-          // Fallback: usar lo que vino en initialData si el getById falla
           setFormData({
             proveedorId: initialData.proveedorId ? String(initialData.proveedorId) : "",
             fechaEntrega: initialData.fechaEntrega ? initialData.fechaEntrega.split("T")[0] : "",
@@ -115,20 +112,16 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
     };
 
     loadPurchaseDetails();
-    // Solo depende del ID, no del objeto entero: evita reabrir el formulario si el padre
-    // re-renderiza pasando un initialData con la misma compra pero nueva referencia
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData?.id, isOpen, mode]);
 
   if (!isOpen) return null;
   const isView = mode === "view";
 
-  // Productos filtrados por búsqueda
   const filteredProducts = products.filter(p =>
     p.nombre.toLowerCase().includes(productSearch.toLowerCase())
   );
 
-  // El lote y la fecha de vencimiento solo aplican a medicamentos
   const selectedProductData = products.find(p => String(p.id) === String(selectedProduct));
   const requiereLote = selectedProductData?.tipoProducto === "Medicamento";
 
@@ -218,7 +211,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
     }
   };
 
-  // Nombre del proveedor para modo view
   const proveedorNombre =
     providers.find(p => String(p.id) === String(formData.proveedorId))?.nombre ||
     initialData?.proveedorNombre || "-";
@@ -231,7 +223,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl flex flex-col max-h-[90vh] overflow-y-auto">
 
-        {/* Header */}
         <div className={`${headerBg} px-4 py-3 border-b ${headerBorder} flex justify-between items-center flex-shrink-0`}>
           <h3 className="font-bold text-gray-900 text-lg">
             {isView ? "Ver Compra" : mode === "edit" ? "Editar Compra" : "Registrar Compra"}
@@ -239,7 +230,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700"><X size={20} /></button>
         </div>
 
-        {/* Loading overlay para detalles */}
         {loadingDetails && (
           <div className="flex items-center justify-center py-16 text-gray-400 text-sm gap-2">
             <span className="animate-spin rounded-full h-5 w-5 border-2 border-emerald-500 border-t-transparent"></span>
@@ -247,7 +237,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
           </div>
         )}
 
-        {/* Body */}
         {!loadingDetails && (
           <div className="p-4 flex-1">
             {formErrorMsg && (
@@ -256,7 +245,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
               </div>
             )}
             {isView ? (
-              // Vista de detalle — BUG 2 FIX: usa proveedorNombre desde formData/providers, y purchaseItems para la tabla
               <div>
                 <div className="grid grid-cols-3 gap-6 mb-6 pb-4 border-b border-gray-200">
                   <div>
@@ -313,7 +301,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
                 </div>
               </div>
             ) : (
-              // Formulario crear/editar
               <>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
                   <div>
@@ -350,11 +337,9 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
                   </div>
                 </div>
 
-                {/* Agregar items */}
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
                   <h4 className="text-xs font-bold text-gray-500 uppercase mb-3 border-b border-gray-200 pb-1">Agregar Productos</h4>
 
-                  {/* Fila 1: qué producto y cuánto */}
                   <div className="flex flex-col md:flex-row gap-3 items-end mb-3">
                     <div className="flex-1 relative">
                       <label className="block text-[10px] font-bold text-gray-600 mb-1">Producto</label>
@@ -371,7 +356,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
                         onBlur={() => setTimeout(() => setShowProductDropdown(false), 200)}
                         className={`w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 focus:outline-none ${focusBorder} bg-white`}
                       />
-                      {/* Dropdown de resultados */}
                       {showProductDropdown && productSearch && filteredProducts.length > 0 && (
                         <div className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
                           {filteredProducts.map(p => (
@@ -390,7 +374,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
                           ))}
                         </div>
                       )}
-                      {/* Sin resultados */}
                       {showProductDropdown && productSearch && filteredProducts.length === 0 && (
                         <div className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 px-3 py-4 text-center text-xs text-gray-400">
                           No se encontraron productos
@@ -409,7 +392,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
                     </div>
                   </div>
 
-                  {/* Fila 2: lote y vencimiento, disponibles para cualquier producto (obligatorios solo para medicamentos) */}
                   <div className="flex flex-col md:flex-row gap-3 items-end">
                     <div className="w-full md:w-40">
                       <label className="block text-[10px] font-bold text-gray-600 mb-1">Lote{requiereLote ? " *" : ""}</label>
@@ -428,7 +410,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
                   </div>
                 </div>
 
-                {/* Tabla items */}
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-100 text-gray-600 text-xs uppercase font-bold">
@@ -475,7 +456,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
           </div>
         )}
 
-        {/* Footer */}
         <div className={`${headerBg} border-t ${headerBorder} p-4 flex-shrink-0 flex gap-3`}>
           {isView ? (
             <button onClick={onClose} className={`w-full px-4 py-2 text-sm font-bold text-white ${btnBg} rounded flex items-center justify-center gap-2 shadow-sm`}>
@@ -490,7 +470,6 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
         </div>
       </div>
 
-      {/* Modal confirmación */}
       {isConfirmationOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden">

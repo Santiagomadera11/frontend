@@ -14,7 +14,7 @@ export const returnService = {
   },
 
   getVenta: async (ventaId) => {
-    const res = await apiClient.get(`${ENDPOINT}/venta/${ventaId}`);
+    const res = await apiClient.get(`Venta/${ventaId}`);
     return res.data;
   },
 

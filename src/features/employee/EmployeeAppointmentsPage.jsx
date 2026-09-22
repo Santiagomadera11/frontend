@@ -1,5 +1,5 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   Calendar,
   List,
@@ -19,7 +19,13 @@ import {
   AlertCircle,
   X,
   Settings,
+  DollarSign,
 } from "lucide-react";
+
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 import { appointmentService } from "../services/appointments/services/appointmentService";
 import { availabilityService } from "../services/appointments/services/availabilityService";
 import AppointmentFormModal from "../services/appointments/components/AppointmentFormModal";
@@ -43,12 +49,12 @@ export const EmployeeAppointmentsPage = () => {
   const [doctors, setDoctors] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterFecha, setFilterFecha] = useState(todayStr());
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
 
-  // Modales
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
@@ -78,7 +84,6 @@ export const EmployeeAppointmentsPage = () => {
     isMountedRef.current = true;
     loadData();
 
-    // Escuchar cambios en citas desde otras vistas
     window.addEventListener("appointments:changed", loadData);
 
     return () => {
@@ -90,12 +95,20 @@ export const EmployeeAppointmentsPage = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, filterFecha]);
 
   useEffect(() => {
     if (activeTab === "calendario" && !canCalendar && canList) setActiveTab("citas");
     if (activeTab === "citas" && !canList && canCalendar) setActiveTab("calendario");
   }, [activeTab, canCalendar, canList]);
+
+  const ingresosCitasHoy = useMemo(() => {
+    const now = new Date();
+    const hoy = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    return appointments
+      .filter(a => (a.estadoNombre || "").toLowerCase() === "pagada" && (a.fecha || "").slice(0, 10) === hoy)
+      .reduce((s, a) => s + (Number(a.precio) || 0), 0);
+  }, [appointments]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -131,7 +144,6 @@ export const EmployeeAppointmentsPage = () => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   };
 
-  // Parse date strings like '2026-02-10' as local dates (avoid timezone shift)
   const parseLocalDate = (dateStr) => {
     if (!dateStr) return null;
     return new Date(dateStr.includes("T") ? dateStr : `${dateStr}T00:00:00`);
@@ -152,7 +164,6 @@ export const EmployeeAppointmentsPage = () => {
     const firstDay = getFirstDayOfMonth(currentDate);
     const days = [];
 
-    // Empty days
     for (let i = 0; i < firstDay; i++) {
       days.push({
         date: null,
@@ -163,7 +174,6 @@ export const EmployeeAppointmentsPage = () => {
       });
     }
 
-    // Days of month
     for (let date = 1; date <= daysInMonth; date++) {
       const dayDate = new Date(
         currentDate.getFullYear(),
@@ -188,9 +198,7 @@ export const EmployeeAppointmentsPage = () => {
 
     return (
       <div className="space-y-2">
-        {/* Contenedor del calendario */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
-          {/* Header del calendario */}
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-bold text-gray-800">
               {currentDate.toLocaleDateString("es-ES", {
@@ -214,7 +222,6 @@ export const EmployeeAppointmentsPage = () => {
             </div>
           </div>
 
-          {/* Días de la semana */}
           <div className="grid grid-cols-7 gap-0.5 mb-1">
             {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map((day) => (
               <div
@@ -226,7 +233,6 @@ export const EmployeeAppointmentsPage = () => {
             ))}
           </div>
 
-          {/* Grid de días */}
           <div className="grid grid-cols-7 gap-0.5">
             {days.map((day, index) => (
               <div
@@ -254,7 +260,6 @@ export const EmployeeAppointmentsPage = () => {
           </div>
         </div>
 
-        {/* Modal de resumen del día */}
         {selectedDate && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
@@ -336,21 +341,21 @@ export const EmployeeAppointmentsPage = () => {
   };
 
   const renderAppointmentsList = () => {
-    const filteredAppointments = appointments.filter(
-      (apt) =>
+    const filteredAppointments = appointments.filter((apt) => {
+      const matchSearch =
         (apt.paciente && apt.paciente.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (apt.telefono && apt.telefono.includes(searchTerm)) ||
-        (apt.email && apt.email.toLowerCase().includes(searchTerm.toLowerCase())),
-    );
+        (apt.email && apt.email.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchFecha = !filterFecha || (apt.fecha && apt.fecha.substring(0, 10) === filterFecha);
+      return matchSearch && matchFecha;
+    });
 
-    // Ordenar de la más reciente a la más antigua (fecha + hora desc)
     const sorted = filteredAppointments.sort((a, b) => {
       const dateA = new Date(`${a.fecha}T${a.hora || "00:00"}`);
       const dateB = new Date(`${b.fecha}T${b.hora || "00:00"}`);
-      return dateB - dateA; // más reciente primero
+      return dateB - dateA;
     });
 
-    // Paginación
     const totalPages = Math.max(1, Math.ceil(sorted.length / itemsPerPage));
     const indexOfLast = currentPage * itemsPerPage;
     const indexOfFirst = indexOfLast - itemsPerPage;
@@ -361,8 +366,8 @@ export const EmployeeAppointmentsPage = () => {
 
     return (
       <div className="space-y-4">
-        <div>
-          <div className="relative">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
             <Search
               size={18}
               className="absolute left-3 top-3 text-gray-400"
@@ -374,6 +379,19 @@ export const EmployeeAppointmentsPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-300"
             />
+          </div>
+          <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2 py-1">
+            <Calendar size={13} className="text-gray-400 flex-shrink-0" />
+            <input type="date" value={filterFecha}
+              onChange={(e) => setFilterFecha(e.target.value)}
+              className="text-xs font-medium text-gray-700 outline-none bg-transparent" />
+            {filterFecha && (
+              <button onClick={() => setFilterFecha("")}
+                title="Ver todas las fechas"
+                className="text-[10px] font-semibold text-employee-600 hover:text-employee-700 px-1.5 border-l border-gray-200">
+                Ver todas
+              </button>
+            )}
           </div>
         </div>
 
@@ -494,7 +512,6 @@ export const EmployeeAppointmentsPage = () => {
           </table>
         </div>
 
-        {/* Paginación */}
         <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-100">
           <span className="text-xs text-gray-500">
             Página {currentPage} de {totalPages} ({sorted.length} total)
@@ -524,7 +541,6 @@ export const EmployeeAppointmentsPage = () => {
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
-      {/* Header con tabs y botón */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex gap-2">
           {canCalendar && (
@@ -595,7 +611,22 @@ export const EmployeeAppointmentsPage = () => {
         )}
       </div>
 
-      {/* Contenido de las tabs */}
+      {(activeTab === "calendario" || activeTab === "citas") && (
+        <div className="px-6 pt-4">
+          <div className="bg-white p-4 rounded-xl border border-employee-200 shadow-sm flex items-center gap-3 max-w-xs">
+            <div className="bg-employee-50 text-employee-600 p-2.5 rounded-xl">
+              <DollarSign size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Ingresos por Citas Hoy</p>
+              <p className="text-xl font-black text-gray-900">
+                {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(ingresosCitasHoy)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-auto">
         {activeTab === "calendario" && canCalendar && renderCalendar()}
         {activeTab === "citas" && canList && renderAppointmentsList()}
@@ -603,7 +634,6 @@ export const EmployeeAppointmentsPage = () => {
         {activeTab === "medicos" && hasPerm("appointments.doctors.view") && <EmployeeDoctorsPage />}
       </div>
 
-      {/* Modales */}
       {isAppointmentModalOpen && (
         <AppointmentFormModal
           isOpen={isAppointmentModalOpen}
@@ -622,7 +652,6 @@ export const EmployeeAppointmentsPage = () => {
         />
       )}
 
-      {/* Modal de detalles */}
       {isDetailModalOpen && selectedAppointment && (
         <AppointmentDetailModal
           isOpen={isDetailModalOpen}
@@ -632,6 +661,7 @@ export const EmployeeAppointmentsPage = () => {
           }}
           appointment={selectedAppointment}
           doctors={doctors}
+          accentColor="blue"
           onMarkCompleted={() => {
             appointmentService.updateAppointment(selectedAppointment.id, {
               ...selectedAppointment,
