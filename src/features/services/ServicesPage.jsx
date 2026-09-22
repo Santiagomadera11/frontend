@@ -285,7 +285,8 @@ export const ServicesPage = () => {
       </div>
 
       <ServiceFormModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setEditingItem(null); }}
-        onSave={handleSave} initialData={editingItem} isViewMode={isViewMode} />
+        onSave={handleSave} initialData={editingItem} isViewMode={isViewMode}
+        accentColor={isEmployeePanel ? "blue" : "emerald"} />
 
       <ConfirmDialog open={confirmConfig.open} title={confirmConfig.title} message={confirmConfig.message} subMessage=""
         confirmText={confirmConfig.confirmText} danger={confirmConfig.danger}

@@ -63,7 +63,7 @@ export const SalesReport = () => {
   }).format(v || 0);
 
   const exportCSV = () => {
-    const csv = "data:text/csv;charset=utf-8," +
+    const csv = "data:text/csv;charset=utf-8,﻿" +
       "Fecha,Numero,Cliente,Documento,Subtotal,IVA,Total,MetodoPago,Items,Estado\n" +
       filteredSales.map(s => {
         const items = (s.detalles || []).reduce((a, d) => a + d.cantidad, 0);

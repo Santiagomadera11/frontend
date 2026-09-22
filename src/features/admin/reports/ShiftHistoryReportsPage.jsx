@@ -81,7 +81,7 @@ export const ShiftHistoryReportsPage = () => {
       ];
     });
 
-    const csvContent = "data:text/csv;charset=utf-8," 
+    const csvContent = "data:text/csv;charset=utf-8,﻿"
       + [headers.join(","), ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
     
     const encodedUri = encodeURI(csvContent);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   TrendingUp, DollarSign, Package, AlertCircle,
-  Download, Award, Stethoscope, BarChart3,
+  Download, Award, Stethoscope, BarChart3, Pencil, Check, X as XIcon, Eye, History,
 } from "lucide-react";
 import {
   BarChart, Bar, PieChart, Pie, Cell, LabelList,
@@ -19,11 +19,25 @@ const fmt = (v) =>
 const fmtCompact = (v) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", notation: "compact", maximumFractionDigits: 1 }).format(v || 0);
 
+const getEstadoCitaStyle = (estadoNombre) => {
+  const est = (estadoNombre || "").toLowerCase();
+  if (est.includes("pagada")) return "bg-emerald-50 text-emerald-700 border-emerald-100";
+  if (est.includes("completada")) return "bg-blue-50 text-blue-700 border-blue-100";
+  if (est.includes("cancelada")) return "bg-red-50 text-red-700 border-red-100";
+  if (est.includes("pendiente") || est.includes("asistencia")) return "bg-amber-50 text-amber-700 border-amber-100";
+  return "bg-gray-50 text-gray-700 border-gray-100";
+};
+
 export const SalesPerformanceReportsPage = () => {
   const [activeTab, setActiveTab] = useState("empleados");
   const [turnos, setTurnos] = useState([]);
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [metaVentas, setMetaVentas] = useState(5000000);
+  const [editingMeta, setEditingMeta] = useState(false);
+  const [metaInput, setMetaInput] = useState("");
+  const [savingMeta, setSavingMeta] = useState(false);
+  const [historialMedico, setHistorialMedico] = useState(null); // { medicoId, nombreMedico } | null
 
   // Esta página también la usa el panel de Empleado (Reportes → Desempeño): verde en
   // admin, azul en empleado, igual que el resto del sistema.
@@ -49,6 +63,49 @@ export const SalesPerformanceReportsPage = () => {
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Meta grupal editable: se guarda en la tabla de Configuraciones. Si aún no existe
+  // (primera vez), se queda con el valor por defecto en vez de romper la pantalla.
+  useEffect(() => {
+    const cargarMeta = async () => {
+      try {
+        const res = await apiClient.get(`${API}/Configuracion/meta_ventas_grupal`, getAuthHeaders());
+        const valor = parseFloat(res.data?.valor);
+        if (!Number.isNaN(valor)) setMetaVentas(valor);
+      } catch {
+        // sin configuración guardada aún: se usa el valor por defecto
+      }
+    };
+    cargarMeta();
+  }, []);
+
+  const iniciarEdicionMeta = () => {
+    setMetaInput(String(metaVentas));
+    setEditingMeta(true);
+  };
+
+  const cancelarEdicionMeta = () => {
+    setEditingMeta(false);
+    setMetaInput("");
+  };
+
+  const guardarMeta = async () => {
+    const valor = parseFloat(metaInput);
+    if (Number.isNaN(valor) || valor <= 0) return;
+    setSavingMeta(true);
+    try {
+      // El backend espera el body como un string JSON ("5000000"), pero axios no le pone
+      // comillas a un número porque asume que ya viene serializado — el backend lo
+      // rechaza con 400. Se fuerza el JSON.stringify para que viaje entre comillas.
+      await apiClient.put(`${API}/Configuracion/meta_ventas_grupal`, JSON.stringify(String(valor)), getAuthHeaders());
+      setMetaVentas(valor);
+      setEditingMeta(false);
+    } catch {
+      // si falla el guardado se deja el modo edición abierto para reintentar
+    } finally {
+      setSavingMeta(false);
+    }
+  };
 
   // Resumen por empleado desde turnos
   const employeesSummary = useMemo(() => {
@@ -86,6 +143,37 @@ export const SalesPerformanceReportsPage = () => {
     return Array.from(map.values()).sort((a, b) => b.totalServicios - a.totalServicios);
   }, [citas]);
 
+  // Historial completo (todos los estados, no solo pagadas) del médico seleccionado,
+  // para que el admin pueda revisar paciente por paciente si sospecha una inconsistencia.
+  const historialCitas = useMemo(() => {
+    if (!historialMedico) return [];
+    return citas
+      .filter(c => c.medicoId === historialMedico.medicoId)
+      .sort((a, b) => `${b.fecha || ""}${b.hora || ""}`.localeCompare(`${a.fecha || ""}${a.hora || ""}`));
+  }, [citas, historialMedico]);
+
+  const handleDownloadHistorialCSV = () => {
+    if (!historialMedico || !historialCitas.length) return;
+    const headers = ["Fecha", "Hora", "Paciente", "Servicio", "Precio", "Estado"];
+    const rows = historialCitas.map(c => [
+      c.fecha ? c.fecha.substring(0, 10) : "",
+      c.hora || "",
+      c.pacienteNombre || "",
+      c.servicioNombre || "",
+      c.precio || 0,
+      c.estadoNombre || "",
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8,﻿"
+      + [headers.join(","), ...rows.map(r => r.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `historial_${(historialMedico.nombreMedico || "medico").replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleDownloadCSV = () => {
     if (activeTab === "empleados") {
       if (!employeesSummary.length) {
@@ -100,7 +188,7 @@ export const SalesPerformanceReportsPage = () => {
         e.totalTurnos || 0
       ]);
 
-      const csvContent = "data:text/csv;charset=utf-8," 
+      const csvContent = "data:text/csv;charset=utf-8,﻿"
         + [headers.join(","), ...rows.map(r => r.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
@@ -121,7 +209,7 @@ export const SalesPerformanceReportsPage = () => {
         m.totalIngresos || 0
       ]);
 
-      const csvContent = "data:text/csv;charset=utf-8," 
+      const csvContent = "data:text/csv;charset=utf-8,﻿"
         + [headers.join(","), ...rows.map(r => r.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
@@ -135,8 +223,7 @@ export const SalesPerformanceReportsPage = () => {
 
   const topSeller = employeesSummary[0] || null;
   const totalVentasGrupo = employeesSummary.reduce((s, e) => s + e.totalVentas, 0);
-  const META_VENTAS = 5000000;
-  const metaGroupal = (totalVentasGrupo / META_VENTAS) * 100;
+  const metaGroupal = metaVentas > 0 ? (totalVentasGrupo / metaVentas) * 100 : 0;
 
   const chartData = employeesSummary.map(e => ({
     nombre: e.userName, ventas: e.totalVentas, turnos: e.totalTurnos,
@@ -213,10 +300,35 @@ export const SalesPerformanceReportsPage = () => {
             </div>
             <div className="group relative overflow-hidden bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-emerald-500">
               <div className="flex items-start justify-between">
-                <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Meta Grupal</p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Meta Grupal</p>
+                    {isAdmin && !editingMeta && (
+                      <button onClick={iniciarEdicionMeta} title="Editar meta grupal"
+                        className="text-gray-300 hover:text-emerald-600 transition-colors">
+                        <Pencil size={11} />
+                      </button>
+                    )}
+                  </div>
                   <p className="text-lg font-bold text-gray-900 mt-1">{metaGroupal.toFixed(1)}%</p>
-                  <p className="text-[10px] text-gray-400 mt-1">{fmt(totalVentasGrupo)} / {fmt(META_VENTAS)}</p>
+                  {editingMeta ? (
+                    <div className="flex items-center gap-1 mt-1">
+                      <input type="number" min="1" autoFocus value={metaInput}
+                        onChange={(e) => setMetaInput(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") guardarMeta(); if (e.key === "Escape") cancelarEdicionMeta(); }}
+                        className="w-24 text-[11px] px-1.5 py-0.5 border border-gray-200 rounded outline-none focus:ring-1 focus:ring-emerald-500" />
+                      <button onClick={guardarMeta} disabled={savingMeta} title="Guardar"
+                        className="p-1 rounded text-emerald-600 hover:bg-emerald-50 transition-colors disabled:opacity-50">
+                        <Check size={13} />
+                      </button>
+                      <button onClick={cancelarEdicionMeta} title="Cancelar"
+                        className="p-1 rounded text-gray-400 hover:bg-gray-50 transition-colors">
+                        <XIcon size={13} />
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-gray-400 mt-1">{fmt(totalVentasGrupo)} / {fmt(metaVentas)}</p>
+                  )}
                 </div>
                 <div className="bg-emerald-50 text-emerald-600 p-2.5 rounded-lg group-hover:scale-110 transition-transform duration-200 shrink-0">
                   <DollarSign size={18} />
@@ -330,9 +442,16 @@ export const SalesPerformanceReportsPage = () => {
                         <p className="text-sm font-semibold text-gray-800 truncate">{getMedal(i) || `${i + 1}.`} {m.nombreMedico}</p>
                         <p className="text-[11px] text-gray-400">{m.totalServicios} servicios</p>
                       </div>
-                      <div className="text-right shrink-0 pl-2">
-                        <p className="text-sm font-bold text-emerald-600">{fmt(m.totalIngresos)}</p>
-                        <p className="text-[10px] text-gray-400">ingresos</p>
+                      <div className="flex items-center gap-2 shrink-0 pl-2">
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-emerald-600">{fmt(m.totalIngresos)}</p>
+                          <p className="text-[10px] text-gray-400">ingresos</p>
+                        </div>
+                        <button onClick={() => setHistorialMedico({ medicoId: m.medicoId, nombreMedico: m.nombreMedico })}
+                          title="Ver historial de pacientes"
+                          className={`p-1.5 rounded-lg ${theme.icon} hover:opacity-80 transition-opacity`}>
+                          <History size={14} />
+                        </button>
                       </div>
                     </div>
                     <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -350,14 +469,14 @@ export const SalesPerformanceReportsPage = () => {
               <table className="w-full text-left border-collapse">
                 <thead className={`${theme.thead} text-white sticky top-0`}>
                   <tr>
-                    {["Pos.", "Médico", "Citas Realizadas", "Ingresos", "Promedio/Cita"].map(h => (
+                    {["Pos.", "Médico", "Citas Realizadas", "Ingresos", "Promedio/Cita", ""].map(h => (
                       <th key={h} className="py-2.5 px-3 text-[10px] font-semibold uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {medicosSummary.length === 0 ? (
-                    <tr><td colSpan={5} className="py-6 text-center text-gray-400 text-sm">No hay datos</td></tr>
+                    <tr><td colSpan={6} className="py-6 text-center text-gray-400 text-sm">No hay datos</td></tr>
                   ) : (
                     medicosSummary.map((m, i) => (
                       <tr key={m.medicoId} className="hover:bg-gray-50 transition-colors">
@@ -366,6 +485,13 @@ export const SalesPerformanceReportsPage = () => {
                         <td className="py-2 px-3 text-xs text-gray-600">{m.totalServicios}</td>
                         <td className="py-2 px-3 text-xs font-bold text-emerald-600">{fmt(m.totalIngresos)}</td>
                         <td className="py-2 px-3 text-xs text-gray-600">{fmt(m.totalServicios > 0 ? m.totalIngresos / m.totalServicios : 0)}</td>
+                        <td className="py-2 px-3 text-right">
+                          <button onClick={() => setHistorialMedico({ medicoId: m.medicoId, nombreMedico: m.nombreMedico })}
+                            title="Ver historial de pacientes"
+                            className="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 transition-colors">
+                            <Eye size={15} />
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -374,6 +500,66 @@ export const SalesPerformanceReportsPage = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Historial de pacientes por médico */}
+      {historialMedico && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className={`px-6 py-4 flex items-center justify-between border-b ${isAdmin ? "bg-emerald-50 border-emerald-200" : "bg-blue-50 border-blue-200"} flex-shrink-0`}>
+              <div>
+                <h2 className={`text-lg font-semibold ${isAdmin ? "text-emerald-700" : "text-blue-700"}`}>Historial de {historialMedico.nombreMedico}</h2>
+                <p className="text-xs text-gray-500 mt-0.5">{historialCitas.length} cita{historialCitas.length !== 1 ? "s" : ""} registrada{historialCitas.length !== 1 ? "s" : ""}</p>
+              </div>
+              <button onClick={() => setHistorialMedico(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <XIcon size={20} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    {["Fecha", "Hora", "Paciente", "Servicio", "Precio", "Estado"].map(h => (
+                      <th key={h} className="py-2 px-3 text-[10px] font-semibold uppercase tracking-wide text-gray-500">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {historialCitas.length === 0 ? (
+                    <tr><td colSpan={6} className="py-6 text-center text-gray-400 text-sm">Sin citas registradas</td></tr>
+                  ) : (
+                    historialCitas.map(c => (
+                      <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="py-2 px-3 text-xs text-gray-600 whitespace-nowrap">{c.fecha ? c.fecha.substring(0, 10) : "—"}</td>
+                        <td className="py-2 px-3 text-xs text-gray-600 whitespace-nowrap">{c.hora || "—"}</td>
+                        <td className="py-2 px-3 text-xs font-semibold text-gray-700">{c.pacienteNombre || "—"}</td>
+                        <td className="py-2 px-3 text-xs text-gray-600">{c.servicioNombre || "—"}</td>
+                        <td className="py-2 px-3 text-xs font-bold text-gray-800 whitespace-nowrap">{fmt(c.precio)}</td>
+                        <td className="py-2 px-3 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${getEstadoCitaStyle(c.estadoNombre)}`}>
+                            {c.estadoNombre || "—"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="px-6 py-3 border-t border-gray-100 flex justify-end gap-2 flex-shrink-0">
+              <button onClick={handleDownloadHistorialCSV} disabled={!historialCitas.length}
+                className={`flex items-center gap-1.5 ${theme.button} text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}>
+                <Download size={13} /> Descargar CSV
+              </button>
+              <button onClick={() => setHistorialMedico(null)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -29,6 +29,15 @@ const normalizeText = (str) => {
     .trim();
 };
 
+// yyyy-mm-dd en hora LOCAL (no UTC), para que coincida con lo que devuelve un <input type="date">
+const toLocalDateStr = (value) => {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+const todayStr = () => toLocalDateStr(new Date());
+
 const KPICard = ({ icon: Icon, label, value, bg, text, accent }) => (
   <div className={`group relative overflow-hidden p-4 rounded-xl border border-gray-100 bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 before:absolute before:inset-x-0 before:top-0 before:h-1 ${accent}`}>
     <div className={`inline-flex p-2 rounded-lg mb-2 ${bg} ${text} group-hover:scale-110 transition-transform duration-200`}>
@@ -45,6 +54,8 @@ export const SalesPage = () => {
   const [sales, setSales] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
+  // Por defecto la tabla solo muestra las ventas de hoy; "" = ver todas las fechas.
+  const [filterFecha, setFilterFecha] = useState(todayStr());
   const [currentPage, setCurrentPage] = useState(0);
   const [isSaleDetailOpen, setIsSaleDetailOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
@@ -164,6 +175,10 @@ export const SalesPage = () => {
         return normalizeText(s?.estadoNombre) === estadoSeleccionado;
       })
       .filter((s) => {
+        if (!filterFecha) return true;
+        return toLocalDateStr(s?.fechaVenta) === filterFecha;
+      })
+      .filter((s) => {
         const term = searchTerm.toLowerCase();
         return (
           (s?.clienteNombre || "").toLowerCase().includes(term) ||
@@ -171,7 +186,7 @@ export const SalesPage = () => {
         );
       })
       .sort((a, b) => new Date(b.fechaVenta || 0) - new Date(a.fechaVenta || 0));
-  }, [sales, searchTerm, filterEstado]);
+  }, [sales, searchTerm, filterEstado, filterFecha]);
 
   const totalPages = Math.ceil(filteredSales.length / itemsPerPage);
   const displayedSales = filteredSales.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
@@ -262,6 +277,19 @@ export const SalesPage = () => {
           <option value="anulada">Anuladas</option>
           <option value="pendiente">Pendientes</option>
         </select>
+        <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2 py-1">
+          <CalendarIcon size={13} className="text-gray-400 flex-shrink-0" />
+          <input type="date" value={filterFecha}
+            onChange={(e) => { setFilterFecha(e.target.value); setCurrentPage(0); }}
+            className="text-xs font-medium text-gray-700 outline-none bg-transparent" />
+          {filterFecha && (
+            <button onClick={() => { setFilterFecha(""); setCurrentPage(0); }}
+              title="Ver todas las fechas"
+              className="text-[10px] font-semibold text-primary-600 hover:text-primary-700 px-1.5 border-l border-gray-200">
+              Ver todas
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabla Adaptativa */}

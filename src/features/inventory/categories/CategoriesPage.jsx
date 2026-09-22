@@ -181,7 +181,7 @@ export const CategoriesPage = () => {
             onClick={() => { setSelectedCategory(null); setModalMode("create"); setIsModalOpen(true); }}
             className={`flex items-center gap-1.5 ${theme.main} ${theme.mainHover} text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm`}
           >
-            <Plus size={16} /> Nueva
+            <Plus size={16} /> Nuevo
           </button>
         )}
       </div>

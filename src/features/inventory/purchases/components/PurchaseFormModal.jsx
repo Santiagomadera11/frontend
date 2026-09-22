@@ -15,7 +15,10 @@ const emptyForm = {
 
 const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", onSave }) => {
   const { currentUser } = useCurrentUser();
-  const isEmployee = currentUser.rol === "Empleado";
+  // useCurrentUser ya normaliza el rol a minúsculas ("empleado"/"administrador"), así que
+  // comparar contra "Empleado" (con mayúscula) nunca daba true: por eso este modal salía
+  // siempre en verde sin importar quién lo abriera.
+  const isEmployee = (currentUser?.rol || "").toLowerCase().trim() !== "administrador";
   const headerBg = isEmployee ? "bg-blue-50" : "bg-emerald-50";
   const headerBorder = isEmployee ? "border-blue-200" : "border-emerald-200";
   const btnBg = isEmployee ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-700";
@@ -57,6 +60,10 @@ const PurchaseModal = ({ isOpen, onClose, initialData = null, mode = "create", o
 
   useEffect(() => {
     if (!isOpen) return;
+    // El modal nunca se desmonta (solo retorna null si !isOpen), así que sin esto un
+    // error de un intento anterior de guardar quedaba pegado y reaparecía al abrir
+    // "Ver detalle" de otra compra.
+    setFormErrorMsg("");
 
     const loadPurchaseDetails = async () => {
       // Crear nueva compra — resetear todo

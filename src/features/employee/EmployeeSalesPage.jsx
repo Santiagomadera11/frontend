@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Plus, Eye, ChevronLeft, ChevronRight,
   ShoppingCart, DollarSign, Clock, TrendingDown, Receipt,
-  RotateCcw, FileDown, FileText
+  RotateCcw, FileDown, FileText, Calendar as CalendarIcon
 } from "lucide-react";
 import { turnService } from "../sales/services/turnService";
 import { salesService } from "../sales/services/salesService";
@@ -17,6 +17,15 @@ import { ToastNotification } from "../../shared/ui/ToastNotification";
 
 const fmt = (v) =>
   new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v || 0);
+
+// yyyy-mm-dd en hora LOCAL (no UTC), para que coincida con lo que devuelve un <input type="date">
+const toLocalDateStr = (value) => {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+const todayStr = () => toLocalDateStr(new Date());
 
 export const EmployeeSalesPage = () => {
   const navigate = useNavigate();
@@ -46,6 +55,8 @@ export const EmployeeSalesPage = () => {
   const [toast, setToast] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
+  // Por defecto la tabla solo muestra las ventas de hoy; "" = ver todas las fechas.
+  const [filterFecha, setFilterFecha] = useState(todayStr());
   const [currentPage, setCurrentPage] = useState(0);
   const [isSaleDetailOpen, setIsSaleDetailOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
@@ -143,8 +154,8 @@ export const EmployeeSalesPage = () => {
         .map(row => row.map(cell => `"${cell}"`).join(","))
         .join("\n");
 
-      // Descargar archivo
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      // Descargar archivo (con BOM para que Excel detecte UTF-8 y no rompa las tildes)
+      const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = `reporte_ventas_${new Date().toISOString().split("T")[0]}.csv`;
@@ -198,8 +209,9 @@ export const EmployeeSalesPage = () => {
       (s.numeroVenta || "").toLowerCase().includes(term) ||
       (s.metodoPagoNombre || "").toLowerCase().includes(term);
     const matchEstado = filterEstado === "todos" || (s.estadoNombre || "").toLowerCase() === filterEstado;
-    return matchSearch && matchEstado;
-  }), [sales, searchTerm, filterEstado]);
+    const matchFecha = !filterFecha || toLocalDateStr(s.fechaVenta) === filterFecha;
+    return matchSearch && matchEstado && matchFecha;
+  }), [sales, searchTerm, filterEstado, filterFecha]);
 
   const totalPages = Math.ceil(filteredSales.length / itemsPerPage);
   const displayedSales = filteredSales.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
@@ -343,6 +355,20 @@ export const EmployeeSalesPage = () => {
           <option value="devolucion">Devoluciones</option>
           <option value="anulada">Anuladas</option>
         </select>
+
+        <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2 py-1">
+          <CalendarIcon size={13} className="text-gray-400 flex-shrink-0" />
+          <input type="date" value={filterFecha}
+            onChange={(e) => { setFilterFecha(e.target.value); setCurrentPage(0); }}
+            className="text-xs font-medium text-gray-700 outline-none bg-transparent" />
+          {filterFecha && (
+            <button onClick={() => { setFilterFecha(""); setCurrentPage(0); }}
+              title="Ver todas las fechas"
+              className="text-[10px] font-semibold text-employee-600 hover:text-employee-700 px-1.5 border-l border-gray-200">
+              Ver todas
+            </button>
+          )}
+        </div>
 
         {/* Nueva Venta — requiere sales.create */}
         {canCreateSale && (

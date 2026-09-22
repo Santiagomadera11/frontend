@@ -82,7 +82,9 @@ const AppointmentFormModal = ({
     [],
   );
   const currentUserRole = (currentUser.rol || "Administrador").toLowerCase().trim();
-  const isEmployee = currentUserRole === "empleado";
+  // Cualquier rol que no sea Administrador ve el panel azul, no solo el rol fijo
+  // "Empleado" — si no, un rol dinámico/personalizado se quedaba en verde.
+  const isEmployee = currentUserRole !== "administrador";
 
   // ── Theme tokens (Emerald para clientes, Azul para empleados) ──
   const headerBgColor   = isEmployee ? "bg-blue-600" : "bg-emerald-600";

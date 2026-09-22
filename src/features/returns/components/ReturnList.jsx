@@ -32,6 +32,7 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
   const userRole = (user.rol || "").toLowerCase().trim();
   const userPerms = (user.permisos || []).map((perm) => String(perm || "").toLowerCase().trim());
   const canCreateReturn = userRole === "administrador" || userPerms.includes("sales.create") || userPerms.includes("sales.return");
+  const isAdminPanel = userRole === "administrador";
 
   const filteredReturns = useMemo(() => {
     return devoluciones.filter((d) => {
@@ -83,7 +84,7 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${isAdminPanel ? "border-emerald-600" : "border-blue-600"}`}></div>
       </div>
     );
   }
@@ -104,7 +105,7 @@ export const ReturnList = ({ devoluciones = [], loading, onRefresh }) => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(0);
                 }}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                className={`w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 text-sm ${isAdminPanel ? "focus:ring-emerald-500" : "focus:ring-blue-500"}`}
               />
             </div>
             <button

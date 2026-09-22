@@ -18,6 +18,11 @@ const ParameterManagement = ({ user }) => {
   const isAdmin = user?.rol?.toLowerCase() === "administrador";
   const userPerms = (user?.permisos || []).map((perm) => String(perm || "").toLowerCase().trim());
   const hasPerm = (perm) => isAdmin || userPerms.includes(perm);
+  // Empleados con permisos de configuración también entran aquí, así que sigue el mismo
+  // esquema azul/verde del resto del sistema en vez de quedarse fijo en verde.
+  const theme = !isAdmin
+    ? { text: "text-blue-600", border: "border-blue-600", bg: "bg-blue-600", bgHover: "hover:bg-blue-700", focus: "focus:border-blue-500" }
+    : { text: "text-emerald-600", border: "border-emerald-600", bg: "bg-emerald-600", bgHover: "hover:bg-emerald-700", focus: "focus:border-emerald-500" };
   const canManageParameters = isAdmin || userPerms.some((perm) => (
     perm.startsWith("config.service_categories.") ||
     perm.startsWith("config.payment_methods.") ||
@@ -170,7 +175,7 @@ const ParameterManagement = ({ user }) => {
           {canCreateType(type) && (
             <button
               onClick={() => openAddModal(type)}
-              className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+              className={`flex items-center gap-2 ${theme.bg} text-white px-4 py-2 rounded-xl ${theme.bgHover} text-xs font-black uppercase tracking-widest transition-all active:scale-95`}
             >
               <Plus size={14} /> Agregar
             </button>
@@ -248,7 +253,7 @@ const ParameterManagement = ({ user }) => {
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 font-black text-xs uppercase tracking-widest border-b-2 transition-colors ${
               activeTab === tab.id
-                ? "border-emerald-600 text-emerald-600"
+                ? `${theme.border} ${theme.text}`
                 : "border-transparent text-slate-400 hover:text-slate-600"
             }`}>
             {tab.label}
@@ -276,7 +281,7 @@ const ParameterManagement = ({ user }) => {
                   value={inputValue}
                   onChange={(e) => { setInputValue(e.target.value); setError(""); }}
                   onKeyDown={(e) => e.key === "Enter" && handleSave()}
-                  className={`w-full p-4 rounded-2xl border-2 focus:border-emerald-500 outline-none font-bold text-slate-700 transition-all ${error ? "border-rose-300" : "border-slate-100"}`}
+                  className={`w-full p-4 rounded-2xl border-2 ${theme.focus} outline-none font-bold text-slate-700 transition-all ${error ? "border-rose-300" : "border-slate-100"}`}
                   placeholder="Ingresa el valor"
                   autoFocus
                 />
@@ -284,7 +289,7 @@ const ParameterManagement = ({ user }) => {
               </div>
               <div className="flex gap-3 pt-2">
                 <button onClick={handleSave} disabled={saving}
-                  className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-50 transition-all">
+                  className={`flex-1 flex items-center justify-center gap-2 ${theme.bg} text-white px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-widest ${theme.bgHover} disabled:opacity-50 transition-all`}>
                   <Save size={16} /> {saving ? "Guardando..." : "Guardar"}
                 </button>
                 <button onClick={() => setShowModal(false)}

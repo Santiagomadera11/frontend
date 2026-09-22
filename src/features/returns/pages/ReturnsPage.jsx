@@ -29,7 +29,9 @@ export const ReturnsPage = () => {
           <p className="text-gray-600 mb-6">No tienes permisos para ver las devoluciones. Contacta al administrador para que te asigne los permisos necesarios.</p>
           <button
             onClick={() => navigate(ventasPath)}
-            className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+            className={`px-6 py-2 text-white rounded-lg transition-colors font-medium ${
+              userRole === "administrador" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
             Volver a Ventas
           </button>

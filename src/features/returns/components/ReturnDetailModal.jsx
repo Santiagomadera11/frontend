@@ -1,5 +1,5 @@
 import { useCurrentUser } from "/src/shared/context/UserContext";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, CheckCircle, XCircle, Loader, Clock, User, Package, FileText } from "lucide-react";
 import { returnService } from "../services/returnService";
 import { ToastNotification } from "/src/shared/ui/ToastNotification";
@@ -22,6 +22,13 @@ export const ReturnDetailModal = ({ isOpen, onClose, devolucion, onRefresh }) =>
   const { currentUser } = useCurrentUser();
   const user = currentUser || {};
   const userRole = (user.rol || "").toLowerCase().trim();
+
+  // El modal nunca se desmonta (ReturnList lo renderiza siempre, solo cambia isOpen), así
+  // que sin esto el toast de una gestión anterior (aprobar/rechazar) quedaba pegado y
+  // reaparecía al abrir el detalle de otra devolución.
+  useEffect(() => {
+    if (isOpen) setToast(null);
+  }, [isOpen, devolucion?.id]);
 
   if (!isOpen || !devolucion) return null;
 

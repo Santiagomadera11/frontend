@@ -21,7 +21,11 @@ export const CreateOrderPage = () => {
 
   const isEmployeePath = location.pathname.startsWith("/employee");
   const { currentUser } = useCurrentUser();
-  const isEmployeeRole = (currentUser.rol || "") === "Empleado";
+  const user = currentUser || {};
+  // useCurrentUser ya normaliza el rol a minúsculas ("empleado"/"administrador"), así que
+  // comparar contra "Empleado" (con mayúscula) nunca daba true: por eso esta pantalla
+  // salía siempre en verde sin importar quién la abriera.
+  const isEmployeeRole = (user.rol || "").toLowerCase().trim() !== "administrador";
 
   const primary = isEmployeeRole ? "#2563eb" : "#059669";
   const primaryLight = isEmployeeRole ? "#eff6ff" : "#ecfdf5";
@@ -312,7 +316,7 @@ export const CreateOrderPage = () => {
         </div>
 
         <div className="text-right">
-          <p className="text-[11px] font-black text-gray-900">{currentUser.nombre}</p>
+          <p className="text-[11px] font-black text-gray-900">{user.nombre}</p>
           {turnoActivo && <span className="text-[9px] font-black bg-blue-600 text-white px-1.5 py-0.5 rounded">CAJA #{turnoActivo.id}</span>}
         </div>
       </div>
@@ -407,7 +411,7 @@ export const CreateOrderPage = () => {
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                   min="0"
                   max="100"
-                  disabled={currentUser.rol?.toLowerCase() !== "administrador"}
+                  disabled={(user.rol || "").toLowerCase() !== "administrador"}
                 />
               </div>
 

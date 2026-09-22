@@ -25,10 +25,14 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
   const canCreateReturn = userRole === "administrador" || userPerms.includes("sales.create") || userPerms.includes("sales.return");
 
   React.useEffect(() => {
-    if (isOpen && !canCreateReturn) {
-      setToast({ 
-        message: "No tienes permisos para crear devoluciones", 
-        type: "error" 
+    if (!isOpen) return;
+    // El modal nunca se desmonta (isOpen solo lo oculta), así que sin esto un toast de
+    // la vez anterior que se abrió quedaba pegado y reaparecía de una al reabrir.
+    setToast(null);
+    if (!canCreateReturn) {
+      setToast({
+        message: "No tienes permisos para crear devoluciones",
+        type: "error"
       });
       setTimeout(() => onClose?.(), 1500);
     }
@@ -137,6 +141,9 @@ export const ReturnForm = ({ isOpen, onClose, onSuccess }) => {
     setMotivo("");
     setObservaciones("");
     setSearchError("");
+    // El modal nunca se desmonta (isOpen solo lo oculta), así que sin esto un toast de
+    // un intento anterior quedaba pegado y reaparecía al volver a abrir el formulario.
+    setToast(null);
   };
 
   const handleClose = () => {

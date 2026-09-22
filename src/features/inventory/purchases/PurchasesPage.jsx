@@ -191,7 +191,7 @@ export const PurchasesPage = () => {
         {canCreate && (
           <button onClick={() => navigate(isEmployeePath ? "/employee/compras/nueva" : "/admin/compras/nueva")}
             className={`flex items-center gap-1.5 ${theme.main} ${theme.hover} text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm`}>
-            <Plus size={16} /> Nueva
+            <Plus size={16} /> Nuevo
           </button>
         )}
       </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Save, DollarSign, Package, X, CheckCircle, AlertCircle, Barcode } from "lucide-react";
+import { ArrowLeft, Save, DollarSign, Package, X, CheckCircle, AlertCircle, Barcode, Tag } from "lucide-react";
 import { productService } from "./services/productService";
 import { categoryService } from "../categories/services/categoryService";
 import { brandService } from "../brands/services/brandService";
@@ -293,8 +293,12 @@ const NewProductPage = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 bg-white border border-gray-100 rounded-lg p-6 shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          {/* Columna izquierda: Información General */}
+          <div className="bg-white border border-gray-100 rounded-lg p-6 shadow-sm">
+            <h4 className="font-bold text-gray-800 text-sm mb-4 flex items-center gap-2">
+              <Tag size={15} className="text-emerald-600" /> Información General
+            </h4>
             <div className="space-y-4">
 
               {/* Nombre */}
@@ -304,55 +308,47 @@ const NewProductPage = () => {
                   value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} />
               </div>
 
-              {/* Marca */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Marca</label>
-                <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-white"
-                  value={formData.marcaId} onChange={(e) => setFormData({ ...formData, marcaId: e.target.value })}>
-                  <option value="">Seleccionar...</option>
-                  {brands.map(brand => <option key={brand.id} value={brand.id}>{brand.nombre}</option>)}
-                </select>
+              {/* Marca + Categoría */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Marca</label>
+                  <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-white"
+                    value={formData.marcaId} onChange={(e) => setFormData({ ...formData, marcaId: e.target.value })}>
+                    <option value="">Seleccionar...</option>
+                    {brands.map(brand => <option key={brand.id} value={brand.id}>{brand.nombre}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Categoría</label>
+                  <select className="w-full text-sm border border-gray-300 rounded px-3 py-2"
+                    value={formData.categoriaId}
+                    onChange={(e) => setFormData({ ...formData, categoriaId: e.target.value })}>
+                    <option value="">Seleccionar...</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              {/* Descripción (AGREGADO) */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Descripción</label>
-                <textarea className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-emerald-500" rows={2}
-                  placeholder="Ingresa una descripción para el producto..."
-                  value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} />
-              </div>
-
-              {/* Tipo */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Tipo de Producto</label>
-                <select className="w-full text-sm border border-gray-300 rounded px-3 py-2"
-                  value={formData.tipoProducto} onChange={(e) => setFormData({ ...formData, tipoProducto: e.target.value })}>
-                  <option value="Producto General">Producto General</option>
-                  <option value="Medicamento">Medicamento</option>
-                </select>
-              </div>
-
-              {/* Categoría - usa id */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Categoría</label>
-                <select className="w-full text-sm border border-gray-300 rounded px-3 py-2"
-                  value={formData.categoriaId}
-                  onChange={(e) => setFormData({ ...formData, categoriaId: e.target.value })}>
-                  <option value="">Seleccionar...</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Presentación */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Presentación</label>
-                <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-white"
-                  value={formData.presentacionId} onChange={(e) => setFormData({ ...formData, presentacionId: e.target.value })}>
-                  <option value="">Seleccionar...</option>
-                  {presentations.map(pres => <option key={pres.id} value={pres.id}>{pres.nombre}</option>)}
-                </select>
+              {/* Tipo + Presentación */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Tipo de Producto</label>
+                  <select className="w-full text-sm border border-gray-300 rounded px-3 py-2"
+                    value={formData.tipoProducto} onChange={(e) => setFormData({ ...formData, tipoProducto: e.target.value })}>
+                    <option value="Producto General">Producto General</option>
+                    <option value="Medicamento">Medicamento</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Presentación</label>
+                  <select className="w-full text-sm border border-gray-300 rounded px-3 py-2 bg-white"
+                    value={formData.presentacionId} onChange={(e) => setFormData({ ...formData, presentacionId: e.target.value })}>
+                    <option value="">Seleccionar...</option>
+                    {presentations.map(pres => <option key={pres.id} value={pres.id}>{pres.nombre}</option>)}
+                  </select>
+                </div>
               </div>
 
               {/* Código de barras */}
@@ -369,6 +365,22 @@ const NewProductPage = () => {
                 <p className="text-[10px] text-gray-400 mt-1">Con el cursor aquí, solo pasa el lector — el código queda listo para usarse en el punto de venta.</p>
               </div>
 
+              {/* Descripción */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Descripción</label>
+                <textarea className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-emerald-500" rows={3}
+                  placeholder="Ingresa una descripción para el producto..."
+                  value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} />
+              </div>
+            </div>
+          </div>
+
+          {/* Columna derecha: Precio, Stock y Formas de Venta */}
+          <div className="bg-white border border-gray-100 rounded-lg p-6 shadow-sm">
+            <h4 className="font-bold text-gray-800 text-sm mb-4 flex items-center gap-2">
+              <DollarSign size={15} className="text-emerald-600" /> Precio y Stock
+            </h4>
+            <div className="space-y-4">
               {/* Precio, IVA y Stock */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="relative">
@@ -573,55 +585,55 @@ const NewProductPage = () => {
                 </div>
               </div>
 
-              {/* Medicamento */}
-              {formData.tipoProducto === "Medicamento" && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <h4 className="font-bold text-gray-800 text-sm mb-3">Información Técnica</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1">Composición</label>
-                      <textarea className="w-full text-sm border border-gray-300 rounded px-3 py-2" rows={2}
-                        value={formData.composicion} onChange={(e) => setFormData({ ...formData, composicion: e.target.value })} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-bold text-gray-700 mb-1">Concentración</label>
-                        <input type="text" className="w-full text-sm border border-gray-300 rounded px-3 py-2"
-                          value={formData.concentracion} onChange={(e) => setFormData({ ...formData, concentracion: e.target.value })} />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1">Vía de Administración</label>
-                      <select className="w-full text-sm border border-gray-300 rounded px-3 py-2"
-                        value={formData.viaAdministracion} onChange={(e) => setFormData({ ...formData, viaAdministracion: e.target.value })}>
-                        <option value="">Seleccionar...</option>
-                        <option value="Oral">Oral</option>
-                        <option value="Inyectable">Inyectable</option>
-                        <option value="Tópica">Tópica</option>
-                        <option value="Inhalatoria">Inhalatoria</option>
-                        <option value="Sublingual">Sublingual</option>
-                        <option value="Rectal">Rectal</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1">Registro Sanitario</label>
-                      <input type="text" className="w-full text-sm border border-gray-300 rounded px-3 py-2"
-                        value={formData.registroSanitario} onChange={(e) => setFormData({ ...formData, registroSanitario: e.target.value })} />
-                    </div>
-                    <div className={`flex items-center justify-between p-3 rounded-lg border transition-all ${formData.requiereFormula ? "bg-blue-100 border-blue-400" : "bg-gray-50 border-gray-200"}`}>
-                      <label className="text-xs font-bold text-gray-700">Requiere Fórmula Médica</label>
-                      <button onClick={() => setFormData({ ...formData, requiereFormula: !formData.requiereFormula })}
-                        className={`relative inline-flex h-5 w-10 items-center rounded-full transition-all ${formData.requiereFormula ? "bg-blue-600" : "bg-gray-300"}`}>
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.requiereFormula ? "translate-x-5" : "translate-x-0.5"}`} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
-
         </div>
+
+        {/* Información Técnica (Medicamento): a todo el ancho, debajo de las dos columnas */}
+        {formData.tipoProducto === "Medicamento" && (
+          <div className="bg-white border border-gray-100 rounded-lg p-6 shadow-sm mt-6">
+            <h4 className="font-bold text-gray-800 text-sm mb-4 flex items-center gap-2">
+              <AlertCircle size={15} className="text-blue-600" /> Información Técnica
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-3">
+                <label className="block text-xs font-bold text-gray-700 mb-1">Composición</label>
+                <textarea className="w-full text-sm border border-gray-300 rounded px-3 py-2" rows={2}
+                  value={formData.composicion} onChange={(e) => setFormData({ ...formData, composicion: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Concentración</label>
+                <input type="text" className="w-full text-sm border border-gray-300 rounded px-3 py-2"
+                  value={formData.concentracion} onChange={(e) => setFormData({ ...formData, concentracion: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Vía de Administración</label>
+                <select className="w-full text-sm border border-gray-300 rounded px-3 py-2"
+                  value={formData.viaAdministracion} onChange={(e) => setFormData({ ...formData, viaAdministracion: e.target.value })}>
+                  <option value="">Seleccionar...</option>
+                  <option value="Oral">Oral</option>
+                  <option value="Inyectable">Inyectable</option>
+                  <option value="Tópica">Tópica</option>
+                  <option value="Inhalatoria">Inhalatoria</option>
+                  <option value="Sublingual">Sublingual</option>
+                  <option value="Rectal">Rectal</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Registro Sanitario</label>
+                <input type="text" className="w-full text-sm border border-gray-300 rounded px-3 py-2"
+                  value={formData.registroSanitario} onChange={(e) => setFormData({ ...formData, registroSanitario: e.target.value })} />
+              </div>
+              <div className={`sm:col-span-3 flex items-center justify-between p-3 rounded-lg border transition-all ${formData.requiereFormula ? "bg-blue-100 border-blue-400" : "bg-gray-50 border-gray-200"}`}>
+                <label className="text-xs font-bold text-gray-700">Requiere Fórmula Médica</label>
+                <button onClick={() => setFormData({ ...formData, requiereFormula: !formData.requiereFormula })}
+                  className={`relative inline-flex h-5 w-10 items-center rounded-full transition-all ${formData.requiereFormula ? "bg-blue-600" : "bg-gray-300"}`}>
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.requiereFormula ? "translate-x-5" : "translate-x-0.5"}`} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="mt-6 bg-white border-t border-gray-100 p-4 sticky bottom-0 z-20">

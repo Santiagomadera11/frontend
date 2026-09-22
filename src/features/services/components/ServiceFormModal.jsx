@@ -19,15 +19,19 @@ const ServiceFormModal = ({
   onSave,
   initialData,
   isViewMode,
+  accentColor = "emerald",
 }) => {
-  // 🟢 VERSIÓN ADMIN - SIEMPRE VERDE
-  // Mismo header claro que Categorías/Marcas/Presentaciones (bg-emerald-50 + borde),
-  // no el verde sólido que tenía antes: un solo estilo de modal en todo el sistema.
-  const headerBgColor = "bg-emerald-50 border-emerald-200";
-  const iconTextColor = "text-emerald-600";
-  const hoverTextColor = "hover:text-emerald-600";
-  const buttonBgColor = "bg-emerald-600 hover:bg-emerald-700";
-  const focusBorderColor = "focus:border-emerald-500";
+  // Este modal lo usan tanto el panel de administrador (verde) como el de empleado
+  // (azul) — ServicesPage.jsx es una sola página compartida — así que el color sigue
+  // el rol de quien la abre, igual que SaleDetailModal con su prop accentColor.
+  const isBlue = accentColor === "blue";
+  const headerBgColor = isBlue ? "bg-blue-50 border-blue-200" : "bg-emerald-50 border-emerald-200";
+  const iconTextColor = isBlue ? "text-blue-600" : "text-emerald-600";
+  const hoverTextColor = isBlue ? "hover:text-blue-600" : "hover:text-emerald-600";
+  const buttonBgColor = isBlue ? "bg-blue-600 hover:bg-blue-700" : "bg-emerald-600 hover:bg-emerald-700";
+  const focusBorderColor = isBlue ? "focus:border-blue-500" : "focus:border-emerald-500";
+  const iconBoxColor = isBlue ? "bg-blue-100 text-blue-600" : "bg-emerald-100 text-emerald-600";
+  const activeBadgeColor = isBlue ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700";
 
   const [formData, setFormData] = useState({
     id: "", // <-- AGREGADO AL ESTADO INICIAL
@@ -166,7 +170,7 @@ const ServiceFormModal = ({
         {isViewMode ? (
           <div className="p-6 space-y-4">
             <div className="flex items-start gap-3">
-              <div className="p-2.5 rounded-lg bg-emerald-100 text-emerald-600 flex-shrink-0">
+              <div className={`p-2.5 rounded-lg flex-shrink-0 ${iconBoxColor}`}>
                 <Stethoscope size={20} />
               </div>
               <div className="min-w-0 flex-1">
@@ -174,7 +178,7 @@ const ServiceFormModal = ({
                 <p className="text-xs text-gray-500 mt-0.5">
                   {categories.find((c) => String(c.id) === String(formData.categoriaId))?.value || "Sin categoría"}
                 </p>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold mt-1.5 ${formData.estado === "Activo" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold mt-1.5 ${formData.estado === "Activo" ? activeBadgeColor : "bg-gray-100 text-gray-500"}`}>
                   {formData.estado}
                 </span>
               </div>
@@ -182,12 +186,12 @@ const ServiceFormModal = ({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 rounded-lg border border-gray-100">
-                <div className="inline-flex p-1.5 rounded-md mb-1.5 bg-emerald-100 text-emerald-600"><DollarSign size={13} /></div>
+                <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${iconBoxColor}`}><DollarSign size={13} /></div>
                 <p className="text-[10px] text-gray-400">Precio</p>
                 <p className="text-xs font-semibold text-gray-900">$ {Number(formData.precio || 0).toLocaleString()}</p>
               </div>
               <div className="p-3 rounded-lg border border-gray-100">
-                <div className="inline-flex p-1.5 rounded-md mb-1.5 bg-emerald-100 text-emerald-600"><Clock size={13} /></div>
+                <div className={`inline-flex p-1.5 rounded-md mb-1.5 ${iconBoxColor}`}><Clock size={13} /></div>
                 <p className="text-[10px] text-gray-400">Duración</p>
                 <p className="text-xs font-semibold text-gray-900">{formData.duracion ? `${formData.duracion} min` : "Sin especificar"}</p>
               </div>

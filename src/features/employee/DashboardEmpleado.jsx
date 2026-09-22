@@ -2,11 +2,16 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar, Clock, ShoppingCart, Plus,
-  AlertCircle, CheckCircle, Package, ArrowRight,
+  AlertCircle, CheckCircle, Package, ArrowRight, X, TrendingUp,
 } from "lucide-react";
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from "recharts";
 import { apiClient } from "../../shared/utils/apiClient";
 import { turnService } from "../sales/services/turnService";
 import { OpenShiftModal } from "../sales/components/OpenShiftModal";
+
+const EMPLOYEE_ACCENT = "#3B7DDE"; // employee-500 — azul de marca del panel de empleado
 
 const API = "/api";
 const getAuthHeaders = () => ({
@@ -31,6 +36,7 @@ export const DashboardEmpleado = () => {
   const [ventas, setVentas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showOpenShiftModal, setShowOpenShiftModal] = useState(false);
+  const [showStockModal, setShowStockModal] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -75,15 +81,35 @@ export const DashboardEmpleado = () => {
   const nextAppointment = citasHoy.find(c =>
     parseToMinutes(c.hora) >= nowMinutes && (c.estadoNombre || "").toLowerCase() !== "completada");
 
-  // Stock bajo
-  const lowStockProducts = useMemo(() =>
-    productos.filter(p => Number(p.stock) < LOW_STOCK_THRESHOLD).slice(0, 4), [productos]);
+  // Stock bajo: la lista completa alimenta el conteo de la tarjeta y el modal;
+  // el panel lateral solo muestra un adelanto de 4 por espacio.
+  const lowStockAll = useMemo(() =>
+    productos.filter(p => Number(p.stock) < LOW_STOCK_THRESHOLD).sort((a, b) => a.stock - b.stock), [productos]);
+  const lowStockProducts = useMemo(() => lowStockAll.slice(0, 4), [lowStockAll]);
 
   // Ventas de hoy (excluye anuladas: si no, el monto y el conteo quedan inflados con
   // dinero que en realidad se revirtió)
   const ventasHoy = useMemo(() =>
     ventas.filter(v => v.estadoId !== 3 && v.fechaVenta && new Date(v.fechaVenta).toISOString().split("T")[0] === todayStr),
     [ventas, todayStr]);
+
+  // Tendencia de ventas de los últimos 7 días (hoy incluido), para que el empleado vea
+  // de un vistazo si el día va mejor o peor que el resto de la semana. Usa el mismo
+  // criterio de fecha que "Ventas Hoy" arriba, para que el último punto coincida con esa
+  // tarjeta.
+  const ventasTrend = useMemo(() => {
+    const dias = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split("T")[0];
+      const totalDia = ventas
+        .filter(v => v.estadoId !== 3 && v.fechaVenta && new Date(v.fechaVenta).toISOString().split("T")[0] === dateStr)
+        .reduce((s, v) => s + (v.total || 0), 0);
+      dias.push({ name: d.toLocaleDateString("es-CO", { weekday: "short" }), total: totalDia });
+    }
+    return dias;
+  }, [ventas]);
 
   const getEstadoColor = (estado) => {
     const lower = (estado || "").toLowerCase();
@@ -115,22 +141,56 @@ export const DashboardEmpleado = () => {
           </div>
         </div>
 
-        {/* KPIs */}
+        {/* KPIs: cada una es clicable y lleva a ver el detalle de lo que muestra,
+            igual que hace el Dashboard del administrador con su tarjeta de Stock. */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Citas Hoy", value: citasHoy.length, sub: `${citasHoy.filter(c => (c.estadoNombre||"").toLowerCase()==="completada").length} atendidas`, icon: Calendar, bg: "bg-employee-50", color: "text-employee-600", accent: "before:bg-employee-500" },
-            { label: "Por Confirmar", value: pendingConfirmations, sub: "Requieren llamada", icon: AlertCircle, bg: "bg-amber-50", color: "text-amber-600", accent: "before:bg-amber-500" },
-            { label: "Ventas Hoy", value: ventasHoy.length, sub: `$${ventasHoy.reduce((s,v)=>s+(v.total||0),0).toLocaleString("es-CO")}`, icon: ShoppingCart, bg: "bg-emerald-50", color: "text-emerald-600", accent: "before:bg-emerald-500" },
-            { label: "Stock Bajo", value: lowStockProducts.length, sub: "Productos por agotarse", icon: Package, bg: "bg-red-50", color: "text-red-600", accent: "before:bg-red-500" },
-          ].map(({ label, value, sub, icon: Icon, bg, color, accent }) => (
-            <div key={label}
-              className={`group relative overflow-hidden p-5 rounded-xl border border-gray-100 bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 before:absolute before:inset-x-0 before:top-0 before:h-1 ${accent}`}>
+            { label: "Citas Hoy", value: citasHoy.length, sub: `${citasHoy.filter(c => (c.estadoNombre||"").toLowerCase()==="completada").length} atendidas`, icon: Calendar, bg: "bg-employee-50", color: "text-employee-600", accent: "before:bg-employee-500", onClick: () => navigate("/employee/citas") },
+            { label: "Por Confirmar", value: pendingConfirmations, sub: "Requieren llamada — clic para gestionar", icon: AlertCircle, bg: "bg-amber-50", color: "text-amber-600", accent: "before:bg-amber-500", onClick: () => navigate("/employee/citas") },
+            { label: "Ventas Hoy", value: ventasHoy.length, sub: `$${ventasHoy.reduce((s,v)=>s+(v.total||0),0).toLocaleString("es-CO")}`, icon: ShoppingCart, bg: "bg-emerald-50", color: "text-emerald-600", accent: "before:bg-emerald-500", onClick: () => navigate("/employee/ventas") },
+            { label: "Stock Bajo", value: lowStockAll.length, sub: "Productos por agotarse — clic para ver cuáles", icon: Package, bg: "bg-red-50", color: "text-red-600", accent: "before:bg-red-500", onClick: () => setShowStockModal(true) },
+          ].map(({ label, value, sub, icon: Icon, bg, color, accent, onClick }) => (
+            <button key={label} type="button" onClick={onClick}
+              className={`group relative overflow-hidden p-5 rounded-xl border border-gray-100 bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 before:absolute before:inset-x-0 before:top-0 before:h-1 text-left w-full cursor-pointer ${accent}`}>
               <div className={`inline-flex p-2.5 rounded-lg mb-3 ${bg} ${color} group-hover:scale-110 transition-transform duration-200`}><Icon size={18} /></div>
               <p className="text-xs text-gray-400">{label}</p>
               <h3 className="text-2xl font-semibold text-gray-900 mt-0.5">{value}</h3>
               <p className={`text-[11px] font-medium mt-1 ${color}`}>{sub}</p>
-            </div>
+            </button>
           ))}
+        </div>
+
+        {/* Tendencia de ventas */}
+        <div className="bg-white rounded-xl border border-gray-100 p-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="p-1.5 rounded-md bg-employee-50 text-employee-600"><TrendingUp size={14} /></div>
+            <div>
+              <h3 className="font-medium text-gray-800 text-sm">Tendencia de ventas</h3>
+              <p className="text-[11px] text-gray-400">Últimos 7 días</p>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={ventasTrend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorVentasEmpleado" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={EMPLOYEE_ACCENT} stopOpacity={0.2} />
+                  <stop offset="95%" stopColor={EMPLOYEE_ACCENT} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#94a3b8" }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94a3b8" }}
+                tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} width={44} />
+              <Tooltip
+                cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }}
+                formatter={(v) => [`$${Number(v).toLocaleString("es-CO")}`, "Ventas"]}
+                contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e2e8f0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
+                labelStyle={{ fontWeight: 600, color: "#1e293b", marginBottom: 2 }}
+              />
+              <Area type="monotone" dataKey="total" stroke={EMPLOYEE_ACCENT} strokeWidth={2} fillOpacity={1} fill="url(#colorVentasEmpleado)"
+                dot={{ r: 3, fill: EMPLOYEE_ACCENT, strokeWidth: 0 }} activeDot={{ r: 5, fill: EMPLOYEE_ACCENT, stroke: "#fff", strokeWidth: 2 }} />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -249,6 +309,50 @@ export const DashboardEmpleado = () => {
       <OpenShiftModal isOpen={showOpenShiftModal} onShiftOpened={() => setShowOpenShiftModal(false)}
         user={currentUser} canClose={(currentUser?.rol || "").toLowerCase().trim() === "administrador"}
         onCancel={() => setShowOpenShiftModal(false)} />
+
+      {/* Modal Stock Bajo: la tarjeta solo mostraba un número sin decir cuáles
+          productos eran — acá se listan por nombre, igual que en el panel del admin. */}
+      {showStockModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setShowStockModal(false)}>
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-red-50 border-red-200 px-5 py-3 border-b flex justify-between items-center">
+              <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                <AlertCircle size={16} className="text-red-600" /> Stock Bajo
+              </h3>
+              <button onClick={() => setShowStockModal(false)} className="text-gray-400 hover:text-red-600 transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="max-h-[50vh] overflow-y-auto divide-y divide-gray-50">
+              {lowStockAll.length === 0 ? (
+                <p className="text-gray-400 text-xs text-center p-8">No hay productos con stock bajo.</p>
+              ) : (
+                lowStockAll.map(p => (
+                  <div key={p.id} className="px-5 py-2.5 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-gray-900 truncate">{p.nombre}</p>
+                      {p.categoriaNombre && <p className="text-[10px] text-gray-400">{p.categoriaNombre}</p>}
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${p.stock === 0 ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
+                      {p.stock === 0 ? "Sin stock" : `${p.stock} unid.`}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="bg-gray-50 px-5 py-3 border-t border-gray-200 flex justify-end gap-2">
+              <button onClick={() => setShowStockModal(false)} className="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                Cerrar
+              </button>
+              <button onClick={() => navigate("/employee/productos")} className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-colors">
+                Ver en Productos
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
